@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>语义模型层架构图</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: #f0f2f5;
+      color: #1f2d3d;
+    }
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #dbe3ef;
+      border-radius: 8px;
+      padding: 20px 24px 28px;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+    }
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #eef1f5;
+    }
+    .page-head h1 { margin: 0; font-size: 20px; font-weight: 600; }
+    .legend { display: flex; gap: 14px; font-size: 12px; color: #475467; }
+    .legend i {
+      display: inline-block; width: 12px; height: 12px; border-radius: 2px;
+      margin-right: 4px; vertical-align: -2px;
+    }
+    .legend .up { background: #faad14; }
+    .legend .build { background: #ff7875; }
+    .legend .todo { background: #fff; border: 1px solid #98a2b3; }
+    .mermaid-wrap { overflow-x: auto; padding: 4px 0 8px; }
+    .hint { margin-top: 12px; font-size: 12px; color: #667085; line-height: 1.6; }
+    .arch-panel { text-align: left; min-width: 220px; padding: 4px 2px; }
+    .arch-panel-title {
+      text-align: center; font-weight: 700; font-size: 14px; color: #1f2d3d;
+      margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #dbe3ef;
+    }
+    .arch-subtitle {
+      font-size: 12px; font-weight: 600; color: #475467; margin: 8px 0 6px;
+    }
+    .arch-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 4px; }
+    .arch-chip {
+      display: inline-block; padding: 4px 10px; border: 1px solid #1677d2; border-radius: 4px;
+      background: #fff; color: #1f2d3d; font-size: 12px; line-height: 1.3; white-space: nowrap;
+    }
+    .arch-chip.is-perm {
+      background: #1677d2; border-color: #0958b5; color: #fff; font-weight: 600;
+    }
+    .arch-perm-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 6px 0; }
+    .arch-scene {
+      text-align: center; font-size: 15px; font-weight: 600; color: #1f2d3d; padding: 10px 24px;
+    }
+    .arch-data-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-head">
+      <h1>数据中台 · 语义模型层架构（原型现状）</h1>
+      <div class="legend">
+        <span><i class="up"></i>升级中</span>
+        <span><i class="build"></i>建设中</span>
+        <span><i class="todo"></i>待研发</span>
+      </div>
+    </div>
+    <div class="mermaid-wrap">
+      <pre class="mermaid">
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Microsoft YaHei, PingFang SC, sans-serif",
+    "fontSize": "13px",
+    "primaryColor": "#eef6ff",
+    "primaryBorderColor": "#1677d2",
+    "primaryTextColor": "#1f2d3d",
+    "lineColor": "#1677d2",
+    "clusterBkg": "#f7fbff",
+    "clusterBorder": "#1677d2",
+    "titleColor": "#1f2d3d"
+  },
+  "flowchart": { "htmlLabels": true, "curve": "basis", "padding": 16, "nodeSpacing": 20, "rankSpacing": 36 }
+}}%%
+
+flowchart TB
+
+  subgraph L1["场景层"]
+    S1["<div class='arch-scene'>智能问数</div>"]
+  end
+
+  subgraph L2["语义模型层"]
+    direction TB
+
+    PERM["<div class='arch-perm-row'><span class='arch-chip is-perm'>工程策略</span><span class='arch-chip is-perm'>角色授权</span><span class='arch-chip is-perm'>行权限</span><span class='arch-chip is-perm'>预览验证</span><span class='arch-chip is-perm'>域级过滤</span></div>"]
+
+    subgraph ROW[" "]
+      direction LR
+
+      COL1["<div class='arch-panel'><div class='arch-panel-title'>结构语义</div><div class='arch-subtitle'>模型</div><div class='arch-chips'><span class='arch-chip'>数据域</span><span class='arch-chip'>基础模型</span><span class='arch-chip'>域模型</span></div><div class='arch-chips'><span class='arch-chip'>关联配置</span><span class='arch-chip'>字段设置</span><span class='arch-chip'>关联文档</span></div><div class='arch-subtitle'>指标</div><div class='arch-chips'><span class='arch-chip'>指标维度</span><span class='arch-chip'>AI生成</span><span class='arch-chip'>公式/SQL</span></div><div class='arch-chips'><span class='arch-chip'>扩展设置</span><span class='arch-chip'>术语推荐</span><span class='arch-chip'>批量挂载术语</span></div></div>"]
+
+      COL2["<div class='arch-panel'><div class='arch-panel-title'>术语中心</div><div class='arch-chips'><span class='arch-chip'>术语新建</span><span class='arch-chip'>数据域</span><span class='arch-chip'>批量上传</span></div><div class='arch-chips'><span class='arch-chip'>上下线</span><span class='arch-chip'>批量移动域</span><span class='arch-chip'>详情反查</span></div></div>"]
+
+      COL3["<div class='arch-panel'><div class='arch-panel-title'>文档中心</div><div class='arch-chips'><span class='arch-chip'>上传文档</span><span class='arch-chip'>绑域预解析</span><span class='arch-chip'>指标切片</span></div><div class='arch-chips'><span class='arch-chip'>在线预览</span><span class='arch-chip'>模型挂接</span><span class='arch-chip'>批量操作</span></div></div>"]
+
+      COL4["<div class='arch-panel'><div class='arch-panel-title'>血缘管理</div><div class='arch-chips'><span class='arch-chip'>语义首页</span><span class='arch-chip'>四视角图谱</span><span class='arch-chip'>域工程筛选</span></div><div class='arch-chips'><span class='arch-chip'>展开深度</span><span class='arch-chip'>物理血缘</span><span class='arch-chip'>节点跳转</span></div></div>"]
+    end
+
+    PERM --- COL1
+  end
+
+  subgraph L3["数据层"]
+    direction TB
+    DA["<div class='arch-data-row'><span class='arch-chip'>数据集成</span><span class='arch-chip'>数据开发</span><span class='arch-chip'>数据服务</span><span class='arch-chip'>数据治理</span></div>"]
+    DB["<div class='arch-data-row' style='margin-top:6px'><span class='arch-chip'>库表数据</span><span class='arch-chip'>文本数据</span><span class='arch-chip'>接口数据</span><span class='arch-chip'>采集数据</span></div><div style='text-align:center;font-size:12px;color:#475467;margin-top:8px;font-weight:600'>湖仓底座</div>"]
+  end
+
+  L1 ==> L2
+  L2 ==> L3
+  DA --> DB
+
+  style ROW fill:transparent,stroke:transparent
+  style PERM fill:#eef6ff,stroke:#1677d2,stroke-width:1px
+  style COL1 fill:#f7fbff,stroke:#69b1ff,stroke-width:2px
+  style COL2 fill:#f7fbff,stroke:#69b1ff,stroke-width:2px
+  style COL3 fill:#f7fbff,stroke:#69b1ff,stroke-width:2px
+  style COL4 fill:#f7fbff,stroke:#69b1ff,stroke-width:2px
+      </pre>
+    </div>
+    <p class="hint">预览路径：<code>temp/reports/语义模型层架构图.html</code>。本地可运行 <code>python -m http.server</code> 后浏览器打开并截图导出。</p>
+  </div>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose" });
+  </script>
+</body>
+</html>

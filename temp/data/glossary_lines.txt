@@ -1,0 +1,38 @@
+===== line 6799 (len 63) =====
+                  <div class="glossary-tabs" id="glossaryTabs">
+
+===== line 8035 (len 54) =====
+    const GLOSSARY_KEY = "biz-modeling-glossaries-v1";
+
+===== line 8036 (len 65) =====
+    const GLOSSARY_CURRENT_KEY = "biz-modeling-glossary-current";
+
+===== line 8043 (len 274) =====
+    let glossaries = (() => { try { const r = localStorage.getItem(GLOSSARY_KEY); if (r) { const p = JSON.parse(r); if (Array.isArray(p)) return p; } } catch (_) {} localStorage.setItem(GLOSSARY_KEY, JSON.stringify(DEFAULT_GLOSSARIES)); return [...DEFAULT_GLOSSARIES]; })();
+
+===== line 8044 (len 98) =====
+    let currentGlossaryId = localStorage.getItem(GLOSSARY_CURRENT_KEY) || glossaries[0]?.id || "";
+
+===== line 8045 (len 115) =====
+    const persist = () => { try { localStorage.setItem(GLOSSARY_KEY, JSON.stringify(glossaries)); } catch (_) {} };
+
+===== line 8046 (len 123) =====
+    const persistCur = () => { try { localStorage.setItem(GLOSSARY_CURRENT_KEY, currentGlossaryId || ""); } catch (_) {} };
+
+===== line 8054 (len 1374) =====
+    function renderHeader() { const lv = document.getElementById("listView"); const isTerm = lv?.dataset.activeCatalog === "term"; const a = document.getElementById("glossaryHeaderArea"); const gi = document.getElementById("glossaryHeaderInline"); const hint = document.getElementById("termToolbarHint"); if (!a) return; if (!isTerm) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } const g = getCurG(); if (!g) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } a.hidden = false; if (gi) { gi.hidden = false; const ni = document.getElementById("glossaryHeaderNameInline"); if (ni) ni.textContent = g.name; } if (hint) hint.style.display = "none"; const d = document.getElementById("glossaryDescText"); if (d) d.innerHTML = g.description ? g.description : `<span class=\"glossary-desc-empty-text\">暂无描述，点击编辑按钮补充术语库说明。</span>`; const c = document.getElementById("glossaryTabTermCount"); const cnt = termCount(g.id); if (c) c.textContent = cnt; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = cnt > 0; if (g.domain && window.BizTermUI?.setDomainFilter) window.BizTermUI.setDomainFilter(g.domain); }
+
+===== line 8055 (len 96) =====
+    function selectG(id) { currentGlossaryId = id; persistCur(); renderSide(); renderHeader(); }
+
+===== line 8059 (len 2521) =====
+    function initGlossary() { const lv = document.getElementById("listView"); const layout = document.querySelector(".layout"); const content = document.querySelector(".content"); const isTerm = lv?.dataset.activeCatalog === "term"; const gs = document.getElementById("glossarySideContent"); const ts = document.getElementById("knowledgeTreeContent"); const se = document.querySelector(".side"); if (gs) gs.hidden = !isTerm; if (ts) ts.hidden = isTerm; if (se) { if (isTerm) { se.style.cssText = "display:flex;flex-direction:column;width:240px;min-width:240px;border-right:1px solid #e5e8ef;background:#fff;flex-shrink:0;"; } else { se.style.display = "none"; } } /* 关键：layout 切换为 flex 两列布局，让 side 显示在 content 左侧 */ if (layout) { if (isTerm) { layout.style.cssText = "display:flex;align-items:stretch;min-width:0;"; } else { layout.style.cssText = ""; } } if (content && isTerm) { content.style.minWidth = "0"; } renderSide(); renderHeader(); document.getElementById("glossaryList")?.addEventListener("click", (e) => { const it = e.target.closest(".glossary-item"); if (it?.dataset.glossaryId) selectG(it.dataset.glossaryId); }); document.getElementById("glossaryAddBtn")?.addEventListener("click", openGDrawer); document.getElementById("closeGlossaryCreateBtn")?.addEventListener("click", closeGDrawer); document.getElementById("glossaryCreateCancelBtn")?.addEventListener("click", closeGDrawer); document.getElementById("glossaryCreateSaveBtn")?.addEventListener("click", saveGDrawer); document.getElementById("glossaryNewTermBtn")?.addEventListener("click", () => document.getElementById("termCreateBtn")?.click()); document.querySelectorAll("#glossaryTabs .glossary-tab").forEach((tab) => tab.addEventListener("click", () => { document.querySelectorAll("#glossaryTabs .glossary-tab").forEach(t => t.classList.remove("active")); tab.classList.add("active"); })); if (lv && window.MutationObserver) { new MutationObserver(() => { const nt = lv.dataset.activeCatalog === "term"; const layout = document.querySelector(".layout"); if (gs) gs.hidden = !nt; if (ts) ts.hidden = nt; if (se) { if (nt) { se.style.cssText = "display:flex;flex-direction:column;width:240px;min-width:240px;border-right:1px solid #e5e8ef;background:#fff;flex-shrink:0;"; } else { se.style.display = "none"; } } if (layout) { if (nt) { layout.style.cssText = "display:flex;align-items:stretch;min-width:0;"; } else { layout.style.cssText = ""; } } renderHeader(); }).observe(lv, { attributes: true, attributeFilter: ["data-active-catalog"] }); } }
+
+===== line 8060 (len 84) =====
+    window.GlossaryUI = { renderSide, renderHeader, selectG, openGDrawer, getCurG };
+
+===== line 8064 (len 21) =====
+      initGlossary();
+
+===== line 12938 (len 42) =====
+      window.GlossaryUI?.renderHeader?.();
