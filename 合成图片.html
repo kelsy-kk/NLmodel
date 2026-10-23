@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>合成图片 · 智能问数浮层</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      font-size: 12px;
+      color: #1f2d3d;
+      background: #eef1f5;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px 20px 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .desc {
+      margin: 0 0 16px;
+      color: #667085;
+      line-height: 1.6;
+    }
+
+    .compose-wrap {
+      background: #fff;
+      border: 1px solid #e5e8ef;
+      border-radius: 8px;
+      padding: 12px;
+      overflow: auto;
+    }
+
+    /* 合成画布：底图 + 右侧浮层（第二张图） */
+    .compose {
+      position: relative;
+      display: inline-block;
+      line-height: 0;
+      max-width: 100%;
+    }
+
+    .compose__base {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: 1280px;
+    }
+
+  .compose__overlay {
+      position: absolute;
+      /* 对齐第一张图右侧「智能问数」浮层区域 */
+      top: 0;
+      right: 0;
+      width: 39.8%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top right;
+      pointer-events: none;
+    }
+
+    .controls {
+      margin-top: 16px;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid #e5e8ef;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px 20px;
+    }
+
+    .control label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #475467;
+    }
+
+    .control input[type="range"] {
+      width: 100%;
+    }
+
+    .control output {
+      font-size: 11px;
+      color: #98a2b3;
+    }
+
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      height: 30px;
+      padding: 0 14px;
+      border: 1px solid #dfe5ee;
+      border-radius: 4px;
+      background: #fff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      border-color: #1e9bff;
+      background: #1e9bff;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>图片合成预览</h1>
+    <p class="desc">
+      底图为第一张（数据平台 + 左侧统计浮层）；第二张（智能问数对话界面）叠加在右侧浮层面板区域。
+      可用下方滑块微调位置，满意后点击「导出合成图」保存 PNG。
+    </p>
+
+    <div class="compose-wrap">
+      <div class="compose" id="compose">
+        <img
+          class="compose__base"
+          id="baseImg"
+          src="assets/base-dashboard.png"
+          alt="底图：数据平台首页"
+        />
+        <img
+          class="compose__overlay"
+          id="overlayImg"
+          src="assets/overlay-chat.png"
+          alt="浮层：智能问数对话"
+        />
+      </div>
+    </div>
+
+    <div class="controls" id="controls">
+      <div class="control">
+        <label>浮层距顶部 (%)
+          <input type="range" id="topRange" min="0" max="8" step="0.1" value="0" />
+          <output id="topOut">0%</output>
+        </label>
+      </div>
+      <div class="control">
+        <label>浮层距右侧 (%)
+          <input type="range" id="rightRange" min="0" max="5" step="0.1" value="0" />
+          <output id="rightOut">0%</output>
+        </label>
+      </div>
+      <div class="control">
+        <label>浮层宽度 (%)
+          <input type="range" id="widthRange" min="32" max="48" step="0.1" value="39.8" />
+          <output id="widthOut">39.8%</output>
+        </label>
+      </div>
+      <div class="control">
+        <label>浮层高度 (%)
+          <input type="range" id="heightRange" min="85" max="100" step="0.1" value="100" />
+          <output id="heightOut">100%</output>
+        </label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="exportBtn" type="button">导出合成图 PNG</button>
+      <button class="btn" id="resetBtn" type="button">重置位置</button>
+    </div>
+  </div>
+
+  <script>
+    const overlayImg = document.getElementById("overlayImg");
+    const baseImg = document.getElementById("baseImg");
+    const topRange = document.getElementById("topRange");
+    const rightRange = document.getElementById("rightRange");
+    const widthRange = document.getElementById("widthRange");
+    const heightRange = document.getElementById("heightRange");
+    const topOut = document.getElementById("topOut");
+    const rightOut = document.getElementById("rightOut");
+    const widthOut = document.getElementById("widthOut");
+    const heightOut = document.getElementById("heightOut");
+
+    function applyOverlayStyle() {
+      overlayImg.style.top = `${topRange.value}%`;
+      overlayImg.style.right = `${rightRange.value}%`;
+      overlayImg.style.width = `${widthRange.value}%`;
+      overlayImg.style.height = `${heightRange.value}%`;
+      topOut.textContent = `${topRange.value}%`;
+      rightOut.textContent = `${rightRange.value}%`;
+      widthOut.textContent = `${widthRange.value}%`;
+      heightOut.textContent = `${heightRange.value}%`;
+    }
+
+    [topRange, rightRange, widthRange, heightRange].forEach((el) => {
+      el.addEventListener("input", applyOverlayStyle);
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      topRange.value = "0";
+      rightRange.value = "0";
+      widthRange.value = "39.8";
+      heightRange.value = "100";
+      applyOverlayStyle();
+    });
+
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      const canvas = document.createElement("canvas");
+      const w = baseImg.naturalWidth;
+      const h = baseImg.naturalHeight;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(baseImg, 0, 0, w, h);
+
+      const top = (parseFloat(topRange.value) / 100) * h;
+      const right = (parseFloat(rightRange.value) / 100) * w;
+      const ow = (parseFloat(widthRange.value) / 100) * w;
+      const oh = (parseFloat(heightRange.value) / 100) * h;
+      const ox = w - right - ow;
+
+      ctx.drawImage(overlayImg, ox, top, ow, oh);
+
+      const link = document.createElement("a");
+      link.download = "合成图-智能问数浮层.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+
+    applyOverlayStyle();
+  </script>
+</body>
+</html>

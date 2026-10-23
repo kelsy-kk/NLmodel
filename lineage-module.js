@@ -1366,5 +1366,5 @@
     return { render: renderAll, refresh: renderAll };
   }
 
-  global.LineageModule = { mount, createGraphBuilder, computeLayout };
+  global.LineageModule = { mount, createGraphBuilder, computeLayout, renderGraphSvg };
 })(window);

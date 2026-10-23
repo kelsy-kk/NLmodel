@@ -4368,6 +4368,478 @@
       text-overflow: ellipsis;
     }
 
+    /* ===== 术语详情（下沉二级页面） ===== */
+    .term-detail-view {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 99px);
+      color: #344054;
+      background: #fff;
+    }
+
+    .term-detail-view[hidden] {
+      display: none !important;
+    }
+
+    .term-detail-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 2px 0 12px;
+      border-bottom: 1px solid #eef1f5;
+    }
+
+    .term-detail-head-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .term-detail-back {
+      flex: none;
+      height: 26px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #1677ff;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .term-detail-back:hover {
+      text-decoration: underline;
+    }
+
+    .term-detail-badge {
+      flex: none;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #1677ff;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .term-detail-title-wrap {
+      min-width: 0;
+    }
+
+    .term-detail-title {
+      margin: 0;
+      color: #101828;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 22px;
+    }
+
+    .term-detail-sub {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .term-detail-sub .term-detail-dot {
+      color: #d0d5dd;
+    }
+
+    .term-detail-actions {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .term-detail-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #e8edf3;
+    }
+
+    .term-detail-tab {
+      position: relative;
+      height: 38px;
+      padding: 0 18px;
+      border: 0;
+      background: transparent;
+      color: #475467;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .term-detail-tab:hover {
+      color: #1677ff;
+    }
+
+    .term-detail-tab.active {
+      color: #1677ff;
+      font-weight: 600;
+    }
+
+    .term-detail-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: -1px;
+      height: 2px;
+      background: #1677ff;
+    }
+
+    .term-detail-tab-count {
+      display: inline-block;
+      min-width: 18px;
+      height: 18px;
+      margin-left: 6px;
+      padding: 0 5px;
+      box-sizing: border-box;
+      border-radius: 9px;
+      background: #f2f4f7;
+      color: #475467;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 18px;
+      text-align: center;
+    }
+
+    .term-detail-tab.active .term-detail-tab-count {
+      background: #e8f1ff;
+      color: #1677ff;
+    }
+
+    .term-detail-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding-bottom: 24px;
+    }
+
+    .term-detail-panel[hidden] {
+      display: none !important;
+    }
+
+    /* 概览 */
+    .td-card {
+      margin-bottom: 14px;
+      padding: 16px 18px;
+      border: 1px solid #eaecf0;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .td-card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      color: #101828;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .td-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px 28px;
+    }
+
+    .td-field {
+      min-width: 0;
+    }
+
+    .td-field-label {
+      margin-bottom: 4px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-field-value {
+      color: #101828;
+      font-size: 13px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .td-desc {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px dashed #eaecf0;
+      color: #344054;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .td-stat-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .td-stat {
+      flex: 1 1 150px;
+      min-width: 140px;
+      padding: 12px 14px;
+      border: 1px solid #eaecf0;
+      border-radius: 8px;
+      background: #fafbfc;
+      cursor: pointer;
+    }
+
+    .td-stat:hover {
+      border-color: #bfdbfe;
+      background: #f5f9ff;
+    }
+
+    .td-stat-label {
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-stat-value {
+      margin-top: 8px;
+      color: #101828;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    /* 挂载清单 */
+    .td-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .td-search {
+      position: relative;
+      flex: 1 1 240px;
+      max-width: 340px;
+    }
+
+    .td-search input {
+      width: 100%;
+      height: 32px;
+      box-sizing: border-box;
+      padding: 0 10px 0 30px;
+      border: 1px solid #d0d5dd;
+      border-radius: 6px;
+      background: #fff;
+      color: #344054;
+      font: inherit;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .td-search input:focus {
+      border-color: #1677ff;
+    }
+
+    .td-search svg {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #98a2b3;
+    }
+
+    .td-type-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .td-chip {
+      height: 28px;
+      padding: 0 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 14px;
+      background: #fff;
+      color: #475467;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .td-chip:hover {
+      border-color: #1677ff;
+      color: #1677ff;
+    }
+
+    .td-chip.active {
+      border-color: #1677ff;
+      background: #eff6ff;
+      color: #1677ff;
+      font-weight: 600;
+    }
+
+    .td-mount-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .td-mount-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid #eaecf0;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .td-mount-item:hover {
+      border-color: #bfdbfe;
+      box-shadow: 0 2px 8px rgba(22, 119, 255, 0.06);
+    }
+
+    .td-mount-check {
+      margin-top: 3px;
+      flex: none;
+    }
+
+    .td-mount-main {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .td-mount-path {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 5px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-mount-path .td-sep {
+      color: #d0d5dd;
+    }
+
+    .td-mount-name {
+      color: #101828;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .td-mount-name a {
+      color: #1677ff;
+      text-decoration: none;
+    }
+
+    .td-mount-name a:hover {
+      text-decoration: underline;
+    }
+
+    .td-mount-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 7px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-type-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 20px;
+      padding: 0 8px;
+      border-radius: 10px;
+      background: #f2f4f7;
+      color: #475467;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .td-type-tag.is-auto {
+      background: #eef6ff;
+      color: #1677ff;
+    }
+
+    .td-type-tag.is-owner {
+      background: #ecfdf3;
+      color: #067647;
+    }
+
+    .td-empty {
+      padding: 48px 0;
+      color: #98a2b3;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* 关系图谱 */
+    .td-graph-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-graph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .td-graph-legend i {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 5px;
+      border-radius: 50%;
+    }
+
+    .td-graph-wrap {
+      position: relative;
+      height: calc(100vh - 350px);
+      min-height: 360px;
+      overflow: hidden;
+      border: 1px solid #eaecf0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fbfcfe, #fff);
+    }
+
+    .td-graph-wrap svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .td-graph-tip {
+      position: absolute;
+      left: 12px;
+      bottom: 10px;
+      color: #98a2b3;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
     #listCatalogTermPanel {
       overflow-x: auto;
       max-width: 100%;
@@ -7070,6 +7542,42 @@
           </div>
         </div>
 
+        <section class="term-detail-view" id="termDetailView" hidden aria-label="术语详情">
+          <div class="term-detail-head">
+            <div class="term-detail-head-main">
+              <button class="term-detail-back" id="termDetailBackBtn" type="button">‹ 返回列表</button>
+              <div class="term-detail-badge" id="termDetailBadge">术</div>
+              <div class="term-detail-title-wrap">
+                <h2 class="term-detail-title" id="termDetailTitle">术语详情</h2>
+                <div class="term-detail-sub">
+                  <span id="termDetailDomain">—</span>
+                  <span class="term-detail-dot">·</span>
+                  <span id="termDetailProject">—</span>
+                  <span class="term-detail-dot">·</span>
+                  <span class="online-tag is-online" id="termDetailOnlineTag">已上线</span>
+                </div>
+              </div>
+            </div>
+            <div class="term-detail-actions">
+              <button class="model-link-term" id="termDetailEditBtn" type="button">编辑</button>
+              <button class="model-link-term" id="termDetailMountBtn" type="button">挂载资产</button>
+              <button class="model-save" id="termDetailOnlineBtn" type="button">下线</button>
+            </div>
+          </div>
+
+          <div class="term-detail-tabs" role="tablist" aria-label="术语详情">
+            <button class="term-detail-tab active" type="button" role="tab" data-term-detail-tab="overview" aria-selected="true">概览</button>
+            <button class="term-detail-tab" type="button" role="tab" data-term-detail-tab="mounts" aria-selected="false">挂载清单<span class="term-detail-tab-count" id="termDetailMountCount">0</span></button>
+            <button class="term-detail-tab" type="button" role="tab" data-term-detail-tab="lineage" aria-selected="false">关系图谱</button>
+          </div>
+
+          <div class="term-detail-body">
+            <div class="term-detail-panel" id="termDetailOverviewPanel" data-term-detail-panel="overview"></div>
+            <div class="term-detail-panel" id="termDetailMountsPanel" data-term-detail-panel="mounts" hidden></div>
+            <div class="term-detail-panel" id="termDetailLineagePanel" data-term-detail-panel="lineage" hidden></div>
+          </div>
+        </section>
+
         <section class="model-view" id="modelView" hidden aria-label="业务模型编辑">
           <div class="model-head">
             <div class="model-title-wrap">
@@ -8053,14 +8561,6 @@
     </div>
   </div>
 
-  <aside class="drawer bridge-drawer" id="termDetailDrawer" hidden aria-label="术语详情">
-    <div class="drawer-head">
-      <strong id="termDetailDrawerTitle">术语详情</strong>
-      <button class="drawer-close" id="closeTermDetailDrawerBtn" type="button" aria-label="关闭">×</button>
-    </div>
-    <div id="termDetailDrawerBody"></div>
-  </aside>
-
   <aside class="drawer" id="glossaryCreateDrawer" hidden aria-label="新建术语库">
     <div class="drawer-head"><span>新建术语库</span><button class="drawer-close" id="closeGlossaryCreateBtn" type="button" aria-label="关闭">×</button></div>
     <div class="drawer-scroll-host" style="padding:20px 22px;">
@@ -8100,7 +8600,7 @@
   <script src="../shared/semantic-bridge.js?v=2026100918"></script>
   <script src="permission-module.js?v=2026100918"></script>
   <script src="metric-module.js?v=2026100918"></script>
-  <script src="term-module.js?v=2026101218"></script>
+  <script src="term-module.js?v=2026102201"></script>
   <script src="lineage-module.js?v=2026100918"></script>
   <script>
     const embedMode = new URLSearchParams(window.location.search).get("embed");
@@ -10461,10 +10961,21 @@
       modelViewEl.classList.remove("model-view--basic");
       const metricEditViewEl = document.getElementById("metricEditView");
       if (metricEditViewEl) metricEditViewEl.hidden = true;
+      const termDetailViewEl = document.getElementById("termDetailView");
+      if (termDetailViewEl) termDetailViewEl.hidden = true;
       closeBasicDataPreview();
       listViewEl.hidden = false;
       initFeatureHelpTips();
     }
+
+    /* 需求：切换一级/二级页签时必须彻底回到列表视图
+       —— 否则从模型「字段设置」页直接点「术语中心」，右侧仍停留在 modelView / metricEditView */
+    document.querySelectorAll(".list-primary-tab, .list-catalog-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        showListView();
+        if (tab.dataset.listPrimary === "term") window.setTimeout(initGlossary, 0);
+      });
+    });
 
     function getFieldRowEnglishName(row) {
       const nameCell = row.cells[2];

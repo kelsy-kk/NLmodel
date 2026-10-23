@@ -170,6 +170,7 @@
   }
 
   function writeTerms(terms) {
+    bumpDetailCache();
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(terms));
       global.dispatchEvent(new CustomEvent("biz-terms-updated", { detail: terms }));
@@ -197,20 +198,57 @@
     }));
   }
 
+  /* ===== 性能：详情/列表渲染链会高频读取这两个键，
+     原实现每次都 localStorage.getItem + JSON.parse，成为详情页卡顿的主因。
+     改为进程内缓存；写操作与外部标签页变更（storage 事件）时失效 ===== */
+  let fieldTermMapCache = null;
+  let fieldTermDismissCache = null;
+  let fieldTermRowsCache = null;
+
+  /* 详情渲染用到的「术语挂载清单」缓存：数据一有变动就整体失效 */
+  let detailCacheVersion = 0;
+  const detailMountCache = new Map();
+
+  function bumpDetailCache() {
+    detailCacheVersion += 1;
+    if (detailMountCache.size) detailMountCache.clear();
+    fieldTermRowsCache = null;
+  }
+
+  /* 其他标签页 / 直写 localStorage 时同步失效，避免读到脏缓存 */
+  try {
+    global.addEventListener?.("storage", (event) => {
+      const key = event?.key;
+      if (key === FIELD_TERM_KEY || key === FIELD_TERM_DISMISS_KEY || key === STORAGE_KEY) {
+        fieldTermMapCache = null;
+        fieldTermDismissCache = null;
+        bumpDetailCache();
+      }
+    });
+  } catch (_err) {
+    /* ignore */
+  }
+
   function readFieldTermMap() {
+    if (fieldTermMapCache) return fieldTermMapCache;
+    let next = {};
     try {
       const raw = localStorage.getItem(FIELD_TERM_KEY);
       const parsed = raw ? JSON.parse(raw) : {};
-      return parsed && typeof parsed === "object" ? parsed : {};
+      next = parsed && typeof parsed === "object" ? parsed : {};
     } catch (_err) {
-      return {};
+      next = {};
     }
+    fieldTermMapCache = next;
+    return fieldTermMapCache;
   }
 
   function writeFieldTermMap(map) {
+    fieldTermMapCache = map && typeof map === "object" ? map : {};
+    bumpDetailCache();
     try {
-      localStorage.setItem(FIELD_TERM_KEY, JSON.stringify(map));
-      global.dispatchEvent(new CustomEvent("biz-field-terms-updated", { detail: map }));
+      localStorage.setItem(FIELD_TERM_KEY, JSON.stringify(fieldTermMapCache));
+      global.dispatchEvent(new CustomEvent("biz-field-terms-updated", { detail: fieldTermMapCache }));
     } catch (_err) {
       /* ignore */
     }
@@ -221,18 +259,24 @@
   }
 
   function readFieldTermDismiss() {
+    if (fieldTermDismissCache) return fieldTermDismissCache;
+    let next = {};
     try {
       const raw = localStorage.getItem(FIELD_TERM_DISMISS_KEY);
       const parsed = raw ? JSON.parse(raw) : {};
-      return parsed && typeof parsed === "object" ? parsed : {};
+      next = parsed && typeof parsed === "object" ? parsed : {};
     } catch (_err) {
-      return {};
+      next = {};
     }
+    fieldTermDismissCache = next;
+    return fieldTermDismissCache;
   }
 
   function writeFieldTermDismiss(map) {
+    fieldTermDismissCache = map && typeof map === "object" ? map : {};
+    bumpDetailCache();
     try {
-      localStorage.setItem(FIELD_TERM_DISMISS_KEY, JSON.stringify(map));
+      localStorage.setItem(FIELD_TERM_DISMISS_KEY, JSON.stringify(fieldTermDismissCache));
     } catch (_err) {
       /* ignore */
     }
@@ -534,10 +578,28 @@
     const importCancelBtnEl = document.getElementById("termImportCancelBtn");
     const importUseSampleBtnEl = document.getElementById("termImportUseSampleBtn");
 
-    const detailDrawerEl = document.getElementById("termDetailDrawer");
-    const detailBodyEl = document.getElementById("termDetailDrawerBody");
-    const detailTitleEl = document.getElementById("termDetailDrawerTitle");
-    const detailCloseBtnEl = document.getElementById("closeTermDetailDrawerBtn");
+    /* ===== 术语详情（下沉二级页面，替代原抽屉） ===== */
+    const detailViewEl = document.getElementById("termDetailView");
+    const detailTitleEl = document.getElementById("termDetailTitle");
+    const detailDomainEl = document.getElementById("termDetailDomain");
+    const detailProjectEl = document.getElementById("termDetailProject");
+    const detailOnlineTagEl = document.getElementById("termDetailOnlineTag");
+    const detailBackBtnEl = document.getElementById("termDetailBackBtn");
+    const detailEditBtnEl = document.getElementById("termDetailEditBtn");
+    const detailMountBtnEl = document.getElementById("termDetailMountBtn");
+    const detailOnlineBtnEl = document.getElementById("termDetailOnlineBtn");
+    const detailOverviewPanelEl = document.getElementById("termDetailOverviewPanel");
+    const detailMountsPanelEl = document.getElementById("termDetailMountsPanel");
+    const detailLineagePanelEl = document.getElementById("termDetailLineagePanel");
+    const detailMountCountEl = document.getElementById("termDetailMountCount");
+
+    let detailTermId = "";
+    let detailTab = "overview";
+    let detailMountType = "";
+    let detailMountKeyword = "";
+    /* 渲染节流：同一术语在未变更数据前重复切 tab 时复用已渲染内容 */
+    let detailMountsRenderedKey = "";
+    let detailLineageRenderedKey = "";
 
     const domainLabels = () => {
       const labels = collectUniqueDomainLabels() || [];
@@ -1165,15 +1227,19 @@
           </tr>
         `;
       } else {
+        const conflictKeys = collectSynonymConflictKeys();
         tableBodyEl.innerHTML = pageItems
           .map(
             (item, index) => {
               const modelText = termModelList(item).join("、") || "全部模型";
+              const typeMeta = termTypeMeta(item.termType);
+              const typeBadge = `<i class="term-type-badge" style="background:${typeMeta.color}" title="${escapeHtml(typeMeta.desc)}">${typeMeta.label}</i>`;
+              const conflictFlag = conflictKeys.has(item.id) ? '<span class="term-conflict-flag" title="该术语的名称/同义词与其他术语冲突，问数路由可能歧义">⚠️</span>' : "";
               return `
           <tr data-id="${item.id}" class="${item.online === false ? "is-offline" : ""}">
             <td class="col-check"><input type="checkbox" class="term-row-check" data-id="${item.id}" ${selection.has(item.id) ? "checked" : ""} aria-label="选择行" /></td>
             <td class="col-index">${startIndex + index + 1}</td>
-            <td class="col-text"><a class="name-link term-name-link" href="#" data-term-action="detail" data-id="${item.id}" title="${escapeHtml(item.name)}">${highlightHtml(item.name, keywordRaw)}</a></td>
+            <td class="col-text"><a class="name-link term-name-link" href="#" data-term-action="detail" data-id="${item.id}" title="${escapeHtml(item.name)}">${highlightHtml(item.name, keywordRaw)}</a>${typeBadge}${conflictFlag}</td>
             <td class="domain-cell" title="${escapeHtml(item.domain || "")}">${highlightHtml(item.domain || "—", keywordRaw)}</td>
             <td class="col-text" title="${escapeHtml(termModelList(item).join("、") || "对该数据域下全部模型生效")}">${highlightHtml(modelText, keywordRaw)}</td>
             <td class="col-text" title="${escapeHtml(item.synonyms)}">${highlightHtml(item.synonyms || "—", keywordRaw)}</td>
@@ -1182,6 +1248,7 @@
             <td>${escapeHtml(item.createdAt)}</td>
             <td class="col-online">${onlineTagHtml(isTermOnline(item))}</td>
             <td class="col-actions">
+              <a class="op-link" href="#" data-term-action="mount" data-id="${item.id}" title="挂载 数据域/模型/维度/指标/字段 资产">挂载${(item.mounts || []).length ? `(${item.mounts.length})` : ""}</a>
               <a class="op-link" href="#" data-term-action="online" data-id="${item.id}">${isTermOnline(item) ? "下线" : "上线"}</a>
               <a class="op-link" href="#" data-term-action="edit" data-id="${item.id}">编辑</a>
               <a class="op-link" href="#" data-term-action="delete" data-id="${item.id}">删除</a>
@@ -1194,6 +1261,7 @@
       }
       syncSelectionUi();
       syncGlossaryEmptyState();
+      if (detailViewEl && !detailViewEl.hidden && detailTermId) renderDetailView();
     }
 
     /* 需求调整：无术语数据时隐藏空状态卡片下方的空列表（与 index.html renderHeader 同口径：按术语库数据域统计） */
@@ -1228,6 +1296,14 @@
       initTermDomainPicker(formDomains);
       if (inherited) showDomainInheritHint("termFormDomainInheritHint", "termDomainPicker", glossary.name, glossary.domain);
       else hideDomainInheritHint("termFormDomainInheritHint");
+      /* 问数增强：注入类型/上级术语/值域绑定区块并反显 */
+      ensureFormEnhance();
+      formValueBindings = (item?.valueBindings || []).map((row) => ({ ...row }));
+      renderValueBindingRows();
+      bindValueBindingRows();
+      const typeEl = document.getElementById("termFormType");
+      if (typeEl) typeEl.value = item?.termType || "entity";
+      syncParentTermOptions(item?.parentTermId || "");
       initTermModelPicker(termModelList(item));
       if (formSynonymsEl) formSynonymsEl.value = item?.synonyms || "";
       if (formDescEl) formDescEl.value = item?.description || "";
@@ -1242,6 +1318,7 @@
       setTermDomainPickerOpen(false);
       setTermModelPickerOpen(false);
       hideTermNameDupHint();
+      hideSaveConfirm();
     }
 
     // ===== 重名实时联想校验 + 引用统计 =====
@@ -1370,7 +1447,20 @@
       hintEl.style.display = "";
     }
 
-    function saveForm() {
+    function showSaveConfirm(text) {
+      const box = document.getElementById("termSaveConfirm");
+      if (!box) return;
+      document.getElementById("termSaveConfirmText").textContent = text;
+      box.hidden = false;
+      box.scrollIntoView({ block: "nearest" });
+    }
+
+    function hideSaveConfirm() {
+      const box = document.getElementById("termSaveConfirm");
+      if (box) box.hidden = true;
+    }
+
+    function saveForm(force = false) {
       const name = (formNameEl?.value || "").trim();
       if (!name) {
         window.alert("请填写术语名称");
@@ -1393,15 +1483,35 @@
       }
       const modelNames = [...selectedFormModels];
       const modelIds = modelNames.map((name) => modelsForDomains(domains).find((model) => model.name === name)?.id || name);
+      /* 问数增强字段：类型 / 上级术语 / 值域绑定 */
+      const termType = document.getElementById("termFormType")?.value || "entity";
+      const parentTermId = document.getElementById("termFormParentTerm")?.value || "";
+      const valueBindings = formValueBindings
+        .filter((row) => row.field && row.value)
+        .map((row) => ({ field: row.field, op: row.op, value: row.value }));
+      /* 同义词冲突检测（页面内确认条，非阻断；内嵌 webview 中原生 confirm 会冻结页面） */
+      const synonymText = (formSynonymsEl?.value || "").trim();
+      const conflicts = findSynonymConflicts(name, synonymText, editingId, domains);
+      if (conflicts.length && !force) {
+        const detail = conflicts
+          .slice(0, 4)
+          .map((c) => `「${c.word}」已被术语「${c.term.name}」占用（${c.term.domain || "未分组"}${c.crossDomain ? "，跨数据域冲突" : ""}）`)
+          .join("；");
+        showSaveConfirm(`同义词冲突提醒：${detail}。\n问数时同词多义会导致路由歧义，建议调整。确认无影响可点「仍要保存」。`);
+        return;
+      }
       const values = {
         name,
         domains,
         domain: domains.join("、"),
         modelNames,
         modelIds,
-        synonyms: (formSynonymsEl?.value || "").trim(),
+        synonyms: synonymText,
         description: (formDescEl?.value || "").trim(),
         project,
+        termType,
+        parentTermId,
+        valueBindings,
       };
       if (editingId) {
         const target = terms.find((item) => item.id === editingId);
@@ -1409,8 +1519,32 @@
           setTip("术语不存在或已删除");
           return;
         }
+        /* 版本快照：口径相关内容变更时记录旧版本 + 影响分析 */
+        const impact = termImpactSummary(target);
+        const caliberChanged =
+          target.description !== values.description ||
+          target.synonyms !== values.synonyms ||
+          JSON.stringify(target.valueBindings || []) !== JSON.stringify(valueBindings);
+        if (caliberChanged) {
+          if (impact.total > 0 && !force) {
+            showSaveConfirm(
+              `口径变更影响分析：该术语被 ${impact.metricCount} 个指标、${impact.fieldCount} 个字段引用，另有 ${impact.mountCount} 个挂载资产。\n修改定义/同义词/值域可能改变这些资产的问数结果，旧版本将自动存入版本历史。确认变更可点「仍要保存」。`
+            );
+            return;
+          }
+          target.versions = [
+            ...(target.versions || []),
+            {
+              time: formatDate(),
+              editor: "当前用户",
+              description: target.description || "",
+              synonyms: target.synonyms || "",
+              valueBindings: target.valueBindings || [],
+            },
+          ];
+        }
         Object.assign(target, values);
-        setTip(`已更新术语：${name}`);
+        setTip(`已更新术语：${name}${caliberChanged ? `（口径变更，已存 ${target.versions.length} 个历史版本）` : ""}`);
       } else {
         terms.unshift({
           id: createId(),
@@ -1441,6 +1575,10 @@
       return list.filter((m) => Array.isArray(m.termIds) && m.termIds.includes(termId));
     }
 
+    /* 性能优化：原实现为「每个字段行 × 每个模型」调用 matchTermsForField，
+       而后者内部又全量扫一遍术语、查一次模型目录（重扫 DOM）、读一次 dismiss（重解析 localStorage），
+       复杂度达 O(行数 × 模型数 × 术语数) 并夹带成千上万次 DOM/localStorage 访问 —— 这是详情页卡顿的主因。
+       这里改为：模型目录、挂载表、忽略表都只取一次；术语侧别名只算一次；按（适用模型 × 行）做一次匹配。 */
     function getLinkedFields(termId) {
       const seen = new Set();
       const result = [];
@@ -1450,36 +1588,138 @@
         seen.add(key);
         result.push({ key, modelName, fieldEn });
       };
-      Object.entries(readFieldTermMap()).forEach(([key, ids]) => {
+
+      const models = listBusinessModels();
+      const modelByName = new Map(models.map((model) => [model.name, model]));
+      const fieldMap = readFieldTermMap();
+      const dismiss = readFieldTermDismiss();
+
+      /* 1）显式挂载到字段（或由此前自动挂载落库）的记录 */
+      Object.keys(fieldMap).forEach((key) => {
+        const ids = fieldMap[key];
         if (!Array.isArray(ids) || !ids.includes(termId)) return;
-        if (isFieldTermDismissed(key, termId)) return;
+        if ((dismiss[key] || []).includes(termId)) return;
         const [modelName, fieldEn] = key.split("|");
-        const model = listBusinessModels().find((item) => item.name === modelName);
+        const model = modelByName.get(modelName);
         const term = terms.find((item) => item.id === termId);
         if (term && model && !termAppliesToModels(term, { modelNames: [modelName], domains: [model.domain] })) return;
         push(modelName, fieldEn);
       });
-      collectFieldSettingRows().forEach((row) => {
-        listBusinessModels().forEach((model) => {
-          const hits = matchTermsForField(
-            { modelName: model.name, fieldEn: row.fieldEn, fieldZh: row.fieldZh },
-            terms
-          );
-          if (hits.some((item) => item.id === termId && !isFieldTermDismissed(fieldTermKey(model.name, row.fieldEn), termId))) {
-            push(model.name, row.fieldEn || row.fieldZh);
-          }
+
+      /* 2）字段设置行的自动匹配（同名/同义词精确 + 描述相似），与原 matchTermsForField 判定保持一致 */
+      const term = terms.find((item) => item.id === termId);
+      if (!term || term.online === false || !models.length) return result;
+      const rows = fieldTermRowsCache || collectFieldSettingRows();
+      fieldTermRowsCache = rows;
+      if (!rows.length) return result;
+
+      const aliases = [term.name, ...String(term.synonyms || "").split(/[,，]/)]
+        .map((value) => String(value || "").trim().toLowerCase())
+        .filter(Boolean);
+      const termDesc = String(term.description || "").trim();
+      const applicableModels = models.filter((model) =>
+        termAppliesToModels(term, { modelNames: [model.name], domains: [model.domain] })
+      );
+
+      applicableModels.forEach((model) => {
+        rows.forEach((row) => {
+          const fieldEn = row.fieldEn || row.fieldZh;
+          const labels = [row.fieldEn, row.fieldZh]
+            .map((value) => String(value || "").replace(/\s+/g, " ").trim().toLowerCase())
+            .filter(Boolean);
+          if (!labels.length) return;
+          if ((dismiss[fieldTermKey(model.name, fieldEn)] || []).includes(termId)) return;
+          const exact = labels.some((label) => aliases.includes(label));
+          const similar = !exact && termDesc && isDescriptionSimilar(row.fieldZh, termDesc);
+          if (exact || similar) push(model.name, fieldEn);
         });
       });
       return result;
     }
 
-    function openDetail(termId) {
-      const item = terms.find((t) => t.id === termId);
-      if (!item || !detailDrawerEl || !detailBodyEl) return;
-      if (detailTitleEl) detailTitleEl.textContent = `术语详情 · ${item.name}`;
+    /* ===== 术语详情：下沉二级页面 ===== */
+    const DETAIL_MOUNT_TYPES = ["domain", "model", "dimension", "metric", "field"];
+
+    function detailTerm() {
+      return terms.find((t) => t.id === detailTermId) || null;
+    }
+
+    /* 汇总术语的全部挂载项：手动挂载（item.mounts）+ 指标/字段的反向关联
+       结果带缓存：一次详情渲染内会被 头部/概览/挂载清单/图谱 四处调用，
+       加缓存后只算一次，数据变更（bumpDetailCache）时自动失效 */
+    function collectDetailMountItems(term) {
+      if (!term) return [];
+      const cacheKey = `${term.id}@${detailCacheVersion}`;
+      const cached = detailMountCache.get(cacheKey);
+      if (cached) return cached;
+      const items = [];
+      const seen = new Set();
+      const push = (entry) => {
+        const key = `${entry.type}:${entry.name}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        items.push(entry);
+      };
+      /* 术语自身的归属数据域（术语表单里选择的数据域）作为一项只读关联展示，避免概览有域、清单为空 */
+      termDomainList(term).forEach((domain) => {
+        push({
+          type: "domain",
+          name: domain,
+          path: "",
+          meta: "",
+          source: "owner",
+        });
+      });
+      (term.mounts || []).forEach((m) => {
+        const key = String(m.key || "");
+        const openTarget = key.includes(":")
+          ? { kind: key.split(":")[0], value: key.slice(key.indexOf(":") + 1) }
+          : null;
+        push({
+          type: m.type || "model",
+          name: m.name || "—",
+          path: m.path || "",
+          meta: m.meta || "",
+          source: "manual",
+          openTarget,
+        });
+      });
+      getLinkedMetrics(term.id).forEach((m) => {
+        push({
+          type: "metric",
+          name: m.name,
+          path: m.domain || (m.domainModels || []).map((d) => d?.name || d).filter(Boolean).join("、") || "指标",
+          meta: m.code || "",
+          source: "auto",
+          openTarget: { kind: "metric", value: m.id || m.name },
+        });
+      });
+      getLinkedFields(term.id).forEach((f) => {
+        push({
+          type: "field",
+          name: f.fieldEn,
+          path: f.modelName || "",
+          meta: "",
+          source: "auto",
+          openTarget: { kind: "field", value: f.key },
+        });
+      });
+      detailMountCache.set(cacheKey, items);
+      return items;
+    }
+
+    /* 兼容旧版页面（index.html）：没有下沉详情视图时退回原抽屉 */
+    const legacyDrawerEl = document.getElementById("termDetailDrawer");
+    const legacyDrawerBodyEl = document.getElementById("termDetailDrawerBody");
+    const legacyDrawerTitleEl = document.getElementById("termDetailDrawerTitle");
+    const legacyCloseBtnEl = document.getElementById("closeTermDetailDrawerBtn");
+
+    function openDetailLegacy(item) {
+      if (!legacyDrawerEl || !legacyDrawerBodyEl) return;
+      if (legacyDrawerTitleEl) legacyDrawerTitleEl.textContent = `术语详情 · ${item.name}`;
       const metrics = getLinkedMetrics(item.id);
       const fields = getLinkedFields(item.id);
-      detailBodyEl.innerHTML = `
+      legacyDrawerBodyEl.innerHTML = `
         <div class="bridge-section">
           <h4>基本信息</h4>
           <p><strong>名称：</strong>${escapeHtml(item.name)}</p>
@@ -1495,10 +1735,7 @@
           ${
             metrics.length
               ? `<ul class="term-link-list">${metrics
-                  .map(
-                    (m) =>
-                      `<li><a href="#" data-open-metric="${escapeHtml(m.id)}">${escapeHtml(m.name)}</a> <span class="term-link-meta">${escapeHtml(m.code || "")}</span></li>`
-                  )
+                  .map((m) => `<li>${escapeHtml(m.name)} <span class="term-link-meta">${escapeHtml(m.code || "")}</span></li>`)
                   .join("")}</ul>`
               : '<p class="term-link-empty">暂无指标挂载该术语</p>'
           }
@@ -1508,22 +1745,1046 @@
           ${
             fields.length
               ? `<ul class="term-link-list">${fields
-                  .map(
-                    (f) =>
-                      `<li><a href="#" data-open-field="${escapeHtml(f.key)}">${escapeHtml(f.modelName)} · ${escapeHtml(f.fieldEn)}</a></li>`
-                  )
+                  .map((f) => `<li>${escapeHtml(f.modelName)} · ${escapeHtml(f.fieldEn)}</li>`)
                   .join("")}</ul>`
               : '<p class="term-link-empty">暂无字段挂载该术语</p>'
           }
         </div>
       `;
-      detailDrawerEl.hidden = false;
+      legacyDrawerEl.hidden = false;
       global.syncDrawerBackdrop?.();
     }
 
-    function closeDetail() {
-      if (detailDrawerEl) detailDrawerEl.hidden = true;
+    function closeDetailLegacy() {
+      if (legacyDrawerEl) legacyDrawerEl.hidden = true;
       global.syncDrawerBackdrop?.();
+    }
+
+    function openDetail(termId) {
+      const item = terms.find((t) => t.id === termId);
+      if (!item) return;
+      if (!detailViewEl) {
+        openDetailLegacy(item);
+        return;
+      }
+      detailTermId = item.id;
+      detailTab = "overview";
+      detailMountType = "";
+      detailMountKeyword = "";
+      /* 进入详情时刷新一次数据快照，之后 tab 切换复用同一份计算结果 */
+      detailMountsRenderedKey = "";
+      detailLineageRenderedKey = "";
+      bumpDetailCache();
+      ["listView", "modelView", "metricEditView"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.hidden = true;
+      });
+      if (detailViewEl) detailViewEl.hidden = false;
+      renderDetailView();
+      if (typeof global.scrollTo === "function") global.scrollTo({ top: 0, behavior: "auto" });
+    }
+
+    function closeDetail() {
+      if (!detailViewEl) {
+        closeDetailLegacy();
+        return;
+      }
+      if (detailViewEl) detailViewEl.hidden = true;
+      detailTermId = "";
+      detailTab = "overview";
+      detailMountsRenderedKey = "";
+      detailLineageRenderedKey = "";
+      const listView = document.getElementById("listView");
+      if (listView) listView.hidden = false;
+      render();
+      if (typeof global.scrollTo === "function") global.scrollTo({ top: 0, behavior: "auto" });
+    }
+
+    function syncDetailTabs() {
+      detailViewEl?.querySelectorAll("[data-term-detail-tab]").forEach((tab) => {
+        const active = tab.dataset.termDetailTab === detailTab;
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      const panelMap = {
+        overview: detailOverviewPanelEl,
+        mounts: detailMountsPanelEl,
+        lineage: detailLineagePanelEl,
+      };
+      Object.entries(panelMap).forEach(([name, el]) => {
+        if (el) el.hidden = name !== detailTab;
+      });
+    }
+
+    function switchDetailTab(tab) {
+      detailTab = tab || "overview";
+      syncDetailTabs();
+      const term = detailTerm();
+      if (!term) return;
+      if (detailTab === "mounts") renderDetailMounts(term);
+      if (detailTab === "lineage") renderDetailLineage(term);
+    }
+
+    function renderDetailView() {
+      const term = detailTerm();
+      if (!term) {
+        if (detailViewEl) detailViewEl.hidden = true;
+        detailTermId = "";
+        return;
+      }
+      renderDetailHead(term);
+      syncDetailTabs();
+      renderDetailOverview(term);
+      renderDetailMounts(term);
+      if (detailTab === "lineage") renderDetailLineage(term);
+    }
+
+    function renderDetailHead(term) {
+      const total = collectDetailMountItems(term).length;
+      if (detailTitleEl) detailTitleEl.textContent = term.name || "未命名术语";
+      if (detailDomainEl) detailDomainEl.textContent = term.domain || "未指定数据域";
+      if (detailProjectEl) detailProjectEl.textContent = term.project || currentProject();
+      if (detailOnlineTagEl) {
+        const online = term.online !== false;
+        detailOnlineTagEl.textContent = online ? "已上线" : "未上线";
+        detailOnlineTagEl.className = `online-tag ${online ? "is-online" : "is-offline"}`;
+      }
+      if (detailOnlineBtnEl) detailOnlineBtnEl.textContent = term.online !== false ? "下线" : "上线";
+      if (detailMountCountEl) detailMountCountEl.textContent = String(total);
+    }
+
+    function renderDetailOverview(term) {
+      if (!detailOverviewPanelEl) return;
+      const items = collectDetailMountItems(term);
+      const countOf = (type) => items.filter((item) => item.type === type).length;
+      const modelText = termModelList(term).join("、") || "对该数据域下全部模型生效";
+      const statCards = DETAIL_MOUNT_TYPES.map((type) => {
+        const label = mountTypeLabel(type);
+        return `
+          <div class="td-stat" data-mount-jump="${type}">
+            <div class="td-stat-label">${escapeHtml(label)}</div>
+            <div class="td-stat-value">${countOf(type)}</div>
+          </div>`;
+      }).join("");
+      detailOverviewPanelEl.innerHTML = `
+        <div class="td-card">
+          <div class="td-card-title">
+            <span>基本信息</span>
+            <span class="td-field-label">${term.online !== false ? "已上线，可供指标 / 字段挂载" : "未上线，暂不可挂载"}</span>
+          </div>
+          <div class="td-grid">
+            <div class="td-field"><div class="td-field-label">术语名称</div><div class="td-field-value">${escapeHtml(term.name || "—")}<i class="term-type-badge" style="background:${termTypeMeta(term.termType).color}" title="${escapeHtml(termTypeMeta(term.termType).desc)}">${termTypeMeta(term.termType).label}</i></div></div>
+            <div class="td-field"><div class="td-field-label">术语类型</div><div class="td-field-value">${escapeHtml(termTypeMeta(term.termType).desc)}</div></div>
+            <div class="td-field"><div class="td-field-label">数据域</div><div class="td-field-value">${escapeHtml(term.domain || "—")}</div></div>
+            <div class="td-field"><div class="td-field-label">生效模型</div><div class="td-field-value">${escapeHtml(modelText)}</div></div>
+            <div class="td-field"><div class="td-field-label">所属工程</div><div class="td-field-value">${escapeHtml(term.project || "—")}</div></div>
+            <div class="td-field"><div class="td-field-label">同义词</div><div class="td-field-value">${escapeHtml(term.synonyms || "—")}</div></div>
+            <div class="td-field"><div class="td-field-label">上线状态</div><div class="td-field-value">${onlineTagHtml(term.online !== false)}</div></div>
+            <div class="td-field"><div class="td-field-label">创建人</div><div class="td-field-value">${escapeHtml(term.creator || "—")}</div></div>
+            <div class="td-field"><div class="td-field-label">创建时间</div><div class="td-field-value">${escapeHtml(term.createdAt || "—")}</div></div>
+          </div>
+          <div class="td-desc">${escapeHtml(term.description || "暂无术语描述")}</div>
+        </div>
+        <div class="td-card">
+          <div class="td-card-title"><span>挂载概况</span><span class="td-field-label">共 ${items.length} 项资产</span></div>
+          <div class="td-stat-row">${statCards}</div>
+        </div>
+        ${renderAskReadinessCards(term)}
+      `;
+    }
+
+    /* 详情：值层级 / 值域绑定 / 版本与影响分析 三张卡（问数增强） */
+    function renderAskReadinessCards(term) {
+      const parentTerm = term.parentTermId ? terms.find((t) => t.id === term.parentTermId) : null;
+      const childTerms = terms.filter((t) => t.parentTermId === term.id);
+      const impact = termImpactSummary(term);
+      const bindings = term.valueBindings || [];
+      const versions = (term.versions || []).slice().reverse();
+      return `
+        <div class="td-card">
+          <div class="td-card-title"><span>值层级（上级 / 下级）</span><span class="td-field-label">问数可沿层级上卷或展开</span></div>
+          <div class="td-grid">
+            <div class="td-field"><div class="td-field-label">上级术语</div><div class="td-field-value">${parentTerm ? `${escapeHtml(parentTerm.name)}（本术语 ⊂ ${escapeHtml(parentTerm.name)}）` : "无 — 顶层术语"}</div></div>
+            <div class="td-field"><div class="td-field-label">下级术语</div><div class="td-field-value">${childTerms.length ? escapeHtml(childTerms.map((t) => t.name).join("、")) : "暂无"}</div></div>
+          </div>
+        </div>
+        <div class="td-card">
+          <div class="td-card-title"><span>值域绑定</span><span class="td-field-label">问数时生成 WHERE / GROUP BY 条件</span></div>
+          ${
+            bindings.length
+              ? `<ul class="term-link-list">${bindings
+                  .map((b) => `<li><b>${escapeHtml(b.field)}</b> ${escapeHtml(b.op)} <b>${escapeHtml(b.value)}</b></li>`)
+                  .join("")}</ul>`
+              : '<p class="term-link-empty">未配置。过滤/维度类术语建议配置，如 region_id IN (\'01\',\'02\')</p>'
+          }
+        </div>
+        <div class="td-card">
+          <div class="td-card-title"><span>影响分析 · 版本历史</span><span class="td-field-label">口径变更自动留痕</span></div>
+          <div class="td-grid">
+            <div class="td-field"><div class="td-field-label">关联指标</div><div class="td-field-value">${impact.metricCount} 个</div></div>
+            <div class="td-field"><div class="td-field-label">关联字段</div><div class="td-field-value">${impact.fieldCount} 个</div></div>
+            <div class="td-field"><div class="td-field-label">挂载资产</div><div class="td-field-value">${impact.mountCount} 个</div></div>
+            <div class="td-field"><div class="td-field-label">历史版本</div><div class="td-field-value">${(term.versions || []).length} 个</div></div>
+          </div>
+          ${
+            versions.length
+              ? `<ul class="term-link-list">${versions
+                  .map(
+                    (v) =>
+                      `<li>${escapeHtml(v.time)} <span class="term-link-meta">${escapeHtml(v.editor || "")} · 描述「${escapeHtml((v.description || "—").slice(0, 30))}」${(v.valueBindings || []).length ? `· 值域 ${(v.valueBindings || []).length} 条` : ""}</span></li>`
+                  )
+                  .join("")}</ul>`
+              : '<p class="term-link-empty">暂无历史版本（修改定义/同义词/值域时自动记录旧版本）</p>'
+          }
+        </div>
+      `;
+    }
+
+    function renderDetailMounts(term) {
+      if (!detailMountsPanelEl) return;
+      /* 同一术语重复打开/切 tab 时不再重建工具栏 DOM，避免多余重排与搜索框重建 */
+      if (detailMountsRenderedKey !== term.id) {
+        const chips = [{ type: "", label: "全部" }]
+          .concat(DETAIL_MOUNT_TYPES.map((type) => ({ type, label: mountTypeLabel(type) })))
+          .map(
+            (chip) => `<button class="td-chip" type="button" data-detail-mount-type="${chip.type}">${escapeHtml(chip.label)}</button>`
+          )
+          .join("");
+        detailMountsPanelEl.innerHTML = `
+          <div class="td-toolbar">
+            <label class="td-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M20 20l-4-4"></path>
+              </svg>
+              <input id="termDetailMountSearch" type="search" placeholder="搜索资产名称或归属路径" aria-label="搜索挂载资产" value="${escapeHtml(detailMountKeyword)}" />
+            </label>
+            <div class="td-type-chips">${chips}</div>
+          </div>
+          <div class="td-mount-list" id="termDetailMountList"></div>
+        `;
+        detailMountsRenderedKey = term.id;
+      }
+      detailMountsPanelEl.querySelectorAll("[data-detail-mount-type]").forEach((chip) => {
+        chip.classList.toggle("active", (chip.dataset.detailMountType || "") === detailMountType);
+      });
+      const mountSearchEl = document.getElementById("termDetailMountSearch");
+      if (mountSearchEl && mountSearchEl.value !== detailMountKeyword) mountSearchEl.value = detailMountKeyword;
+      renderDetailMountList(term);
+    }
+
+    function renderDetailMountList(term) {
+      const listEl = document.getElementById("termDetailMountList");
+      if (!listEl) return;
+      const keyword = detailMountKeyword.trim().toLowerCase();
+      const items = collectDetailMountItems(term).filter((item) => {
+        if (detailMountType && item.type !== detailMountType) return false;
+        if (!keyword) return true;
+        return `${item.name} ${item.path} ${item.meta}`.toLowerCase().includes(keyword);
+      });
+      if (!items.length) {
+        listEl.innerHTML = `<div class="td-empty">${keyword || detailMountType ? "没有匹配的资产，试试调整关键字或类型筛选" : "该术语暂未挂载任何资产"}</div>`;
+        return;
+      }
+      listEl.innerHTML = items
+        .map((item, index) => {
+          const pathHtml = item.path
+            ? item.path
+                .split(/\s*[>›]\s*|\s*[、,，]\s*/)
+                .filter(Boolean)
+                .map((part) => escapeHtml(part))
+                .join('<span class="td-sep">›</span>')
+            : "";
+          let nameHtml = escapeHtml(item.name);
+          if (item.openTarget?.kind === "metric") {
+            nameHtml = `<a href="#" data-open-metric="${escapeHtml(item.openTarget.value)}">${nameHtml}</a>`;
+          } else if (item.openTarget?.kind === "field") {
+            nameHtml = `<a href="#" data-open-field="${escapeHtml(item.openTarget.value)}">${nameHtml}</a>`;
+          }
+          const sourceTag =
+            item.source === "owner"
+              ? '<span class="td-type-tag is-owner">归属数据域</span>'
+              : item.source === "auto"
+                ? '<span class="td-type-tag is-auto">自动关联</span>'
+                : '<span class="td-type-tag">手动挂载</span>';
+          return `
+            <div class="td-mount-item" data-mount-index="${index}">
+              <input class="td-mount-check" type="checkbox" aria-label="选择资产" />
+              <div class="td-mount-main">
+                <div class="td-mount-path">
+                  <span class="td-type-tag">${escapeHtml(mountTypeIcon(item.type))} ${escapeHtml(mountTypeLabel(item.type))}</span>
+                  ${pathHtml}
+                </div>
+                <div class="td-mount-name">${nameHtml}</div>
+                <div class="td-mount-meta">
+                  ${sourceTag}
+                  ${item.meta ? `<span>${escapeHtml(item.meta)}</span>` : ""}
+                </div>
+              </div>
+            </div>`;
+        })
+        .join("");
+    }
+
+    function renderDetailLineage(term) {
+      if (!detailLineagePanelEl) return;
+      /* 同一术语且数据未变更时复用已渲染的图谱，避免每次切 tab 都重建 SVG */
+      const renderKey = `${term.id}@${detailCacheVersion}`;
+      if (detailLineageRenderedKey === renderKey) return;
+      const items = collectDetailMountItems(term);
+      const countOf = (type) => items.filter((item) => item.type === type).length;
+      detailLineagePanelEl.innerHTML = `
+        <div class="td-graph-bar">
+          <div>术语 1 · 字段 ${countOf("field")} · 指标 ${countOf("metric")} · 模型 ${countOf("model")} · 数据域 ${countOf("domain")}</div>
+          <div class="td-graph-legend">
+            <span><i style="background:#2563eb"></i>术语</span>
+            <span><i style="background:#60a5fa"></i>字段</span>
+            <span><i style="background:#3b82f6"></i>指标</span>
+            <span><i style="background:#1d4ed8"></i>模型</span>
+            <span><i style="background:#93c5fd"></i>数据域</span>
+          </div>
+        </div>
+        <div class="td-graph-wrap" id="termDetailGraphWrap">
+          <svg id="termDetailGraphSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="td-graph-tip">以该术语为中心，展示其挂载的字段、指标、模型与所属数据域；点击节点可查看关联资产。</div>
+        </div>
+      `;
+      detailLineageRenderedKey = renderKey;
+      if (typeof global.requestAnimationFrame === "function") {
+        global.requestAnimationFrame(() => {
+          /* 期间若已切走或数据已变更，则放弃这次绘制，交给下一次渲染 */
+          if (detailLineageRenderedKey === renderKey && detailTab === "lineage") renderDetailGraph(term);
+        });
+      } else {
+        renderDetailGraph(term);
+      }
+    }
+
+    function renderDetailGraph(term) {
+      const svgEl = document.getElementById("termDetailGraphSvg");
+      const wrapEl = document.getElementById("termDetailGraphWrap");
+      if (!svgEl || !wrapEl || !term) return;
+      const LM = global.LineageModule;
+      if (!LM?.createGraphBuilder || !LM?.computeLayout || !LM?.renderGraphSvg) {
+        svgEl.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#98a2b3" font-size="13">图谱组件未加载</text>';
+        return;
+      }
+      const graph = LM.createGraphBuilder().buildFromTerm(term.id, 2, false);
+      graph.maxDepth = 2;
+      const width = Math.max(320, wrapEl.clientWidth || 900);
+      const height = Math.max(300, wrapEl.clientHeight || 420);
+      const positions = LM.computeLayout(graph, width, height);
+      LM.renderGraphSvg(svgEl, graph, positions, graph.rootId, null);
+    }
+
+    /* ===== 添加资产（术语挂载）弹窗 =====
+       支持把 数据域/模型/维度/指标/字段 五类资产挂到术语上，
+       挂载结果存于 term.mounts: [{ key, type, name, path, meta }] */
+    const MOUNT_ASSET_TYPES = [
+      { type: "domain", label: "数据域", icon: "🗂" },
+      { type: "model", label: "模型", icon: "🧩" },
+      { type: "dimension", label: "维度", icon: "📐" },
+      { type: "metric", label: "指标", icon: "📊" },
+      { type: "field", label: "字段", icon: "🔤" },
+    ];
+    const MOUNT_MEASURE_NAME_RE = /(金额|额|率|数量|数|比|差)$/;
+    let mountOverlayEl = null;
+    let mountListEl = null;
+    let mountSearchEl = null;
+    let mountTotalEl = null;
+    let mountTypeTriggerEl = null;
+    let mountTypeDropdownEl = null;
+    let mountTypeCountEl = null;
+    let mountTermId = "";
+    let mountSelected = new Set();
+    let mountTypeFilter = new Set();
+    let mountDraftTerms = [];
+
+    function mountTypeLabel(type) {
+      return MOUNT_ASSET_TYPES.find((t) => t.type === type)?.label || type;
+    }
+
+    function mountTypeIcon(type) {
+      return MOUNT_ASSET_TYPES.find((t) => t.type === type)?.icon || "•";
+    }
+
+    function collectMountAssets() {
+      const models = global.MetricModule?.listBusinessModels?.() || [];
+      const metrics = global.MetricModule?.readMetrics?.() || [];
+      const domainLabels = global.collectUniqueDomainLabels?.() || ["收入管理", "成本管理", "经营管理", "合同管理", "工程技术"];
+      const assets = domainLabels.map((name) => ({
+        key: `domain:${name}`,
+        type: "domain",
+        name,
+        path: "数据域",
+      }));
+      const dimensionOwners = new Map();
+      models.forEach((model) => {
+        assets.push({
+          key: `model:${model.name}`,
+          type: "model",
+          name: model.name,
+          path: model.domain || "未分组",
+          meta: model.type || "",
+        });
+        (model.fieldNames || []).forEach((fieldName) => {
+          assets.push({
+            key: `field:${model.name}|${fieldName}`,
+            type: "field",
+            name: fieldName,
+            path: model.name,
+          });
+          if (!MOUNT_MEASURE_NAME_RE.test(fieldName)) {
+            if (!dimensionOwners.has(fieldName)) dimensionOwners.set(fieldName, new Set());
+            dimensionOwners.get(fieldName).add(model.name);
+          }
+        });
+      });
+      dimensionOwners.forEach((owners, name) => {
+        assets.push({
+          key: `dimension:${name}`,
+          type: "dimension",
+          name,
+          path: [...owners].join("、"),
+        });
+      });
+      metrics.forEach((metric) => {
+        assets.push({
+          key: `metric:${metric.id || metric.name}`,
+          type: "metric",
+          name: metric.name,
+          path: metric.domain || metric.domainModels?.[0]?.name || "指标",
+          meta: metric.code || "",
+        });
+      });
+      return assets;
+    }
+
+    function ensureMountDialog() {
+      if (mountOverlayEl) return;
+      const styleEl = document.createElement("style");
+      styleEl.id = "assetMountDialogStyle";
+      styleEl.textContent = `
+        .term-mount-modal { width: min(680px, 94vw); }
+        .term-mount-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; }
+        .term-mount-search { width: 100%; box-sizing: border-box; border: 1px solid #d0d5dd; border-radius: 4px; padding: 8px 12px; font: inherit; color: #344054; outline: none; }
+        .term-mount-search:focus { border-color: #1e80ff; }
+        .term-mount-filterbar { display: flex; align-items: center; gap: 10px; }
+        .term-mount-type { position: relative; }
+        .term-mount-type-trigger { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #d0d5dd; background: #fff; border-radius: 4px; padding: 6px 12px; font: inherit; font-size: 12px; color: #344054; cursor: pointer; }
+        .term-mount-type-trigger:hover { border-color: #1e80ff; }
+        .term-mount-type-dropdown { position: absolute; top: calc(100% + 4px); left: 0; z-index: 40; width: 240px; background: #fff; border: 1px solid #e4e7ec; border-radius: 6px; box-shadow: 0 8px 24px rgba(16, 24, 40, 0.14); padding: 10px; }
+        .term-mount-type-dropdown label { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 12px; color: #344054; cursor: pointer; border-radius: 4px; }
+        .term-mount-type-dropdown label:hover { background: #f8fafc; }
+        .term-mount-type-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f2f5; }
+        .term-mount-type-foot button { border: 1px solid #d0d5dd; background: #fff; border-radius: 4px; padding: 4px 12px; font-size: 12px; cursor: pointer; color: #344054; }
+        .term-mount-type-foot button.is-primary { background: #1e80ff; border-color: #1e80ff; color: #fff; }
+        .term-mount-total { margin-left: auto; font-size: 12px; color: #98a2b3; }
+        .term-mount-list { flex: 1; min-height: 200px; max-height: 46vh; overflow: auto; border: 1px solid #eef1f5; border-radius: 6px; }
+        .term-mount-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #f5f6f8; cursor: pointer; }
+        .term-mount-item:last-child { border-bottom: 0; }
+        .term-mount-item:hover { background: #f8fafc; }
+        .term-mount-item.is-checked { background: #f0f7ff; }
+        .term-mount-item input[type="checkbox"] { flex-shrink: 0; }
+        .term-mount-ic { width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; background: #f2f4f7; }
+        .term-mount-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .term-mount-name { font-weight: 600; color: #1f2d3d; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .term-mount-name .term-mount-badge { font-style: normal; margin-left: 6px; font-size: 11px; color: #98a2b3; font-weight: 400; }
+        .term-mount-path { font-size: 11px; color: #98a2b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .term-mount-tag { margin-left: auto; flex-shrink: 0; font-size: 11px; color: #667085; background: #f2f4f7; border-radius: 10px; padding: 2px 8px; }
+        .term-mount-empty { padding: 36px 0; text-align: center; color: #98a2b3; font-size: 12px; }
+        .term-mount-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; border-top: 1px solid #eef1f5; flex-shrink: 0; }
+        .term-mount-foot button { border: 1px solid #d0d5dd; background: #fff; border-radius: 4px; padding: 7px 18px; font: inherit; font-size: 13px; color: #344054; cursor: pointer; }
+        .term-mount-foot button.is-primary { background: #1e80ff; border-color: #1e80ff; color: #fff; }
+        .term-mount-foot button.is-primary:hover { background: #1570e6; }
+      `;
+      document.head.appendChild(styleEl);
+      mountOverlayEl = document.createElement("div");
+      mountOverlayEl.className = "term-form-overlay";
+      mountOverlayEl.id = "assetMountOverlay";
+      mountOverlayEl.hidden = true;
+      mountOverlayEl.innerHTML = `
+        <div class="term-form-modal term-mount-modal" role="dialog" aria-modal="true" aria-label="添加资产">
+          <div class="term-form-head">
+            <h3>添加资产</h3>
+            <button class="term-form-close" type="button" data-mount-close aria-label="关闭">×</button>
+          </div>
+          <div class="term-form-body term-mount-body">
+            <input class="term-mount-search" id="assetMountSearch" type="search" placeholder="搜索资产" autocomplete="off" />
+            <div class="term-mount-filterbar">
+              <div class="term-mount-type" id="assetMountTypePicker">
+                <button class="term-mount-type-trigger" id="assetMountTypeTrigger" type="button">实体类型 <b id="assetMountTypeCount"></b><span>▾</span></button>
+                <div class="term-mount-type-dropdown" id="assetMountTypeDropdown" hidden>
+                  ${MOUNT_ASSET_TYPES.map(
+                    (t) => `
+                    <label><input type="checkbox" data-mount-type="${t.type}" /> ${t.label}</label>
+                  `
+                  ).join("")}
+                  <div class="term-mount-type-foot">
+                    <button type="button" data-mount-type-reset>重置</button>
+                    <button type="button" class="is-primary" data-mount-type-close>关闭</button>
+                  </div>
+                </div>
+              </div>
+              <span class="term-mount-total" id="assetMountTotal"></span>
+            </div>
+            <div class="term-mount-list" id="assetMountList"></div>
+          </div>
+          <div class="term-mount-foot">
+            <button type="button" data-mount-close>取消</button>
+            <button type="button" class="is-primary" id="assetMountSave">保存</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(mountOverlayEl);
+      mountListEl = mountOverlayEl.querySelector("#assetMountList");
+      mountSearchEl = mountOverlayEl.querySelector("#assetMountSearch");
+      mountTotalEl = mountOverlayEl.querySelector("#assetMountTotal");
+      mountTypeTriggerEl = mountOverlayEl.querySelector("#assetMountTypeTrigger");
+      mountTypeDropdownEl = mountOverlayEl.querySelector("#assetMountTypeDropdown");
+      mountTypeCountEl = mountOverlayEl.querySelector("#assetMountTypeCount");
+
+      mountOverlayEl.addEventListener("click", (event) => {
+        if (event.target === mountOverlayEl || event.target.closest("[data-mount-close]")) closeMountDialog();
+      });
+      mountSearchEl.addEventListener("input", renderMountList);
+      mountTypeTriggerEl.addEventListener("click", () => {
+        mountTypeDropdownEl.hidden = !mountTypeDropdownEl.hidden;
+      });
+      mountTypeDropdownEl.addEventListener("change", (event) => {
+        const input = event.target.closest("input[data-mount-type]");
+        if (!input) return;
+        if (input.checked) mountTypeFilter.add(input.dataset.mountType);
+        else mountTypeFilter.delete(input.dataset.mountType);
+        syncMountTypeTrigger();
+        renderMountList();
+      });
+      mountTypeDropdownEl.addEventListener("click", (event) => {
+        if (event.target.closest("[data-mount-type-close]")) mountTypeDropdownEl.hidden = true;
+        if (event.target.closest("[data-mount-type-reset]")) {
+          mountTypeFilter.clear();
+          mountTypeDropdownEl.querySelectorAll("input[data-mount-type]").forEach((input) => (input.checked = false));
+          syncMountTypeTrigger();
+          renderMountList();
+        }
+      });
+      mountListEl.addEventListener("change", (event) => {
+        const input = event.target.closest('input[data-mount-asset]');
+        if (!input) return;
+        if (input.checked) mountSelected.add(input.value);
+        else mountSelected.delete(input.value);
+        input.closest(".term-mount-item")?.classList.toggle("is-checked", input.checked);
+        syncMountTotal();
+      });
+      mountOverlayEl.querySelector("#assetMountSave").addEventListener("click", saveMountDialog);
+      document.addEventListener("click", (event) => {
+        if (!mountTypeDropdownEl || mountTypeDropdownEl.hidden) return;
+        if (!event.target.closest("#assetMountTypePicker")) mountTypeDropdownEl.hidden = true;
+      });
+    }
+
+    function syncMountTypeTrigger() {
+      const n = mountTypeFilter.size;
+      mountTypeCountEl.textContent = n ? `(${n})` : "";
+    }
+
+    function syncMountTotal() {
+      const list = collectMountAssets();
+      mountTotalEl.textContent = `已选 ${mountSelected.size} / 共 ${list.length} 项`;
+    }
+
+    function renderMountList() {
+      if (!mountListEl) return;
+      const keyword = (mountSearchEl?.value || "").trim().toLowerCase();
+      const assets = collectMountAssets()
+        .filter((asset) => !mountTypeFilter.size || mountTypeFilter.has(asset.type))
+        .filter((asset) => !keyword || asset.name.toLowerCase().includes(keyword) || String(asset.path || "").toLowerCase().includes(keyword));
+      if (!assets.length) {
+        mountListEl.innerHTML = `<div class="term-mount-empty">没有匹配的资产</div>`;
+        syncMountTotal();
+        return;
+      }
+      mountListEl.innerHTML = MOUNT_ASSET_TYPES.map((typeDef) => {
+        const group = assets.filter((asset) => asset.type === typeDef.type);
+        if (!group.length) return "";
+        return group
+          .map(
+            (asset) => `
+            <label class="term-mount-item ${mountSelected.has(asset.key) ? "is-checked" : ""}">
+              <input type="checkbox" data-mount-asset value="${escapeHtml(asset.key)}" ${mountSelected.has(asset.key) ? "checked" : ""} />
+              <span class="term-mount-ic">${typeDef.icon}</span>
+              <span class="term-mount-info">
+                <span class="term-mount-name" title="${escapeHtml(asset.name)}">${escapeHtml(asset.name)}${asset.meta ? `<i class="term-mount-badge">${escapeHtml(asset.meta)}</i>` : ""}</span>
+                <span class="term-mount-path" title="${escapeHtml(asset.path || "")}">${escapeHtml(asset.path || "")}</span>
+              </span>
+              <span class="term-mount-tag">${typeDef.label}</span>
+            </label>
+          `
+          )
+          .join("");
+      }).join("");
+      syncMountTotal();
+    }
+
+    function openMountDialog(termId) {
+      const term = terms.find((row) => row.id === termId);
+      if (!term) return;
+      ensureMountDialog();
+      mountTermId = termId;
+      mountSelected = new Set((term.mounts || []).map((m) => m.key));
+      mountTypeFilter.clear();
+      mountTypeDropdownEl.querySelectorAll("input[data-mount-type]").forEach((input) => (input.checked = false));
+      syncMountTypeTrigger();
+      if (mountSearchEl) mountSearchEl.value = "";
+      mountTypeDropdownEl.hidden = true;
+      renderMountList();
+      mountOverlayEl.hidden = false;
+      mountSearchEl?.focus();
+    }
+
+    function closeMountDialog() {
+      if (mountOverlayEl) mountOverlayEl.hidden = true;
+      if (mountTypeDropdownEl) mountTypeDropdownEl.hidden = true;
+      mountTermId = "";
+      mountSelected = new Set();
+    }
+
+    function saveMountDialog() {
+      const term = terms.find((row) => row.id === mountTermId);
+      if (!term) {
+        closeMountDialog();
+        return;
+      }
+      const assets = collectMountAssets();
+      const assetMap = new Map(assets.map((asset) => [asset.key, asset]));
+      const previous = new Map((term.mounts || []).map((m) => [m.key, m]));
+      term.mounts = [...mountSelected].map((key) => {
+        const kept = previous.get(key);
+        if (kept) return kept;
+        const asset = assetMap.get(key);
+        return {
+          key,
+          type: asset?.type || key.split(":")[0],
+          name: asset?.name || key.split(":").slice(1).join(":"),
+          path: asset?.path || "",
+          meta: asset?.meta || "",
+        };
+      });
+      writeTerms(terms);
+      render();
+      closeMountDialog();
+      setTip(`已为术语「${term.name}」挂载 ${term.mounts.length} 个资产`);
+    }
+
+    /* ===== 问数就绪增强：术语类型 / 值域绑定 / 值层级 / 同义词冲突 / 版本快照 =====
+       对齐 DeepSeek 评审建议的 6 个缺口，全部在本模块内实现，index 零改动 */
+    const TERM_TYPE_OPTIONS = [
+      { value: "entity", label: "实体", desc: "业务对象，问数时作为 JOIN 依据", color: "#2f6bff" },
+      { value: "dimension", label: "维度", desc: "分组轴，问数时进入 GROUP BY", color: "#00a68a" },
+      { value: "metric", label: "指标", desc: "度量口径，问数时进入 SELECT 聚合", color: "#f59a23" },
+      { value: "filter", label: "过滤", desc: "值域条件，问数时进入 WHERE", color: "#7b61ff" },
+    ];
+    const TERM_VOCAB_GAPS_KEY = "biz-term-vocab-gaps-v1";
+    let formEnhInjected = false;
+    let formValueBindings = [];
+
+    function termTypeMeta(value) {
+      return TERM_TYPE_OPTIONS.find((t) => t.value === value) || TERM_TYPE_OPTIONS[0];
+    }
+
+    function readVocabGaps() {
+      try {
+        return JSON.parse(localStorage.getItem(TERM_VOCAB_GAPS_KEY) || "[]");
+      } catch (_e) {
+        return [];
+      }
+    }
+
+    function writeVocabGaps(list) {
+      try {
+        localStorage.setItem(TERM_VOCAB_GAPS_KEY, JSON.stringify(list.slice(-50)));
+      } catch (_e) {
+        /* ignore */
+      }
+    }
+
+    function allModelFieldNames() {
+      const map = new Map();
+      (global.MetricModule?.listBusinessModels?.() || []).forEach((model) => {
+        (model.fieldNames || []).forEach((fieldName) => {
+          if (!map.has(fieldName)) map.set(fieldName, new Set());
+          map.get(fieldName).add(model.name);
+        });
+      });
+      return map;
+    }
+
+    function ensureFormEnhance() {
+      if (formEnhInjected) return;
+      const descField = document.getElementById("termFormDescription")?.closest(".term-form-field");
+      if (!descField) return;
+      formEnhInjected = true;
+      const styleEl = document.createElement("style");
+      styleEl.textContent = `
+        .term-type-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 9px; font-size: 11px; font-style: normal; font-weight: 400; color: #fff; vertical-align: middle; }
+        .term-conflict-flag { margin-left: 5px; font-size: 12px; cursor: help; }
+        .term-vb-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .term-vb-row select, .term-vb-row input { flex: 1; min-width: 0; box-sizing: border-box; border: 1px solid #d0d5dd; border-radius: 4px; padding: 6px 8px; font: inherit; font-size: 12px; color: #344054; }
+        .term-vb-row .term-vb-op { flex: 0 0 72px; }
+        .term-vb-remove { flex: 0 0 auto; border: 0; background: transparent; color: #98a2b3; font-size: 15px; cursor: pointer; }
+        .term-vb-add { border: 1px dashed #c9cdd4; background: #fff; border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #475467; cursor: pointer; }
+        .term-vb-add:hover { border-color: #1e80ff; color: #1e80ff; }
+        .term-enh-hint { margin-top: 4px; font-size: 11px; color: #98a2b3; }
+        .term-sim-overlay { z-index: calc(var(--overlay-z-index) + 2); }
+        .term-sim-modal { width: min(720px, 94vw); }
+        .term-sim-body { flex: 1; min-height: 0; overflow: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .term-sim-question { width: 100%; box-sizing: border-box; border: 1px solid #d0d5dd; border-radius: 4px; padding: 9px 12px; font: inherit; color: #344054; resize: vertical; min-height: 58px; }
+        .term-sim-run { align-self: flex-start; border: 0; border-radius: 4px; background: #1e80ff; color: #fff; padding: 8px 20px; font: inherit; font-size: 13px; cursor: pointer; }
+        .term-sim-steps { display: flex; flex-direction: column; gap: 8px; }
+        .term-sim-step { display: flex; gap: 10px; padding: 10px 12px; border: 1px solid #eef1f5; border-radius: 6px; font-size: 12.5px; color: #344054; line-height: 1.6; }
+        .term-sim-step .no { flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; background: #1e80ff; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+        .term-sim-step.is-gap { border-style: dashed; border-color: #f59a23; background: #fffaf3; }
+        .term-sim-step.is-gap .no { background: #f59a23; }
+        .term-sim-step b { color: #1f2d3d; }
+        .term-sim-sql { background: #0f1728; color: #d6e2ff; font-family: Consolas, monospace; font-size: 12px; padding: 12px 14px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; }
+        .term-sim-sql .kw { color: #7cc4ff; }
+        .term-sim-gapbar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #b25e00; background: #fff7e8; border: 1px solid #ffd591; border-radius: 4px; padding: 7px 10px; }
+        .term-sim-hist li { margin: 4px 0; }
+        .term-sim-hist .meta { color: #98a2b3; font-size: 11px; margin-left: 6px; }
+        .term-save-confirm { display: flex; align-items: flex-start; gap: 10px; border: 1px solid #ffd591; background: #fff7e8; border-radius: 4px; padding: 10px 12px; font-size: 12px; color: #874d00; line-height: 1.6; }
+        .term-save-confirm[hidden] { display: none; }
+        .term-save-confirm-text { flex: 1; min-width: 0; white-space: pre-wrap; }
+        .term-save-confirm-actions { flex-shrink: 0; display: flex; gap: 8px; }
+        .term-save-confirm-actions button { border: 1px solid #d0d5dd; background: #fff; border-radius: 4px; padding: 4px 14px; font: inherit; font-size: 12px; color: #344054; cursor: pointer; }
+        .term-save-confirm-actions button.is-primary { background: #f59a23; border-color: #f59a23; color: #fff; }
+      `;
+      document.head.appendChild(styleEl);
+      const wrap = document.createElement("div");
+      wrap.innerHTML = `
+        <div class="term-form-field">
+          <label for="termFormType">术语类型<span class="required">*</span></label>
+          <select id="termFormType">
+            ${TERM_TYPE_OPTIONS.map((t) => `<option value="${t.value}" title="${t.desc}">${t.label} — ${t.desc}</option>`).join("")}
+          </select>
+        </div>
+        <div class="term-form-field">
+          <label for="termFormParentTerm">上级术语（值层级）</label>
+          <select id="termFormParentTerm"><option value="">无 — 顶层术语</option></select>
+          <div class="term-enh-hint">建立「上海 ⊂ 华东」这类层级后，问数可沿层级上卷或展开</div>
+        </div>
+        <div class="term-form-field">
+          <label>值域绑定（过滤/维度术语建议填写，问数时生成 WHERE / GROUP BY 条件）</label>
+          <div id="termValueBindingRows"></div>
+          <button type="button" id="termValueBindingAdd" class="term-vb-add">＋ 添加值域规则</button>
+        </div>
+        <div class="term-save-confirm" id="termSaveConfirm" hidden>
+          <span class="term-save-confirm-text" id="termSaveConfirmText"></span>
+          <span class="term-save-confirm-actions">
+            <button type="button" id="termSaveConfirmCancel">取消</button>
+            <button type="button" class="is-primary" id="termSaveConfirmBtn">仍要保存</button>
+          </span>
+        </div>
+      `;
+      descField.after(...Array.from(wrap.children));
+      document.getElementById("termValueBindingAdd").addEventListener("click", () => {
+        formValueBindings.push({ field: "", op: "=", value: "" });
+        renderValueBindingRows();
+      });
+      /* 页面内确认条：替代原生 confirm（内嵌 webview 中原生对话框会冻结/不可见） */
+      document.getElementById("termSaveConfirmBtn").addEventListener("click", () => {
+        hideSaveConfirm();
+        saveForm(true);
+      });
+      document.getElementById("termSaveConfirmCancel").addEventListener("click", hideSaveConfirm);
+    }
+
+    function renderValueBindingRows() {
+      const rowsEl = document.getElementById("termValueBindingRows");
+      if (!rowsEl) return;
+      const fieldMap = allModelFieldNames();
+      rowsEl.innerHTML = formValueBindings.length
+        ? formValueBindings
+            .map(
+              (row, index) => `
+              <div class="term-vb-row" data-vb-index="${index}">
+                <select data-vb-role="field">
+                  <option value="">选择字段</option>
+                  ${[...fieldMap.entries()]
+                    .map(
+                      ([fieldName, owners]) =>
+                        `<option value="${escapeHtml(fieldName)}" ${row.field === fieldName ? "selected" : ""} title="来源：${escapeHtml([...owners].join("、"))}">${escapeHtml(fieldName)}</option>`
+                    )
+                    .join("")}
+                </select>
+                <select data-vb-role="op" class="term-vb-op">
+                  ${["=", "IN", "LIKE", ">", "<", ">=", "<="]
+                    .map((op) => `<option value="${op}" ${row.op === op ? "selected" : ""}>${op}</option>`)
+                    .join("")}
+                </select>
+                <input data-vb-role="value" type="text" placeholder="值，如 '01','02'" value="${escapeHtml(row.value)}" />
+                <button type="button" class="term-vb-remove" data-vb-remove="${index}" aria-label="删除">×</button>
+              </div>
+            `
+            )
+            .join("")
+        : '<div class="term-enh-hint">尚未配置。示例：字段 region_id，条件 IN，值 \'01\',\'02\'（华东区）</div>';
+    }
+
+    function bindValueBindingRows() {
+      const rowsEl = document.getElementById("termValueBindingRows");
+      if (!rowsEl || rowsEl.dataset.bound) return;
+      rowsEl.dataset.bound = "1";
+      rowsEl.addEventListener("input", (event) => {
+        const rowEl = event.target.closest(".term-vb-row");
+        if (!rowEl) return;
+        const index = Number(rowEl.dataset.vbIndex);
+        if (!formValueBindings[index]) return;
+        if (event.target.dataset.vbRole === "value") formValueBindings[index].value = event.target.value;
+      });
+      rowsEl.addEventListener("change", (event) => {
+        const rowEl = event.target.closest(".term-vb-row");
+        if (!rowEl) return;
+        const index = Number(rowEl.dataset.vbIndex);
+        if (!formValueBindings[index]) return;
+        if (event.target.dataset.vbRole === "field") formValueBindings[index].field = event.target.value;
+        if (event.target.dataset.vbRole === "op") formValueBindings[index].op = event.target.value;
+      });
+      rowsEl.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-vb-remove]");
+        if (!btn) return;
+        formValueBindings.splice(Number(btn.dataset.vbRemove), 1);
+        renderValueBindingRows();
+      });
+    }
+
+    function syncParentTermOptions(selectedId) {
+      const parentEl = document.getElementById("termFormParentTerm");
+      if (!parentEl) return;
+      parentEl.innerHTML =
+        '<option value="">无 — 顶层术语</option>' +
+        terms
+          .filter((item) => item.id !== editingId)
+          .map(
+            (item) =>
+              `<option value="${escapeHtml(item.id)}" ${item.id === selectedId ? "selected" : ""}>${escapeHtml(item.name)}（${termTypeMeta(item.termType).label}）</option>`
+          )
+          .join("");
+    }
+
+    /* 同义词冲突检测：本术语的同义词/名称与其他术语的名称/同义词相撞（跨域冲突最危险） */
+    function findSynonymConflicts(nameText, synonymsText, editingIdLocal, domainList) {
+      const ownWords = new Set(
+        [nameText, ...(synonymsText || "").split(/[,，、;；\s]+/)].map((s) => s.trim()).filter((s) => s.length >= 2)
+      );
+      const conflicts = [];
+      terms.forEach((other) => {
+        if (other.id === editingIdLocal) return;
+        const otherWords = [other.name, ...(other.synonyms || "").split(/[,，、;；\s]+/)].map((s) => s.trim()).filter(Boolean);
+        otherWords.forEach((word) => {
+          if (word.length >= 2 && ownWords.has(word)) {
+            const crossDomain = !(other.domain || "").split(/[、,，]/).some((d) => domainsOverlap(d, domainList));
+            conflicts.push({ word, term: other, crossDomain });
+          }
+        });
+      });
+      return conflicts;
+    }
+
+    function domainsOverlap(domainA, domainList) {
+      return (domainList || []).some((d) => d && (domainA || "").includes(d));
+    }
+
+    function collectSynonymConflictKeys() {
+      const keys = new Set();
+      terms.forEach((term) => {
+        const own = [term.name, ...(term.synonyms || "").split(/[,，、;；\s]+/)].map((s) => s.trim()).filter((s) => s.length >= 2);
+        terms.forEach((other) => {
+          if (other.id === term.id) return;
+          const otherWords = [other.name, ...(other.synonyms || "").split(/[,，、;；\s]+/)].map((s) => s.trim());
+          if (own.some((word) => otherWords.includes(word))) keys.add(term.id);
+        });
+      });
+      return keys;
+    }
+
+    function termImpactSummary(term) {
+      const refs = countTermReferences(term.id);
+      const mountCount = (term.mounts || []).length;
+      const total = refs.metricCount + refs.fieldCount + mountCount;
+      return { ...refs, mountCount, total };
+    }
+
+    /* ===== 问数模拟器：命中解释 + SQL 片段 + 词汇缺口 ===== */
+    let simOverlayEl = null;
+
+    function ensureSimDialog() {
+      if (simOverlayEl) return;
+      simOverlayEl = document.createElement("div");
+      simOverlayEl.className = "term-form-overlay term-sim-overlay";
+      simOverlayEl.id = "termAskSimOverlay";
+      simOverlayEl.hidden = true;
+      simOverlayEl.innerHTML = `
+        <div class="term-form-modal term-sim-modal" role="dialog" aria-modal="true" aria-label="问数模拟">
+          <div class="term-form-head">
+            <h3>问数模拟 · 术语命中解释</h3>
+            <button class="term-form-close" type="button" data-sim-close aria-label="关闭">×</button>
+          </div>
+          <div class="term-sim-body">
+            <textarea class="term-sim-question" id="termSimQuestion" placeholder="输入一句自然语言问句，如：华东区今年的合同总销售额">华东区今年的合同总销售额</textarea>
+            <button type="button" class="term-sim-run" id="termSimRun">模拟解析</button>
+            <div class="term-sim-steps" id="termSimSteps"></div>
+            <div class="term-sim-sql" id="termSimSql" hidden></div>
+            <div id="termSimGaps"></div>
+          </div>
+          <div class="term-mount-foot">
+            <button type="button" data-sim-close>关闭</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(simOverlayEl);
+      simOverlayEl.addEventListener("click", (event) => {
+        if (event.target === simOverlayEl || event.target.closest("[data-sim-close]")) simOverlayEl.hidden = true;
+      });
+      simOverlayEl.querySelector("#termSimRun").addEventListener("click", runAskSimulation);
+      /* 工具栏注入入口按钮 */
+      const syncBtn = document.getElementById("syncToQueryBtn");
+      if (syncBtn && !document.getElementById("termSimEntryBtn")) {
+        const entry = document.createElement("button");
+        entry.className = "btn-sync-query";
+        entry.id = "termSimEntryBtn";
+        entry.type = "button";
+        entry.title = "用一句自然语言模拟问数解析，查看术语命中与 SQL 片段";
+        syncBtn.before(entry);
+        entry.addEventListener("click", openAskSimulation);
+      }
+    }
+
+    function syncSimEntryLabel() {
+      const entry = document.getElementById("termSimEntryBtn");
+      if (!entry) return;
+      const gaps = readVocabGaps();
+      entry.textContent = gaps.length ? `问数模拟（缺口 ${gaps.length}）` : "问数模拟";
+    }
+
+    function openAskSimulation() {
+      if (!simOverlayEl) ensureSimDialog();
+      simOverlayEl.hidden = false;
+      syncSimEntryLabel();
+    }
+
+    function matchTermsInQuestion(question) {
+      const hits = [];
+      const consumed = [];
+      const sorted = [...terms].sort((a, b) => b.name.length - a.name.length);
+      let rest = question;
+      sorted.forEach((term) => {
+        const words = [term.name, ...(term.synonyms || "").split(/[,，、;；\s]+/)]
+          .map((s) => s.trim())
+          .filter((s) => s.length >= 2)
+          .sort((a, b) => b.length - a.length);
+        for (const word of words) {
+          if (rest.includes(word)) {
+            hits.push({ term, word });
+            rest = rest.split(word).join("　");
+            consumed.push(word);
+            break;
+          }
+        }
+      });
+      const leftovers = rest
+        .split(/[，。！？、\s　]+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length >= 2);
+      return { hits, leftovers };
+    }
+
+    function extractTimeCondition(question) {
+      const year = question.match(/(20\d{2})年/);
+      if (year) return `YEAR(<时间字段>) = ${year[1]}`;
+      if (question.includes("今年")) return `YEAR(<时间字段>) = ${new Date().getFullYear()}`;
+      if (question.includes("去年")) return `YEAR(<时间字段>) = ${new Date().getFullYear() - 1}`;
+      if (question.includes("上个月")) return "MONTH(<时间字段>) = 上月";
+      if (question.includes("本月")) return "MONTH(<时间字段>) = 本月";
+      return "";
+    }
+
+    function runAskSimulation() {
+      const stepsEl = simOverlayEl.querySelector("#termSimSteps");
+      const sqlEl = simOverlayEl.querySelector("#termSimSql");
+      const gapsEl = simOverlayEl.querySelector("#termSimGaps");
+      const question = (simOverlayEl.querySelector("#termSimQuestion").value || "").trim();
+      if (!question) {
+        stepsEl.innerHTML = '<div class="term-sim-step"><span class="no">!</span><span>请输入问句</span></div>';
+        sqlEl.hidden = true;
+        gapsEl.innerHTML = "";
+        return;
+      }
+      const { hits, leftovers } = matchTermsInQuestion(question);
+      const steps = [];
+      steps.push(
+        `<div class="term-sim-step"><span class="no">1</span><span><b>NLU 切词</b>：问句分词完成，共命中 <b>${hits.length}</b> 个术语${hits.length ? "：" + hits.map((h) => `「${escapeHtml(h.word)}」→${escapeHtml(h.term.name)}`).join("、") : ""}</span></div>`
+      );
+      if (hits.length) {
+        steps.push(
+          `<div class="term-sim-step"><span class="no">2</span><span><b>多态路由</b>：${hits
+            .map((h) => {
+              const meta = termTypeMeta(h.term.termType);
+              const roleMap = { metric: "SELECT 聚合", dimension: "GROUP BY 分组", filter: "WHERE 过滤", entity: "JOIN 关联" };
+              return `「${escapeHtml(h.term.name)}」是 <b style="color:${meta.color}">${meta.label}</b> → 进入 ${roleMap[meta.value]}`;
+            })
+            .join("；")}</span></div>`
+        );
+        const bindings = hits.flatMap((h) => (h.term.valueBindings || []).map((b) => ({ ...b, termName: h.term.name })));
+        steps.push(
+          `<div class="term-sim-step"><span class="no">3</span><span><b>值域绑定</b>：${
+            bindings.length
+              ? bindings.map((b) => `「${escapeHtml(b.termName)}」→ <b>${escapeHtml(b.field)} ${escapeHtml(b.op)} ${escapeHtml(b.value)}</b>`).join("；")
+              : "命中的术语均未配置值域绑定，条件列将以占位符输出（可在术语表单补配置）"
+          }</span></div>`
+        );
+        const modelNames = [...new Set(hits.flatMap((h) => h.term.modelNames || []).filter(Boolean))];
+        steps.push(
+          `<div class="term-sim-step"><span class="no">4</span><span><b>语义模型路由</b>：${modelNames.length ? `命中术语声明生效于「${escapeHtml(modelNames.join("、"))}」，Schema 裁剪至该模型` : "术语未限定生效模型，将在当前数据域下模糊路由（建议在表单中选择生效模型）"}</span></div>`
+        );
+      } else {
+        steps.push(
+          `<div class="term-sim-step is-gap"><span class="no">2</span><span><b>术语池未命中</b>：当前术语库没有任何词能解释这句话。以下片段已收进「词汇缺口」，可据此补建术语。</span></div>`
+        );
+      }
+      const timeCond = extractTimeCondition(question);
+      if (timeCond) {
+        steps.push(`<div class="term-sim-step"><span class="no">5</span><span><b>时间条件</b>：「${escapeHtml(question.match(/今年|去年|上个月|本月|20\d{2}年/)?.[0] || "")}」→ ${escapeHtml(timeCond)}</span></div>`);
+      }
+      stepsEl.innerHTML = steps.join("");
+      /* SQL 拼装（演示级） */
+      const metricHit = hits.find((h) => h.term.termType === "metric");
+      const filterHits = hits.filter((h) => ["filter", "dimension"].includes(h.term.termType) && (h.term.valueBindings || []).length);
+      const dimensionHit = hits.find((h) => h.term.termType === "dimension");
+      const wheres = [];
+      filterHits.forEach((h) => (h.term.valueBindings || []).forEach((b) => wheres.push(`t.${b.field} ${b.op} ${b.value}`)));
+      if (timeCond) wheres.push(timeCond.replace("<时间字段>", "stat_month"));
+      const metricField = metricHit?.term.valueBindings?.[0]?.field || "<度量字段>";
+      const modelName = metricHit?.term.modelNames?.[0] || "<生效模型>";
+      sqlEl.hidden = false;
+      sqlEl.innerHTML =
+        `<span class="kw">SELECT</span> SUM(t.${escapeHtml(metricField)}) AS total\n` +
+        `<span class="kw">FROM</span> ${escapeHtml(modelName)} t\n` +
+        (dimensionHit ? `<span class="kw">GROUP BY</span> t.${escapeHtml(dimensionHit.term.valueBindings?.[0]?.field || dimensionHit.term.name)}\n` : "") +
+        (wheres.length ? `<span class="kw">WHERE</span> ${escapeHtml(wheres.join("\n  AND "))}` : `<span class="kw">WHERE</span> <span style="color:#8899bb;">-- 无过滤条件</span>`);
+      /* 词汇缺口 */
+      const gaps = leftovers.filter((frag) => !hits.some((h) => frag.includes(h.word)));
+      if (gaps.length) {
+        const stored = readVocabGaps();
+        const known = new Set(stored.map((g) => g.text));
+        gaps.forEach((frag) => {
+          if (!known.has(frag)) stored.push({ text: frag, time: formatDate(), question });
+        });
+        writeVocabGaps(stored);
+        syncSimEntryLabel();
+        gapsEl.innerHTML = `<div class="term-sim-gapbar">⚠ 词汇缺口 ${gaps.length} 条：${gaps.map((g) => `「${escapeHtml(g)}」`).join(" ")}（已收进缺口清单，点击顶部「问数模拟（缺口 n）」可追溯）</div>`;
+      } else {
+        gapsEl.innerHTML = "";
+      }
     }
 
     function setImportStep(step) {
@@ -1904,6 +3165,7 @@
       const item = terms.find((row) => row.id === id);
       if (!item) return;
       if (action === "detail") openDetail(id);
+      if (action === "mount") openMountDialog(id);
       if (action === "edit") openForm(item);
       if (action === "online") {
         item.online = item.online === false;
@@ -1921,14 +3183,55 @@
         setTip(`已删除术语：${item.name}`);
       }
     });
-    formSaveBtnEl?.addEventListener("click", saveForm);
+    formSaveBtnEl?.addEventListener("click", () => saveForm(false));
     formCancelBtnEl?.addEventListener("click", closeForm);
     formCloseBtnEl?.addEventListener("click", closeForm);
     formOverlayEl?.addEventListener("click", (event) => {
       if (event.target === formOverlayEl) closeForm();
     });
-    detailCloseBtnEl?.addEventListener("click", closeDetail);
-    detailBodyEl?.addEventListener("click", (event) => {
+    /* ===== 术语详情二级页面：交互 ===== */
+    legacyCloseBtnEl?.addEventListener("click", closeDetailLegacy);
+    detailBackBtnEl?.addEventListener("click", closeDetail);
+    detailEditBtnEl?.addEventListener("click", () => {
+      const term = detailTerm();
+      if (term) openForm(term);
+    });
+    detailMountBtnEl?.addEventListener("click", () => {
+      if (detailTermId) openMountDialog(detailTermId);
+    });
+    detailOnlineBtnEl?.addEventListener("click", () => {
+      const term = detailTerm();
+      if (!term) return;
+      term.online = term.online === false;
+      writeTerms(terms);
+      renderDetailView();
+      setTip(
+        term.online !== false
+          ? `术语「${term.name}」已上线，可供指标/字段挂载`
+          : `术语「${term.name}」已下线，暂不可挂载`
+      );
+    });
+    detailViewEl?.addEventListener("click", (event) => {
+      const tabBtn = event.target.closest("[data-term-detail-tab]");
+      if (tabBtn) {
+        switchDetailTab(tabBtn.dataset.termDetailTab);
+        return;
+      }
+      const typeChip = event.target.closest("[data-detail-mount-type]");
+      if (typeChip) {
+        detailMountType = typeChip.dataset.detailMountType || "";
+        const term = detailTerm();
+        if (term) {
+          renderDetailMounts(term);
+        }
+        return;
+      }
+      const jump = event.target.closest("[data-mount-jump]");
+      if (jump) {
+        detailMountType = jump.dataset.mountJump || "";
+        switchDetailTab("mounts");
+        return;
+      }
       const metricLink = event.target.closest("[data-open-metric]");
       if (metricLink) {
         event.preventDefault();
@@ -1943,12 +3246,87 @@
         openFieldByKey?.(fieldLink.dataset.openField);
       }
     });
+    detailViewEl?.addEventListener("input", (event) => {
+      if (event.target.id !== "termDetailMountSearch") return;
+      detailMountKeyword = event.target.value || "";
+      const term = detailTerm();
+      if (term) renderDetailMountList(term);
+    });
+    /* 切换一级/二级页签时收起详情页，避免与列表视图叠加 */
+    document.addEventListener(
+      "click",
+      (event) => {
+        if (!detailViewEl || detailViewEl.hidden) return;
+        if (!event.target.closest(".list-primary-tab, .list-catalog-tab, .glossary-item")) return;
+        detailViewEl.hidden = true;
+        detailTermId = "";
+        detailTab = "overview";
+        const listView = document.getElementById("listView");
+        if (listView) listView.hidden = false;
+      },
+      true
+    );
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       if (importOverlayEl && !importOverlayEl.hidden) closeImportWizard();
+      else if (simOverlayEl && !simOverlayEl.hidden) simOverlayEl.hidden = true;
+      else if (mountOverlayEl && !mountOverlayEl.hidden) closeMountDialog();
       else if (formOverlayEl && !formOverlayEl.hidden) closeForm();
-      else if (detailDrawerEl && !detailDrawerEl.hidden) closeDetail();
+      else if (detailViewEl && !detailViewEl.hidden) closeDetail();
+      else if (legacyDrawerEl && !legacyDrawerEl.hidden) closeDetailLegacy();
     });
+
+    /* 问数演示种子：让「问数模拟」开箱即可演示完整的多态路由链路 */
+    const ASK_DEMO_TERMS = [
+      {
+        name: "华东区",
+        termType: "filter",
+        synonyms: "华东地区",
+        description: "华东大区口径：上海(31)、江苏(32)、浙江(33)、安徽(34)",
+        domain: "收入管理",
+        domains: ["收入管理"],
+        valueBindings: [{ field: "org_code", op: "IN", value: "('31','32','33','34')" }],
+        online: true,
+      },
+      {
+        name: "合同总销售额",
+        termType: "metric",
+        synonyms: "合同销售额",
+        description: "合同金额合计，不含税口径",
+        domain: "收入管理",
+        domains: ["收入管理"],
+        valueBindings: [{ field: "contract_amt", op: "SUM", value: "" }],
+        online: true,
+      },
+      {
+        name: "统计月份",
+        termType: "dimension",
+        synonyms: "月份,账期",
+        description: "按月分组的时间维度",
+        domain: "收入管理",
+        domains: ["收入管理"],
+        valueBindings: [{ field: "stat_month", op: "=", value: "" }],
+        online: true,
+      },
+    ];
+
+    function ensureAskDemoTerms() {
+      let changed = false;
+      ASK_DEMO_TERMS.forEach((item) => {
+        if (terms.some((term) => term.name === item.name)) return;
+        terms.unshift({
+          id: createId(),
+          project: DEFAULT_PROJECT,
+          creator: "当前用户",
+          createdAt: formatDate(),
+          online: false,
+          ...item,
+        });
+        changed = true;
+      });
+      if (changed) writeTerms(terms);
+      return changed;
+    }
 
     function ensureFieldMountDemoTerms() {
       let changed = false;
@@ -2088,6 +3466,10 @@
     formNameEl?.addEventListener("blur", renderTermNameDupHint);
     formNameEl?.addEventListener("input", hideTermNameDupHint);
     ensureFieldMountDemoTerms();
+    ensureAskDemoTerms();
+    ensureFormEnhance();
+    ensureSimDialog();
+    syncSimEntryLabel();
     render();
 
     return {
