@@ -613,8 +613,6 @@
     /* ===== 术语详情（下沉二级页面，替代原抽屉） ===== */
     const detailViewEl = document.getElementById("termDetailView");
     const detailTitleEl = document.getElementById("termDetailTitle");
-    const detailDomainEl = document.getElementById("termDetailDomain");
-    const detailProjectEl = document.getElementById("termDetailProject");
     const detailOnlineTagEl = document.getElementById("termDetailOnlineTag");
     const detailBackBtnEl = document.getElementById("termDetailBackBtn");
     const detailEditBtnEl = document.getElementById("termDetailEditBtn");
@@ -1242,7 +1240,15 @@
       const keywordRaw = (searchEl?.value || "").trim();
       const items = getFiltered();
       const domainKey = Array.isArray(domainFilter) ? domainFilter.slice().sort().join(",") : domainFilter;
-      const filterKey = `${keywordRaw}\u0001${domainKey}\u0001${onlineFilter}`;
+      /* 切换术语库 / 筛选条件变化都回到第 1 页（同域的两个库互切也要重置） */
+      const glossaryId = (() => {
+        try {
+          return global.GlossaryUI?.getCurG?.()?.id || "";
+        } catch (_err) {
+          return "";
+        }
+      })();
+      const filterKey = `${keywordRaw}\u0001${domainKey}\u0001${onlineFilter}\u0001${glossaryId}`;
       if (filterKey !== lastTermFilterKey) {
         lastTermFilterKey = filterKey;
         termCurrentPage = 1;
@@ -1374,7 +1380,8 @@
       syncValueBindingVisibility();
       syncMountPickerScope();
       syncParentTermOptions(item?.parentTermId || "");
-      initTermModelPicker(termModelList(item));
+      /* 需求：生效模型表单项已移除，模型改为在「关联资产 → 模型」页签勾选 */
+      selectedFormModels = new Set();
       if (formSynonymsEl) formSynonymsEl.value = item?.synonyms || "";
       if (formDescEl) formDescEl.value = item?.description || "";
       hideTermNameDupHint();
@@ -1569,8 +1576,9 @@
         renderTermNameDupHint();
         if (!ok) return;
       }
-      /* 模型对「通用知识」同样开放（非必填，不选则对该数据域下全部模型生效） */
-      const modelNames = [...selectedFormModels];
+      /* 生效模型来自「关联资产 → 模型」页签勾选：写回 modelNames / modelIds，
+         列表「生效模型」列与详情保持一致口径；未勾选则表示对该数据域下全部模型生效 */
+      const modelNames = formMountedModelNames();
       const modelIds = modelNames.map((name) => modelsForDomains(domains).find((model) => model.name === name)?.id || name);
       /* 智能消费端应用增强字段：上级术语 / 值域绑定 / 关联资产，全部按业务资产维护 */
       /* 术语类型已从表单移除：保留既有值（批量设置术语类型仍可写入），不再由表单覆盖 */
@@ -1855,7 +1863,7 @@
           <p><strong>所属工程：</strong>${escapeHtml(item.project || "—")}</p>
           <p><strong>同义词：</strong>${escapeHtml(item.synonyms || "—")}</p>
           <p><strong>描述：</strong>${escapeHtml(item.description || "—")}</p>
-          <p><strong>状态：</strong>${item.online !== false ? "已上线（可供指标/字段挂载）" : "未上线"}</p>
+          <p><strong>状态：</strong>${item.online !== false ? "已上线" : "未上线"}</p>
         </div>
         <div class="bridge-section">
           <h4>关联指标清单</h4>
@@ -1969,8 +1977,6 @@
     function renderDetailHead(term) {
       const total = collectDetailMountItems(term).filter((item) => DETAIL_MOUNT_TYPES.includes(item.type)).length;
       if (detailTitleEl) detailTitleEl.textContent = term.name || "未命名术语";
-      if (detailDomainEl) detailDomainEl.textContent = term.domain || "未指定数据域";
-      if (detailProjectEl) detailProjectEl.textContent = term.project || currentProject();
       if (detailOnlineTagEl) {
         const online = term.online !== false;
         detailOnlineTagEl.textContent = online ? "已上线" : "未上线";
@@ -2011,10 +2017,9 @@
         <div class="td-card">
           <div class="td-card-title">
             <span>基本信息</span>
-            <span class="td-field-label">${term.online !== false ? "已上线，可供指标 / 字段挂载" : "未上线，暂不可挂载"}</span>
           </div>
           <div class="td-grid">
-            <div class="td-field"><div class="td-field-label">术语名称</div><div class="td-field-value">${escapeHtml(term.name || "—")}${termTypeBadgeHtml(term)}</div></div>
+            <div class="td-field"><div class="td-field-label">术语名称</div><div class="td-field-value">${escapeHtml(term.name || "—")}</div></div>
             <div class="td-field"><div class="td-field-label">术语类型</div><div class="td-field-value">${showTermTypeBadge(term) ? escapeHtml(termTypeMeta(term.termType).desc) : "未设置"}</div></div>
             <div class="td-field"><div class="td-field-label">数据域</div><div class="td-field-value">${escapeHtml(term.domain || "—")}</div></div>
             <div class="td-field"><div class="td-field-label">生效模型</div><div class="td-field-value">${escapeHtml(modelText)}</div></div>
@@ -2705,12 +2710,6 @@
       return isAssetTerm(term) && Boolean(term.termType);
     }
 
-    function termTypeBadgeHtml(term) {
-      if (!showTermTypeBadge(term)) return "";
-      const meta = termTypeMeta(term.termType);
-      return `<i class="term-type-badge" style="background:${meta.color}" title="${escapeHtml(meta.desc)}">${meta.label}</i>`;
-    }
-
     function vbMode(mode) {
       return VB_MODES.find((m) => m.value === mode) || VB_MODES[0];
     }
@@ -2790,7 +2789,6 @@
       formEnhInjected = true;
       const styleEl = document.createElement("style");
       styleEl.textContent = `
-        .term-type-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 9px; font-size: 11px; font-style: normal; font-weight: 400; color: #fff; vertical-align: middle; }
         .term-conflict-flag { margin-left: 5px; font-size: 12px; cursor: help; }
         .term-vb-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
         .term-vb-row select, .term-vb-row input { flex: 1; min-width: 0; box-sizing: border-box; border: 1px solid #d0d5dd; border-radius: 4px; padding: 6px 8px; font: inherit; font-size: 12px; color: #344054; }
@@ -2872,7 +2870,7 @@
               </div>
               <div class="term-mount-picker-list" id="termFormMountList"></div>
             </div>
-            <div class="term-enh-hint">按 模型 / 数据集 / 字段 / 指标 / 维度 分页勾选，勾选即关联；候选范围受所选数据域 / 生效模型过滤</div>
+            <div class="term-enh-hint">按 模型 / 数据集 / 字段 / 指标 / 维度 分页勾选，勾选即关联；候选范围受所选数据域过滤</div>
           </div>
         </div>`;
       const mountHost = document.getElementById("termFormMountHost");
@@ -2892,7 +2890,7 @@
             <div id="termValueBindingRows"></div>
             <button type="button" id="termValueBindingAdd" class="term-vb-add">＋ 添加值域规则</button>
           </div>
-          <div class="term-enh-hint term-enh-side">字段候选＝所选生效模型下各数据集的字段（未选模型时为空）。<br />枚举值集＝显式列举（展开为 IN）；表达式＝条件约束，如 region_id LIKE '01%'</div>
+          <div class="term-enh-hint term-enh-side">字段候选来自右侧「关联资产」勾选的模型 / 数据集（未关联时为空）。<br />枚举值集＝显式列举（展开为 IN）；表达式＝条件约束，如 region_id LIKE '01%'</div>
         </div>
         <div class="term-save-confirm" id="termSaveConfirm" hidden>
           <span class="term-save-confirm-text" id="termSaveConfirmText"></span>
@@ -2934,15 +2932,22 @@
         formMounts = formMounts.filter((m) => m.key !== btn.dataset.mountchipRemove);
         renderFormMountChips();
         renderFormMountPanel();
+        /* 值域绑定的字段候选来自关联资产，移除后需同步刷新 */
+        renderValueBindingRows();
       });
       document.getElementById("termFormMountSearch")?.addEventListener("input", renderFormMountPanel);
       bindFormMountPanel();
     }
 
-    /* 需求：值域绑定的字段候选改为「所选生效模型 → 数据集 → 字段」三级，
-       字段取数据集下的 维度 / 度量 / 指标（结构语义模型 store.models[].datasets[]） */
+    /* 需求：值域绑定的候选字段来源于「关联资产」——
+       取关联资产里勾选的模型（model）与其下的数据集、以及直接勾选的数据集（dataset），
+       字段再取数据集下的 维度 / 度量 / 指标（结构语义模型 store.models[].datasets[]） */
+    function formMountedModelNames() {
+      return [...new Set(formMounts.filter((m) => m.type === "model").map((m) => m.name).filter(Boolean))];
+    }
+
     function formSelectedModels() {
-      const names = [...selectedFormModels];
+      const names = formMountedModelNames();
       if (!names.length) return [];
       return (global.MetricModule?.listBusinessModels?.() || []).filter((model) => names.includes(model.name));
     }
@@ -2954,22 +2959,35 @@
       } catch (_err) {
         bridgeModels = [];
       }
+      const mountedModels = new Set(formMountedModelNames());
+      const mountedDatasets = new Set(formMounts.filter((m) => m.type === "dataset").map((m) => m.name).filter(Boolean));
       const groups = [];
+      const pushDataset = (modelName, ds) => {
+        const fields = [...(ds.dimensions || []), ...(ds.measures || []), ...(ds.metrics || [])]
+          .map((f) => ({ name: f.name || f.fqn || "", fqn: f.fqn || "", dataType: f.dataType || "" }))
+          .filter((f) => f.name);
+        if (fields.length) groups.push({ model: modelName, dataset: ds.name || "数据集", fields });
+      };
+      /* 1) 关联资产里勾选的模型 → 该模型下全部数据集 */
       formSelectedModels().forEach((model) => {
         const dsList = (bridgeModels.find((m) => m.name === model.name)?.datasets) || [];
         if (dsList.length) {
-          dsList.forEach((ds) => {
-            const fields = [...(ds.dimensions || []), ...(ds.measures || []), ...(ds.metrics || [])]
-              .map((f) => ({ name: f.name || f.fqn || "", fqn: f.fqn || "", dataType: f.dataType || "" }))
-              .filter((f) => f.name);
-            if (fields.length) groups.push({ model: model.name, dataset: ds.name || "数据集", fields });
-          });
+          dsList.forEach((ds) => pushDataset(model.name, ds));
           return;
         }
         /* 该模型在结构语义里还没有数据集时，回退到模型自带的字段清单 */
         const fallback = (model.fieldNames || []).map((name) => ({ name, fqn: "", dataType: "" }));
         if (fallback.length) groups.push({ model: model.name, dataset: `${model.name}字段`, fields: fallback });
       });
+      /* 2) 直接勾选的数据集（其所属模型未勾选时单独补充） */
+      if (mountedDatasets.size) {
+        bridgeModels.forEach((m) => {
+          if (mountedModels.has(m.name)) return;
+          (m.datasets || []).forEach((ds) => {
+            if (mountedDatasets.has(ds.name)) pushDataset(m.name, ds);
+          });
+        });
+      }
       return groups;
     }
 
@@ -3004,7 +3022,7 @@
                           .join("")}</optgroup>`
                     )
                     .join("")
-                : `<option value="" disabled>${selectedFormModels.size ? "所选模型下没有数据集字段" : "请先在上方选择生效模型"}</option>`;
+                : `<option value="" disabled>${formMountedModelNames().length ? "关联模型下没有数据集字段" : "请先在右侧「关联资产 → 模型」勾选模型"}</option>`;
               const fieldSelect = `
                 <select data-vb-role="field" data-vb-placeholder="1">
                   <option value="">选择字段</option>
@@ -3088,16 +3106,9 @@
       field.hidden = false;
     }
 
-    /* 生效模型始终非必填；所选模型变化后重绘值域绑定的数据集字段候选 */
+    /* 需求：生效模型表单项已移除（模型改在「关联资产 → 模型」勾选），
+       该函数只负责重绘值域绑定的数据集字段候选（候选来自关联资产） */
     function syncTypeDrivenRules() {
-      const reqMark = document.getElementById("termModelRequiredMark");
-      const optMark = document.getElementById("termModelOptionalMark");
-      if (reqMark) reqMark.hidden = true;
-      if (optMark) optMark.hidden = false;
-      const modelField = document.getElementById("termModelField");
-      if (modelField) modelField.classList.remove("is-required");
-      const searchEl = document.getElementById("termModelSearch");
-      if (searchEl) searchEl.placeholder = "可选。不选则对该数据域下全部模型生效";
       if (document.getElementById("termValueBindingRows")) renderValueBindingRows();
     }
 
@@ -3140,19 +3151,17 @@
       renderFormMountPanel();
     }
 
-    /* 候选范围：优先取所选「生效模型」，未选模型时回退到所选数据域下的模型，都未选则给全量 */
+    /* 候选范围：所选数据域下的模型，未选数据域则给全量 */
     function formScopeModels() {
       const all = global.MetricModule?.listBusinessModels?.() || [];
-      if (selectedFormModels.size) return all.filter((model) => selectedFormModels.has(model.name));
       const domains = [...selectedFormDomains];
       if (domains.length) return modelsForDomains(domains);
       return all;
     }
 
     function formMountScopeLabel() {
-      if (selectedFormModels.size) return `候选范围：所选生效模型（${selectedFormModels.size} 个）`;
       if (selectedFormDomains.size) return `候选范围：所选数据域下的模型（${selectedFormDomains.size} 个域）`;
-      return "候选范围：未限定数据域 / 模型";
+      return "候选范围：未限定数据域";
     }
 
     /* 按表单所选数据域/模型过滤五类候选：模型来自范围内的业务模型，
@@ -3264,7 +3273,7 @@
         statEl.textContent = `共 ${all.filter((asset) => asset.type === typeDef.type).length} 项，已选 ${selected.size} 项`;
       }
       if (!assets.length) {
-        listEl.innerHTML = `<div class="term-mount-picker-empty">当前范围内没有可选的${escapeHtml(typeDef.label)}，可调整数据域 / 生效模型或清除搜索词</div>`;
+        listEl.innerHTML = `<div class="term-mount-picker-empty">当前范围内没有可选的${escapeHtml(typeDef.label)}，可调整数据域或清除搜索词</div>`;
         return;
       }
       listEl.innerHTML = assets
@@ -3304,6 +3313,8 @@
         /* 勾选只刷新已选 chips 与页签计数，不重建列表（否则会丢焦点 / 滚动位置） */
         renderFormMountChips();
         renderFormMountTabs();
+        /* 值域绑定的字段候选来自关联资产（模型 / 数据集），勾选后同步刷新 */
+        renderValueBindingRows();
       });
     }
 
@@ -4007,11 +4018,7 @@
         item.online = item.online === false;
         writeTerms(terms);
         render();
-        setTip(
-          item.online !== false
-            ? `术语「${item.name}」已上线，可供指标/字段挂载`
-            : `术语「${item.name}」已下线，暂不可挂载`
-        );
+        setTip(item.online !== false ? `术语「${item.name}」已上线` : `术语「${item.name}」已下线`);
       }
       if (action === "delete") {
         if (!window.confirm(`确定删除术语「${item.name}」吗？\n该术语${duplicateRefSummary(item)}，删除后指标/字段上的对应挂载引用将一并失效。`)) return;
@@ -4045,11 +4052,7 @@
       term.online = term.online === false;
       writeTerms(terms);
       renderDetailView();
-      setTip(
-        term.online !== false
-          ? `术语「${term.name}」已上线，可供指标/字段挂载`
-          : `术语「${term.name}」已下线，暂不可挂载`
-      );
+      setTip(term.online !== false ? `术语「${term.name}」已上线` : `术语「${term.name}」已下线`);
     });
     detailViewEl?.addEventListener("click", (event) => {
       const tabBtn = event.target.closest("[data-term-detail-tab]");

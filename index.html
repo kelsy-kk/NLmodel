@@ -512,7 +512,8 @@
     .glossary-tab:hover { color:#1677d2;background:#f0f7ff; }
     .glossary-tab.active { color:#1677d2;background:#e6f4ff; }
     .glossary-tab-count { display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#eef2ff;color:#1677d2;font-size:11px;font-weight:600; }
-    .glossary-desc-card { border:1px solid #e8ebf0;border-radius:6px;background:#fafbfc;padding:12px 16px;margin-bottom:16px;position:relative; }
+    /* 需求：术语库信息卡统一淡蓝色（原浅灰 #fafbfc） */
+    .glossary-desc-card { border:1px solid #dbeafe;border-radius:6px;background:#f5f9ff;padding:12px 16px;margin-bottom:16px;position:relative; }
     .glossary-desc-card-actions { position:absolute;top:10px;right:12px;display:flex;gap:10px; }
     .glossary-desc-action { width:16px;height:16px;border:0;background:transparent;color:#98a2b3;cursor:pointer;padding:0; }
     .glossary-desc-action:hover { color:#1677d2; }
@@ -4841,9 +4842,6 @@
       font-size: 12px;
     }
 
-    .term-detail-sub .term-detail-dot {
-      color: #d0d5dd;
-    }
 
     .term-detail-actions {
       flex: none;
@@ -4978,15 +4976,14 @@
       padding: 18px 0 28px;
     }
 
-    /* 两列排版：短字段并排，长字段整行 */
+    /* 需求：左列字段改为单列排布（右列已占一半宽度） */
     .term-edit-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 16px 20px;
-      max-width: 960px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
     }
 
-    /* 需求：创建 / 编辑术语改为左右布局 —— 左列基础信息，右列关联资产 */
+    /* 需求：创建 / 编辑术语左右布局，左右等宽 —— 左列基础信息（单列），右列关联资产 */
     .term-edit-columns {
       display: flex;
       align-items: flex-start;
@@ -4994,12 +4991,12 @@
     }
 
     .term-edit-col.is-main {
-      flex: 1 1 auto;
+      flex: 1 1 0;
       min-width: 0;
     }
 
     .term-edit-col.is-side {
-      flex: 0 0 420px;
+      flex: 1 1 0;
       min-width: 0;
       /* 左列内容较长时，右列关联资产跟随滚动，避免滚到下方看不见 */
       position: sticky;
@@ -5065,10 +5062,20 @@
 
     .term-enh-field {
       display: grid;
-      /* 左列布局下提示列适当收窄，给中间控件留更多宽度 */
-      grid-template-columns: 116px minmax(0, 1fr) 200px;
+      grid-template-columns: 116px minmax(0, 1fr);
       column-gap: 16px;
       align-items: start;
+    }
+
+    /* 左右布局后左列只有半屏宽：提示文字挪到控件下方，避免挤占控件宽度 */
+    #termFormEnhance .term-enh-field {
+      grid-template-columns: 96px minmax(0, 1fr);
+      row-gap: 4px;
+    }
+
+    #termFormEnhance .term-enh-side {
+      grid-column: 2;
+      padding-top: 0;
     }
 
     .term-enh-field > label {
@@ -5183,23 +5190,25 @@
       gap: 10px;
     }
 
+    /* 需求：挂载概况统计卡统一淡蓝色（原浅灰 #fafbfc） */
     .td-stat {
       flex: 1 1 150px;
       min-width: 140px;
       padding: 12px 14px;
-      border: 1px solid #eaecf0;
+      border: 1px solid #dbeafe;
       border-radius: 8px;
-      background: #fafbfc;
+      background: #f5f9ff;
       cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
 
     .td-stat:hover {
-      border-color: #bfdbfe;
-      background: #f5f9ff;
+      border-color: #93c5fd;
+      background: #e8f2ff;
     }
 
     .td-stat-label {
-      color: #667085;
+      color: #5a7ba8;
       font-size: 12px;
     }
 
@@ -5435,9 +5444,63 @@
       pointer-events: none;
     }
 
+    /* 需求：术语列表限高 + 内部滚动，配合 .term-pager 的 sticky 底部，保证分页条常驻可见 */
     #listCatalogTermPanel {
       overflow-x: auto;
+      overflow-y: auto;
+      max-height: calc(100vh - 240px);
       max-width: 100%;
+    }
+
+    /* 术语列表分页条：跟随 panel 显隐；sticky 保证横向/纵向滚动时始终可见 */
+    .term-pager {
+      position: sticky;
+      left: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 6px;
+      border-top: 1px solid #eef1f5;
+      background: #fff;
+      color: #667085;
+      font-size: 12px;
+    }
+    .term-pager[hidden] { display: none !important; }
+
+    .term-pager-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .term-pager-btn {
+      height: 28px;
+      padding: 0 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 4px;
+      background: #fff;
+      color: #344054;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .term-pager-btn:hover:not(:disabled) {
+      border-color: #1677d2;
+      background: #f5f9ff;
+      color: #1677d2;
+    }
+    .term-pager-btn:disabled {
+      border-color: #e4e7ec;
+      background: #f7f8fa;
+      color: #98a2b3;
+      cursor: not-allowed;
+    }
+
+    .term-pager-state {
+      color: #344054;
+      font-variant-numeric: tabular-nums;
     }
 
     .term-table {
@@ -7764,7 +7827,7 @@
               <button class="btn-sync-query" id="createMetricBtn" type="button">创建指标</button>
             </div>
             <div class="actions term-toolbar" id="listCatalogTermActions" hidden>
-              <span class="term-toolbar-hint" id="termToolbarHint">管理业务术语与同义词；上线后可供指标/字段挂载</span>
+              <span class="term-toolbar-hint" id="termToolbarHint">管理业务术语与同义词，维护其关联资产与值域绑定</span>
               <label class="search">
                 <input id="termSearchInput" type="search" placeholder="搜索术语名称 / 同义词 / 描述" aria-label="搜索术语" />
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -8150,6 +8213,15 @@
               </thead>
               <tbody id="termTableBody"></tbody>
             </table>
+            <!-- 需求：术语列表分页（每页 15 条），总数 / 页码 / 上一页 / 下一页 -->
+            <div class="term-pager" id="termPager" hidden>
+              <span class="term-pager-summary" id="termPagerSummary"></span>
+              <div class="term-pager-actions">
+                <button class="term-pager-btn" id="termPrevPageBtn" type="button">上一页</button>
+                <span class="term-pager-state" id="termPagerState"></span>
+                <button class="term-pager-btn" id="termNextPageBtn" type="button">下一页</button>
+              </div>
+            </div>
           </div>
 
           <div class="list-catalog-panel" id="listCatalogDocPanel" hidden>
@@ -8294,12 +8366,8 @@
             <div class="term-detail-head-main">
               <button class="term-detail-back" id="termDetailBackBtn" type="button">‹ 返回列表</button>
               <h2 class="term-detail-title" id="termDetailTitle">术语详情</h2>
-              <!-- 需求：去掉标题左侧图标；数据域 / 工程 / 上线状态与标题同一行并靠右，不再放在标题下方 -->
+              <!-- 需求：右上角只保留上线状态，所属数据域 / 所属工程不再展示（概览区仍可见） -->
               <div class="term-detail-sub">
-                <span id="termDetailDomain">—</span>
-                <span class="term-detail-dot">·</span>
-                <span id="termDetailProject">—</span>
-                <span class="term-detail-dot">·</span>
                 <span class="online-tag is-online" id="termDetailOnlineTag">已上线</span>
               </div>
             </div>
@@ -8351,20 +8419,6 @@
                   </div>
                   <div class="metric-domain-dropdown" id="termDomainDropdown" hidden>
                     <div class="metric-domain-list" id="termDomainList"></div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="term-form-field" id="termModelField">
-                <!-- 需求：术语类型字段已移除，生效模型统一为非必填（选中后用于限定关联资产与值域字段的候选范围） -->
-                <label>生效模型<span class="required" id="termModelRequiredMark" hidden>*</span><span class="term-optional" id="termModelOptionalMark">非必填</span></label>
-                <div class="metric-domain-picker" id="termModelPicker">
-                  <div class="metric-domain-trigger" id="termModelTrigger">
-                    <div class="metric-domain-tags" id="termModelTags"></div>
-                    <input class="metric-domain-search" id="termModelSearch" type="search" placeholder="可选。不选则对该数据域下全部模型生效" autocomplete="off" aria-label="选择模型" />
-                  </div>
-                  <div class="metric-domain-dropdown" id="termModelDropdown" hidden>
-                    <div class="metric-domain-list" id="termModelList"></div>
                   </div>
                 </div>
               </div>
@@ -9307,7 +9361,7 @@
           </div>
         </div>
         <div data-term-import-step-panel="4" hidden>
-          <p class="modal-hint">确认后仅写入合法行；新导入术语默认<strong>未上线</strong>，需在术语 Tab 上线后才可供指标/字段挂载。</p>
+          <p class="modal-hint">确认后仅写入合法行；新导入术语默认<strong>未上线</strong>，可在术语 Tab 中上线。</p>
         </div>
       </div>
       <div class="term-form-foot">
@@ -9434,7 +9488,7 @@
   <script src="../shared/semantic-bridge.js?v=2026102301"></script>
   <script src="permission-module.js?v=2026100918"></script>
   <script src="metric-module.js?v=2026102312"></script>
-  <script src="term-module.js?v=2026102322"></script>
+  <script src="term-module.js?v=2026102327"></script>
   <script src="lineage-module.js?v=2026102312"></script>
   <script>
     const embedMode = new URLSearchParams(window.location.search).get("embed");
