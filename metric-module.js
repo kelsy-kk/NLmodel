@@ -2,8 +2,8 @@
  * 业务建模 · 指标模块
  * - 创建指标：全局公共 / 特定域
  * - 公式依赖元数据字段
- * - 创建时设置默认业务日期（问数时间问法映射）
- * - 创建时可绑定分析维度（问数结果区可切换 GROUP BY）
+ * - 创建时设置默认业务日期（智能消费端应用时间问法映射）
+ * - 创建时可绑定分析维度（智能消费端应用结果区可切换 GROUP BY）
  * - 绑定业务模型时校验公式字段 + 默认业务日期 + 分析维度是否齐全
  */
 (function initMetricModule(global) {
@@ -1940,14 +1940,14 @@
       const q = queryRaw.toLowerCase();
       const canAccessDomain = global.PermissionModule?.canAccessDomain || global.DataScope?.canAccessDomain;
       const project = (document.getElementById("projectFilterSelect")?.value || "pmlead-市场指标").trim();
+      const filterDomains = Array.isArray(domainFilter) ? domainFilter.filter(Boolean) : domainFilter ? [domainFilter] : [];
       const rows = metrics.filter((m) => {
         const domains = Array.isArray(m.domains) && m.domains.length
           ? m.domains
           : String(m.domain || "").split(/[、,，]/).map((s) => s.trim()).filter(Boolean);
         if (canAccessDomain && domains.length && !domains.some((d) => canAccessDomain(d, { project }))) return false;
-        if (domainFilter) {
-          if (!domains.includes(domainFilter)) return false;
-        }
+        /* 数据域支持多选（列表表头下拉）：命中任一即保留 */
+        if (filterDomains.length && !filterDomains.some((d) => domains.includes(d))) return false;
         if (!q) return true;
         return [m.name, m.code, m.kind, m.caliber, m.domain, bizDateLabel(m), scopeLabel(m), dimLabel(m), chartStyleLabel(m.chartStyle), (m.domainModels || []).map((d) => d.name).join(","), (m.boundModelNames || []).join(",")]
           .join(" ")
@@ -2102,11 +2102,11 @@
         } else if (isPermission) {
           setTip("权限中心：配置平台角色与数据域/组织行权限，并预览 MCP 数据范围。");
         } else if (isMetric) {
-          setTip("结构语义 · 指标：维护可问数的指标口径与计算逻辑。");
+          setTip("结构语义 · 指标：维护可智能消费端应用的指标口径与计算逻辑。");
         } else if (isTerm) {
           setTip("术语中心：维护业务术语与同义词，上线后可供指标/字段挂载。");
         } else if (isDoc) {
-          setTip("文档中心：上传并管理知识文档，供问数挂接与口径解释。");
+          setTip("文档中心：上传并管理知识文档，供智能消费端应用挂接与口径解释。");
         } else {
           setTip("结构语义 · 模型：维护域模型与基础模型。");
         }
@@ -2431,8 +2431,8 @@
         else removeMetricFromSemanticBridge(metric);
         renderMetricTable();
         setTip(metric.online !== false
-          ? `指标「${metric.name}」已上线，可对问数生效`
-          : `指标「${metric.name}」已下线，暂不对问数生效`);
+          ? `指标「${metric.name}」已上线，可对智能消费端应用生效`
+          : `指标「${metric.name}」已下线，暂不对智能消费端应用生效`);
       }
       if (action === "delete") {
         if (!confirm(`确认删除指标「${metric.name}」？`)) return;
@@ -2778,8 +2778,9 @@
         renderMetricTable();
         setTip(`已删除 ${removing.length} 条指标`);
       },
+      /* 需求：列表「数据域」下拉支持多选 —— value 可为字符串或数组（数组内满足任一即展示） */
       setDomainFilter(value) {
-        domainFilter = value || "";
+        domainFilter = Array.isArray(value) ? value.filter(Boolean) : value || "";
         renderMetricTable();
       },
     };

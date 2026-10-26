@@ -16,7 +16,7 @@
     metric: { label: "指标", color: "#3b82f6", fill: "#3b82f6", text: "#ffffff", stroke: "#2563eb" },
     field: { label: "字段", color: "#60a5fa", fill: "#60a5fa", text: "#ffffff", stroke: "#3b82f6" },
     document: { label: "文档", color: "#93c5fd", fill: "#bfdbfe", text: "#1e3a8a", stroke: "#60a5fa" },
-    query: { label: "问数", color: "#64748b", fill: "#dbeafe", text: "#1e40af", stroke: "#93c5fd" },
+    query: { label: "智能消费端应用", color: "#64748b", fill: "#dbeafe", text: "#1e40af", stroke: "#93c5fd" },
   };
 
   const EDGE_LABELS = {
@@ -317,7 +317,7 @@
     }
 
     function buildQueryNode() {
-      return addNode("query", "smart-query", { label: "智能问数", status: "active" });
+      return addNode("query", "smart-query", { label: "智能消费端应用", status: "active" });
     }
 
     function expandTerm(termId, depth, onlineOnly) {

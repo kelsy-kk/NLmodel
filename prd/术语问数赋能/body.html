@@ -2,7 +2,7 @@
 
 <section class="doc-meta">
   <p><strong>文档状态</strong>：设计稿，待评审。文中标注「建议」的规则尚未经业务确认；标注「现有」的内容依据当前 <code>index_v2.0.html</code>、<code>term-module.js</code>、<code>metric-module.js</code> 的实际实现整理。</p>
-  <p><strong>版本</strong>：v0.2（2026-10-21）新增第 3 章「智能问数查询链路」，明确五类绑定（模型/对象/字段/指标/维度）在问数引擎中的消费方式；v0.1 初稿。</p>
+  <p><strong>版本</strong>：v0.3（2026-10-23）新增第 4 章「挂载入口融合：新建即挂载」，基于原型代码核实现状，给出统一挂载存储与表单融合方案，新增待确认 Q7；v0.2（2026-10-21）新增第 3 章「智能问数查询链路」；v0.1 初稿。</p>
   <p><strong>适用范围</strong>：数据平台 → 建模中心 → 语义模型（术语中心 / 结构语义 / 指标）。不覆盖问数引擎的改词、SQL 生成与执行。</p>
   <p><strong>前置依赖</strong>：模型为「业务场景组」，由一个或多个物理表经 Join 组成，表下含字段，场景下含指标。术语需同时服务治理与问数两类消费方。</p>
 </section>
@@ -303,7 +303,67 @@
 </section>
 
 <section>
-  <h2>4. 详细方案</h2>
+  <h2>4. 挂载入口融合：新建即挂载（v0.3 新增，建议方案）</h2>
+  <p><strong>本章回答的问题</strong>：新建术语表单里已有数据域、生效模型、值域绑定等配置，是否还需要行内「挂载」操作？结论：<strong>需要先打通，再融合</strong>——当前「新建时能挂上」的是作用域与自动推荐，显式挂载仍缺；融合方案是把挂载选择器并入表单，并统一三套存储。</p>
+
+  <h3>4.1 现状核实（基于 index_v2.0.html + term-module.js 实际代码，2026-10-23）</h3>
+  <table>
+    <thead>
+      <tr><th>能力</th><th>新建表单当前状态</th><th>事实依据</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>挂作用域（数据域 / 生效模型）</td><td>✅ 表单已有</td><td>数据域多选 + 模型多选（生效模型），保存写 term.modelNames</td></tr>
+      <tr><td>挂字段</td><td>⚠️ 仅自动推荐</td><td>保存后 matchTermsForField 按名称/同义词/描述相似度推荐到字段列（带「荐」标），不是显式挂载；显式挂载需到字段表「业务术语」列操作</td></tr>
+      <tr><td>挂指标</td><td>❌ 不能</td><td>metric.termIds 只能在指标编辑表单侧选择，术语表单无此控件</td></tr>
+      <tr><td>挂维度</td><td>⚠️ 隐式</td><td>维度类字段靠语义类型=维度 + 值域绑定间接表达，无独立维度挂载</td></tr>
+      <tr><td>行内「挂载」弹窗</td><td>✅ 已有（独立操作）</td><td>列表行「挂载(n)」打开添加资产弹窗，写 term.mounts（数据域/模型/维度/指标/字段五类）</td></tr>
+    </tbody>
+  </table>
+  <p><strong>关键缺口</strong>：当前存在三套互不相通的挂载存储——<code>term.mounts</code>（挂载弹窗）、<code>fieldTermMap</code>（字段侧）、<code>metric.termIds</code>（指标侧）。术语在弹窗里挂了某个指标，指标编辑页看不到；反之亦然。这是融合前必须先解决的问题。</p>
+
+  <h3>4.2 融合方案：一个数据层、两个入口</h3>
+  <table>
+    <thead>
+      <tr><th>设计点</th><th>方案</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>统一数据层</td><td>唯一挂载存储 = <code>term.mounts</code>；fieldTermMap 与 metric.termIds 降级为<strong>派生视图</strong>（读时由 mounts 推导，写时双写过渡）</td><td>术语弹窗挂了指标 → 指标编辑页立即反显；字段列同理。消除「挂了但对方看不见」</td></tr>
+      <tr><td>表单融合</td><td>新建/编辑表单（业务资产模式）新增「关联资产」区块：默认显示已挂资产 chips，点「＋添加资产」展开嵌入式资产选择器（复用挂载弹窗的类型筛选 + 搜索 + 多选列表）</td><td>新建时即可挂指标/字段/维度；保存时随表单一次写入 mounts。通用知识模式不显示该区块（沿用 formTermKind 逻辑）</td></tr>
+      <tr><td>自动推荐定位</td><td>matchTermsForField 的推荐结果保持「荐」标展示，用户在字段列点确认后才写入 mounts（source=auto-confirmed）</td><td>自动推荐是发现手段，显式挂载是确认动作，二者不混存</td></tr>
+      <tr><td>行内「挂载」入口</td><td>保留，但改为打开与表单同一个资产选择器（轻量抽屉形态），编辑同一份 mounts</td><td>两个入口、一份数据；用户习惯哪个用哪个</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.3 交互细节（表单「关联资产」区块）</h3>
+  <table>
+    <thead>
+      <tr><th>页面元素</th><th>交互与逻辑</th><th>边界与验收预期</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>已挂资产 chips</td><td>按类型分组展示（指标/字段/维度/模型/数据域），chip 带 × 可移除；hover 显示路径</td><td>打开表单时从 mounts 反显；移除仅改草稿，保存时统一提交</td></tr>
+      <tr><td>＋添加资产</td><td>展开选择器：类型筛选（默认仅显示 指标/字段/维度，模型与数据域归作用域区管理）+ 搜索框 + 多选列表；已选项置灰打勾</td><td>选择器内勾选即时反映到 chips；取消关闭不落库</td></tr>
+      <tr><td>保存双写</td><td>保存时：mounts 落 term 对象；其中 metric 类型同步写 metric.termIds；field 类型同步写 fieldTermMap（key=模型名|字段英文名）</td><td>指标编辑页、字段「业务术语」列立即反显新挂载；删除挂载同步清除对方引用</td></tr>
+      <tr><td>字段英文名映射</td><td>资产选择器中字段来自模型 fieldNames（中文名），写 fieldTermMap 需要英文名（key 的一部分）</td><td>【待确认 Q7】字段中英文名映射的权威来源：字段表 DOM、MODEL_FIELD_MAP 还是新增映射表；映射缺失时允许挂 mounts 但标「待补英文名」，不阻断</td></tr>
+      <tr><td>冲突与校验</td><td>沿用 5.1 规则：类型-层级匹配（R1）在保存时校验；挂载即配置（规格）在挂载时继承术语默认值</td><td>红色项阻断保存并在确认条显示原因；黄色项可存并留痕</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.4 分期建议</h3>
+  <table>
+    <thead>
+      <tr><th>期次</th><th>内容</th><th>依赖</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>一期</td><td>表单「关联资产」区块 + mounts 统一存储 + metric 双写</td><td>无（纯 term-module.js 内改动）</td></tr>
+      <tr><td>二期</td><td>fieldTermMap 双写与字段列反显打通（依赖 Q7 字段名映射）</td><td>Q7 确认</td></tr>
+      <tr><td>三期</td><td>fieldTermMap / metric.termIds 读取方全部切换为 mounts 派生，旧字段废弃</td><td>一二期稳定运行</td></tr>
+    </tbody>
+  </table>
+  <p><strong>回答开头的问题</strong>：不需要「先建术语、再回头逐个挂载」的双流程，但<strong>不是简单删掉挂载操作</strong>——正确路径是：新建表单提供完整挂载能力（融合），行内挂载保留为快捷入口（同一数据层），并把三套存储收敛为一套。在此之前，行内挂载仍是挂指标/维度的唯一入口。</p>
+</section>
+
+<section>
+  <h2>5. 详细方案</h2>
   <table>
     <thead>
       <tr><th>一级模块</th><th>二级功能</th><th>落地页面</th><th>描述</th></tr>
@@ -461,9 +521,9 @@
 </section>
 
 <section>
-  <h2>5. 校验规则与状态迁移</h2>
+  <h2>6. 校验规则与状态迁移</h2>
 
-  <h3>5.1 三档校验规则</h3>
+  <h3>6.1 三档校验规则</h3>
   <table>
     <thead>
       <tr><th>档位</th><th>规则</th><th>触发条件</th><th>表现</th></tr>
@@ -481,7 +541,7 @@
     </tbody>
   </table>
 
-  <h3>5.2 挂载状态迁移</h3>
+  <h3>6.2 挂载状态迁移</h3>
   <table>
     <thead>
       <tr><th>原状态</th><th>触发事件</th><th>条件</th><th>新状态</th><th>可观察结果</th></tr>
@@ -498,7 +558,7 @@
 </section>
 
 <section>
-  <h2>6. 异常与边界</h2>
+  <h2>7. 异常与边界</h2>
   <table>
     <thead>
       <tr><th>场景</th><th>处理</th></tr>
@@ -518,7 +578,7 @@
 </section>
 
 <section>
-  <h2>7. 数据埋点</h2>
+  <h2>8. 数据埋点</h2>
   <table>
     <thead>
       <tr><th>事件</th><th>触发时机</th><th>关键属性</th><th>用途</th></tr>
@@ -535,7 +595,7 @@
 </section>
 
 <section>
-  <h2>8. 上线计划</h2>
+  <h2>9. 上线计划</h2>
   <p>分期与排期均<strong>待确认</strong>。建议按以下顺序推进，因为后者依赖前者的数据：</p>
   <table>
     <thead>
@@ -584,6 +644,7 @@
       <tr><td>Q4</td><td>同一物理表被多模型引用的现状规模</td><td>影响跨模型一致性提示的噪音量</td><td>先取数再定是否降级为静默</td></tr>
       <tr><td>Q5</td><td>指标公式是否以结构化 AST 存储</td><td>决定「指标引用字段」能否自动解析；若为纯文本则校验需人工标注</td><td>待确认</td></tr>
       <tr><td>Q6</td><td>G1 就绪率目标值与基线</td><td>决定验收标准</td><td>先测基线再定目标，不预设 80%</td></tr>
+      <tr><td>Q7</td><td>字段中英文名映射的权威来源（字段表 DOM / MODEL_FIELD_MAP / 新增映射表）</td><td>决定挂载融合二期 fieldTermMap 双写能否落地</td><td>建议以字段元数据表为准，映射缺失允许挂 mounts 但标「待补英文名」</td></tr>
     </tbody>
   </table>
 </section>

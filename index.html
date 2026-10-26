@@ -444,9 +444,105 @@
       gap: 5px;
     }
 
-    .side {
-      display: none;
-    }
+    .side { display: none; }
+    /* ===== 术语库 Glossary 样式 ===== */
+    .glossary-side-header { height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #eef1f5;background:#fff;flex-shrink:0; }
+    .glossary-side-title { display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#1f2d3d; }
+    .glossary-side-title svg:first-child { width:16px;height:16px;color:#1677d2; }
+    .glossary-add-btn { width:calc(100% - 24px);margin:10px 12px;height:32px;border:1px dashed #91caff;border-radius:4px;background:#f0f7ff;color:#1677d2;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px; }
+    .glossary-add-btn:hover { border-color:#1677d2;background:#e6f4ff; }
+    .glossary-list { flex:1;min-height:0;overflow-y:auto;padding:4px 8px;list-style:none;margin:0; }
+    .glossary-item { height:36px;display:flex;align-items:center;padding:0 10px;border-radius:4px;cursor:pointer;color:#475467;font-size:13px; }
+    .glossary-item::before { content:"";width:3px;height:16px;background:transparent;border-radius:2px;margin-right:8px;flex-shrink:0; }
+    .glossary-item:hover { background:#f5f8fd;color:#1677d2; }
+    .glossary-item.active { background:#e8f3ff;color:#1677d2;font-weight:500; }
+    .glossary-item.active::before { background:#1677d2; }
+    .glossary-item-icon { width:14px;height:14px;margin-right:6px;color:#98a2b3; }
+    .glossary-item.active .glossary-item-icon { color:#1677d2; }
+    .glossary-item-name { flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    /* 术语库目录多选：勾选框 + 底部操作条 */
+    .glossary-multi-toggle { height:22px;padding:0 8px;border:1px solid #dfe5ee;border-radius:4px;background:#fff;color:#667085;font-size:12px;cursor:pointer; }
+    .glossary-multi-toggle:hover { color:#1677d2;border-color:#88bdfb;background:#f4f9ff; }
+    .glossary-multi-toggle.is-on { color:#1677d2;border-color:#88bdfb;background:#eaf4ff; }
+    .glossary-item .gl-check { flex:0 0 auto;display:none;align-items:center;justify-content:center;width:13px;height:13px;margin-right:8px;border:1px solid #d0d5dd;border-radius:3px;background:#fff; }
+    .glossary-item .gl-check::after { content:"";width:6px;height:3px;border-left:1.6px solid #fff;border-bottom:1.6px solid #fff;transform:rotate(-45deg) translateY(-1px);opacity:0; }
+    .glossary-list.is-multi .glossary-item .gl-check { display:inline-flex; }
+    .glossary-item.is-checked .gl-check { background:#1677d2;border-color:#1677d2; }
+    .glossary-item.is-checked .gl-check::after { opacity:1; }
+    .glossary-item.is-checked { background:#eaf4ff;color:#1677d2; }
+    .glossary-side-tip { flex-shrink:0;margin:0 12px 8px;padding:8px 10px;border:1px solid #b7e0c2;border-radius:4px;background:#f0fdf4;color:#166534;font-size:12px;line-height:1.5; }
+    .glossary-side-tip[hidden] { display:none !important; }
+    .glossary-side-foot { flex-shrink:0;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:8px 12px;border-top:1px solid #eef1f5;background:#fff; }
+    .glossary-side-foot[hidden] { display:none !important; }
+    .glossary-multi-summary { color:#667085;font-size:12px;white-space:nowrap; }
+    .glossary-side-foot-actions { display:flex;align-items:center;justify-content:space-between;gap:8px; }
+    .glossary-link-btn { border:0;background:transparent;padding:0;color:#667085;font-size:12px;cursor:pointer;white-space:nowrap; }
+    .glossary-link-btn:hover { color:#1677d2; }
+    .glossary-danger-btn { height:24px;padding:0 10px;border:1px solid #f0b4b4;border-radius:4px;background:#fff;color:#d4380d;font-size:12px;cursor:pointer; }
+    .glossary-danger-btn:hover { border-color:#d4380d;background:#fff2f0; }
+    .glossary-danger-btn:disabled { border-color:#e4e7ec;color:#98a2b3;background:#f7f8fa;cursor:not-allowed; }
+    /* 删除确认弹窗：整库影响清单 */
+    .gdel-warn { display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1px solid #ffd8a8;border-radius:4px;background:#fff9ec;color:#8a5a00;font-size:12px;line-height:1.6; }
+    .gdel-warn svg { flex:0 0 auto;margin-top:1px;color:#f59a23; }
+    .gdel-block { margin-top:14px; }
+    .gdel-block-title { margin-bottom:6px;color:#344054;font-size:13px;font-weight:600; }
+    .gdel-lib-list, .gdel-impact-list { margin:0;padding:0;list-style:none; }
+    .gdel-lib-list li { display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #eef1f5;border-radius:4px;background:#fafbfc;font-size:12px;color:#344054;margin-bottom:6px; }
+    .gdel-lib-list .gdel-lib-name { font-weight:600;color:#1f2d3d; }
+    .gdel-lib-list .gdel-lib-meta { color:#98a2b3; }
+    .gdel-impact-list li { display:flex;align-items:flex-start;gap:8px;padding:5px 0 5px 2px;font-size:12px;color:#475467;line-height:1.6; }
+    .gdel-impact-list li::before { content:"";flex:0 0 auto;width:5px;height:5px;margin-top:6px;border-radius:50%;background:#1677d2; }
+    .gdel-impact-list li.is-risk::before { background:#d4380d; }
+    .gdel-impact-list li strong { color:#d4380d;font-weight:600; }
+    .gdel-ack { display:flex;align-items:center;gap:8px;margin:16px 0 4px;color:#344054;font-size:13px;cursor:pointer;user-select:none; }
+    .modal-btn.danger { border:1px solid #d4380d;background:#d4380d;color:#fff; }
+    .modal-btn.danger:disabled { border-color:#e4e7ec;background:#f7f8fa;color:#98a2b3;cursor:not-allowed; }
+    .glossary-empty { padding:24px 12px;text-align:center;color:#98a2b3;font-size:12px; }
+    .glossary-header { padding:0;margin-bottom:10px; }
+    /* breadcrumb+name 已搬到 toolbar 同一行，这里隐藏避免重复 */
+    .glossary-header-top { display:none; }
+    .glossary-header-breadcrumb { display:flex;align-items:center;gap:6px;font-size:13px;color:#98a2b3; }
+    .glossary-header-breadcrumb svg { width:14px;height:14px; }
+    .glossary-header-name { display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;color:#1f2d3d; }
+    .glossary-header-name svg { width:16px;height:16px;color:#1677d2; }
+    .glossary-header-name .copy-icon { color:#c9d0dc;cursor:pointer; }
+    .glossary-tabs { display:flex;align-items:center;gap:2px;flex-shrink:0; }
+    .glossary-row-actions { display:flex;align-items:center;gap:8px; }
+    .glossary-tab { height:30px;padding:0 12px;border:0;background:transparent;color:#667085;font-size:13px;font-weight:500;cursor:pointer;border-radius:4px;display:flex;align-items:center;gap:4px; }
+    .glossary-tab:hover { color:#1677d2;background:#f0f7ff; }
+    .glossary-tab.active { color:#1677d2;background:#e6f4ff; }
+    .glossary-tab-count { display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#eef2ff;color:#1677d2;font-size:11px;font-weight:600; }
+    .glossary-desc-card { border:1px solid #e8ebf0;border-radius:6px;background:#fafbfc;padding:12px 16px;margin-bottom:16px;position:relative; }
+    .glossary-desc-card-actions { position:absolute;top:10px;right:12px;display:flex;gap:10px; }
+    .glossary-desc-action { width:16px;height:16px;border:0;background:transparent;color:#98a2b3;cursor:pointer;padding:0; }
+    .glossary-desc-action:hover { color:#1677d2; }
+    /* 标题行：术语库名称在左，描述紧随其后占满右侧剩余空间 */
+    .glossary-card-head { display:flex;align-items:flex-start;gap:18px;margin-bottom:8px; }
+    .glossary-card-head[hidden] { display:none !important; }
+    .glossary-card-title { display:flex;align-items:center;gap:6px;flex:0 0 auto;font-weight:600;font-size:15px;color:#1f2d3d;white-space:nowrap; }
+    .glossary-card-title svg { flex:0 0 auto;color:#1677d2; }
+    /* 「描述」与「创建时间」等标签统一同一字色（#475467），只靠字重区分数值 */
+    .glossary-desc-label { color:#475467;font-size:13px;font-weight:500;margin-bottom:4px; }
+    .glossary-desc-text { color:#475467;font-size:13px;line-height:1.6; }
+    .glossary-desc-empty-text { color:#98a2b3;font-size:13px;font-style:italic; }
+    .glossary-card-head .glossary-desc-text { flex:1 1 auto;min-width:0;margin-top:1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+    .glossary-desc-meta { display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:0;padding-right:92px; }
+    /* 编辑入口：卡片右下角的小胶囊按钮（方框 + 铅笔图标 + 文字） */
+    .glossary-edit-btn { position:absolute;right:12px;bottom:10px;display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border:1px solid #e4e7ec;border-radius:6px;background:#fff;color:#475467;font-size:12px;line-height:1;cursor:pointer;transition:color .15s,border-color .15s,background-color .15s; }
+    .glossary-edit-btn:hover { color:#1677d2;border-color:#88bdfb;background:#f4f9ff; }
+    .glossary-edit-btn:active { background:#e8f3ff; }
+    .glossary-edit-btn:focus-visible { outline:2px solid rgba(22,119,210,.35);outline-offset:1px; }
+    .glossary-edit-btn svg { flex:0 0 auto; }
+    .glossary-desc-meta-item { display:flex;align-items:center;gap:6px;font-size:13px; }
+    .glossary-desc-meta-item .meta-label { color:#475467; font-weight:400; }
+    .glossary-desc-meta-item .meta-value { color:#344054;font-weight:500; }
+    .glossary-empty-state { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 20px;text-align:center; }
+    .glossary-empty-state-icon { width:72px;height:72px;border-radius:12px;background:#f2f4f7;display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:#98a2b3; }
+    .glossary-empty-state-icon svg { width:36px;height:36px; }
+    .glossary-empty-state-title { font-size:16px;font-weight:600;color:#1f2d3d;margin-bottom:8px; }
+    .glossary-empty-state-desc { font-size:13px;color:#667085;margin-bottom:20px;line-height:1.6;max-width:420px; }
+    .glossary-new-term-btn { height:36px;padding:0 20px;border:0;border-radius:6px;background:#1677d2;color:#fff;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px; }
+    .glossary-new-term-btn:hover { background:#0958b5; }
 
     .side-title {
       height: 38px;
@@ -551,6 +647,254 @@
     @keyframes term-link-spin {
       to { transform: rotate(360deg); }
     }
+
+    /* ===== 批量设置关联：挂载类型多选 / 自动推荐开关 / 匹配规则 / 推荐预览 / 后台任务条 / 锁定遮罩 ===== */
+    #termBatchMountJob { top: calc(var(--app-top-chrome-height) + 52px); }
+
+    /* 挂载类型：chip 式多选 */
+    .term-batch-types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .term-batch-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid #e4e7ec;
+      border-radius: 6px;
+      background: #fff;
+      color: #344054;
+      cursor: pointer;
+      user-select: none;
+    }
+    .term-batch-type:hover { border-color: #9dc4ff; background: #fafcff; }
+    /* 提高特异性覆盖 .term-form-field input 的宽度 / 边框 */
+    .term-form-field .term-batch-type > input {
+      flex: 0 0 auto;
+      margin: 0;
+      width: 15px;
+      height: 15px;
+      padding: 0;
+      border: 0;
+      accent-color: #1677d2;
+      cursor: pointer;
+    }
+    .term-batch-type > b { font-size: 13px; font-weight: 600; }
+    .term-batch-type > span { font-size: 11.5px; color: #98a2b3; }
+    .term-batch-type:has(input:checked) { border-color: #1677d2; background: #f4f9ff; }
+    .term-batch-type:has(input:checked) > b { color: #1677d2; }
+    .term-batch-type:has(input:checked) > span { color: #5a86c9; }
+
+    /* 自动推荐开关：与「自动推荐」标签同一行（需覆盖 .term-form-field label 的 block） */
+    .term-form-field .term-batch-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: #344054;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* 「自动推荐」标题 + 开关同一行 */
+    .term-batch-autorow {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      min-height: 22px;
+    }
+    .term-batch-autolabel {
+      flex: 0 0 auto;
+      font-size: 12px;
+      color: #344054;
+    }
+    /* 原生 checkbox 视觉隐藏，改用 track + dot 绘制（同样需覆盖 .term-form-field input） */
+    .term-form-field .term-batch-switch > input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .term-batch-switch-track {
+      flex: 0 0 auto;
+      position: relative;
+      width: 38px;
+      height: 20px;
+      border-radius: 999px;
+      background: #d0d5dd;
+      transition: background 0.16s ease;
+    }
+    .term-batch-switch-dot {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.2);
+      transition: transform 0.16s ease;
+    }
+    .term-batch-switch > input:checked + .term-batch-switch-track { background: #1677d2; }
+    .term-batch-switch > input:checked + .term-batch-switch-track .term-batch-switch-dot { transform: translateX(18px); }
+    .term-batch-switch-text { font-size: 12.5px; color: #344054; }
+
+    /* 说明性提示（非警告），替代黄底 .modal-hint */
+    .term-batch-tip {
+      margin: 8px 0 0;
+      font-size: 11.5px;
+      color: #98a2b3;
+      line-height: 1.6;
+    }
+
+    /* 匹配规则说明 */
+    .term-batch-rules {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border: 1px solid #eef1f5;
+      border-radius: 6px;
+      background: #fbfcfe;
+    }
+    .term-batch-rules-title {
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #344054;
+    }
+    .term-batch-rules-list {
+      margin: 0;
+      padding-left: 18px;
+      color: #667085;
+      font-size: 11.5px;
+      line-height: 1.85;
+    }
+
+    .term-batch-scope {
+      margin-bottom: 8px;
+      padding: 7px 10px;
+      border: 1px solid #dbeafe;
+      border-radius: 4px;
+      background: #f5f9ff;
+      color: #344054;
+      font-size: 12px;
+    }
+
+    .term-batch-preview {
+      display: flex;
+      flex-direction: column;
+      max-height: 320px;
+      overflow: auto;
+      padding: 6px 12px;
+      border: 1px solid #e4e7ec;
+      border-radius: 4px;
+      background: #fbfcfe;
+    }
+
+    .term-batch-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 9px 2px;
+      font-size: 12.5px;
+      border-bottom: 1px dashed #edf0f4;
+    }
+    .term-batch-row:last-child { border-bottom: 0; }
+    .term-batch-row.is-off { opacity: 0.45; }
+    .term-batch-row > label {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 148px;
+      color: #344054;
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+    .term-batch-row > label input { margin: 0; }
+    .term-batch-assets { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; align-items: center; }
+    .term-batch-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border: 1px solid #cfe4ff;
+      border-radius: 4px;
+      background: #f0f7ff;
+      color: #1e5fb3;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .term-batch-chip i {
+      padding: 0 4px;
+      border-radius: 3px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-style: normal;
+      font-size: 10.5px;
+    }
+    .term-batch-chip button {
+      padding: 0 1px;
+      border: 0;
+      background: transparent;
+      color: #7ea6e0;
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .term-batch-chip button:hover { color: #1e5fb3; }
+    .term-batch-none { color: #98a2b3; font-size: 12px; }
+
+    .term-batch-run {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      padding-top: 14px;
+      border-top: 1px solid #eef1f5;
+      font-size: 13px;
+      color: #344054;
+      cursor: pointer;
+    }
+    .term-batch-run input { margin: 0; }
+
+    /* 任务执行期间：术语库内容（列表区 + 左侧术语库侧栏）不可操作 */
+    .is-batch-locked { position: relative; }
+    .is-batch-locked > *:not(.batch-lock-mask) { pointer-events: none; }
+    .batch-lock-mask {
+      position: absolute;
+      inset: 0;
+      z-index: 160;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 108px;
+      background: rgba(244, 247, 251, 0.72);
+    }
+    .is-batch-locked > .batch-lock-mask { display: flex; }
+    .batch-lock-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border: 1px solid #b2ddff;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
+      color: #175cd3;
+      font-size: 13px;
+    }
+    .batch-lock-card.is-side { padding: 8px 12px; font-size: 12px; }
+    .batch-lock-lock { font-size: 13px; }
 
     .tree {
       flex: 1;
@@ -721,6 +1065,9 @@
 
     .content {
       min-width: 0;
+      /* 修复：layout 在术语模式下为 flex，content 需占满剩余宽度，避免空术语库时内容列收缩靠左 */
+      flex: 1 1 auto;
+      width: 100%;
       padding: 16px 18px 0;
       background: #fff;
     }
@@ -739,6 +1086,76 @@
       height: 0;
       margin: 0;
     }
+
+    /* 需求调整：文档中心/结构语义/权限中心等非术语 tab 隐藏术语库名称块，仅术语中心保留 */
+    .list-view:not([data-active-catalog="term"]) #glossaryHeaderInline {
+      display: none !important;
+    }
+
+    /* 需求调整：术语中心下工具栏与 术语/关系图谱/活动信息流 页签同一行（页签左、工具栏右）；空间不足时工具栏内部换行收缩，避免内容向左溢出叠加 */
+    /* 需求：术语库「关系图谱」页签 —— 全景展示术语及其挂载的字段/指标/模型 */
+    #glossaryGraphPanel { display:none; flex-direction:column; gap:10px; }
+    #listCatalogTermPanel.graph-mode #glossaryGraphPanel { display:flex; }
+    #listCatalogTermPanel.graph-mode .term-table,
+    #listCatalogTermPanel.graph-mode #glossaryEmptyState { display:none !important; }
+    .glossary-graph-bar { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .glossary-graph-stats { font-size:13px; color:#344054; font-weight:600; }
+    .glossary-graph-legend { display:flex; align-items:center; gap:12px; font-size:12px; color:#667085; }
+    .glossary-graph-legend .lg-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px; }
+    .lg-dot.lg-term { background:#2563eb; }
+    .lg-dot.lg-field { background:#60a5fa; }
+    .lg-dot.lg-metric { background:#3b82f6; }
+    .lg-dot.lg-model { background:#1d4ed8; }
+    .glossary-graph-tools { margin-left:auto; display:flex; gap:6px; }
+    .glossary-graph-tools button { width:26px; height:26px; border:1px solid #d0d5dd; border-radius:4px; background:#fff; color:#344054; cursor:pointer; font-size:14px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
+    .glossary-graph-tools button:hover { color:#1677d2; border-color:#1677d2; background:#f0f7ff; }
+    .glossary-graph-wrap { position:relative; border:1px solid #e8ebf0; border-radius:6px; background:#fafbfd; overflow:auto; height:calc(100vh - 330px); min-height:420px; cursor:grab; }
+    .glossary-graph-wrap:active { cursor:grabbing; }
+    .glossary-graph-wrap svg { display:block; }
+    .gg-edge { transition:opacity .15s ease, stroke-width .15s ease; }
+    .gg-node { cursor:pointer; }
+    /* 文字加白色描边，链路交叉时标签依然清晰 */
+    .gg-node text { font-size:11px; fill:#344054; paint-order:stroke; stroke:#fff; stroke-width:2.4px; stroke-linejoin:round; }
+    .gg-node .gg-sub { fill:#98a2b3; font-size:10px; }
+    .gg-node.dim, .gg-edge.dim { opacity:.12; }
+    /* 链路高亮：整条链路加粗描边，其余淡出 */
+    .gg-edge.hl { stroke-width:2.6; stroke-opacity:.95; }
+    .gg-node.hl circle:last-of-type { stroke-width:2.8; }
+    .gg-node.hl text { font-weight:600; }
+    /* 被点中的节点：外扩光晕更实、描边更粗 */
+    .gg-node.is-focus > circle:first-child { fill-opacity:.3; }
+    .gg-node.is-focus > circle:last-of-type { stroke-width:3.4; }
+    /* 空态提示：必须允许 hidden 生效，否则会一直盖在画布上 */
+    .glossary-graph-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:#98a2b3; font-size:13px; }
+    .glossary-graph-empty[hidden] { display:none !important; }
+    /* 术语详情内的图谱：与术语库图谱同一套样式，只是高度更紧凑 */
+    .glossary-graph-wrap.is-detail { height:460px; min-height:360px; }
+    .glossary-graph-tip { position:sticky; bottom:0; margin-top:auto; padding:6px 10px; font-size:12px; color:#98a2b3; background:transparent; }
+    /* 需求：关系图谱新增「展示全部 / 已挂载 / 无挂载」三选一筛选 */
+    .glossary-graph-modes { display:inline-flex; flex-shrink:0; border:1px solid #dfe5ee; border-radius:4px; overflow:hidden; background:#fff; }
+    .glossary-graph-modes .gg-mode { height:26px; padding:0 12px; border:0; border-left:1px solid #eef1f5; background:#fff; color:#667085; font-size:12px; cursor:pointer; white-space:nowrap; }
+    .glossary-graph-modes .gg-mode:first-child { border-left:0; }
+    .glossary-graph-modes .gg-mode:hover { color:#1677d2; background:#f4f9ff; }
+    .glossary-graph-modes .gg-mode.is-active { background:#e8f3ff; color:#1677d2; font-weight:600; }
+    /* 需求：图例移到画布右上方并可点击筛选（画布容器保持滚动，所以图例挂在 stage 上而不是 wrap 内） */
+    .glossary-graph-stage { position:relative; }
+    .glossary-graph-legend.is-float { position:absolute; top:12px; right:14px; z-index:2; display:flex; flex-direction:column; align-items:stretch; gap:2px; padding:8px 10px; border:1px solid #e8ebf0; border-radius:6px; background:rgba(255,255,255,.95); box-shadow:0 2px 10px rgba(16,24,40,.06); }
+    .glossary-graph-legend.is-float .lg-tip { padding:0 6px 4px; color:#98a2b3; font-size:11px; }
+    .glossary-graph-legend.is-float .lg-item { display:flex; align-items:center; gap:6px; height:24px; padding:0 6px; border:0; border-radius:4px; background:transparent; color:#667085; font-size:12px; cursor:pointer; text-align:left; }
+    .glossary-graph-legend.is-float .lg-item:hover { background:#f4f9ff; color:#1677d2; }
+    .glossary-graph-legend.is-float .lg-item .lg-n { margin-left:auto; padding-left:8px; color:#98a2b3; font-weight:400; }
+    .glossary-graph-legend.is-float .lg-item.is-on { color:#1677d2; font-weight:600; }
+    .glossary-graph-legend.is-float .lg-item.is-off { opacity:.45; }
+    .glossary-graph-legend.is-float .lg-dot { flex:0 0 auto; margin-right:0; }
+    /* 分区标题（「已挂载链路」/「无挂载术语」） */
+    .gg-band-title { font-size:12px; font-weight:600; fill:#475467; }
+    .gg-band-title.gg-band-sub { font-weight:500; fill:#d4380d; }
+
+    #glossaryTabRow { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap;margin-bottom:10px; }
+    #glossaryTabRow .toolbar { flex:1;min-width:0;justify-content:flex-end;margin-bottom:0;height:auto;gap:8px;flex-wrap:wrap; }
+    #glossaryTabRow .toolbar .toolbar-left { flex:0 1 auto;min-width:0;flex-wrap:wrap;row-gap:6px; }
+    #glossaryTabRow .toolbar .search { flex:0 1 auto;min-width:120px;width:auto; }
+    #glossaryTabRow .toolbar .field { flex-shrink:1;min-width:0; }
 
     .toolbar-left {
       display: flex;
@@ -1090,6 +1507,9 @@
     }
 
     .domain-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
       padding: 7px 8px;
       border-radius: 2px;
       color: #344054;
@@ -1106,6 +1526,63 @@
       background: #eaf4ff;
       color: #1677d2;
       font-weight: 600;
+    }
+
+    /* 多选勾选框 */
+    .domain-filter-item .df-check {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 13px;
+      height: 13px;
+      border: 1px solid #d0d5dd;
+      border-radius: 3px;
+      background: #fff;
+    }
+
+    .domain-filter-item .df-check::after {
+      content: "";
+      width: 6px;
+      height: 3px;
+      border-left: 1.6px solid #fff;
+      border-bottom: 1.6px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+      opacity: 0;
+    }
+
+    .domain-filter-item.is-selected .df-check {
+      background: #1677d2;
+      border-color: #1677d2;
+    }
+
+    .domain-filter-item.is-selected .df-check::after {
+      opacity: 1;
+    }
+
+    .domain-filter-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #f0f2f5;
+      font-size: 12px;
+      color: #98a2b3;
+    }
+
+    .domain-filter-clear {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: #1677d2;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .domain-filter-clear:hover {
+      text-decoration: underline;
     }
 
     .domain-filter-empty {
@@ -3355,14 +3832,6 @@
       align-items: start;
     }
 
-    .modal-field-hint {
-      grid-column: 2;
-      margin: -6px 0 4px;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #ad6800;
-    }
-
     .modal-field label {
       color: #415064;
       font-weight: 600;
@@ -4287,27 +4756,688 @@
       text-overflow: ellipsis;
     }
 
-    #listCatalogTermPanel {
-      overflow-x: auto;
-      max-width: 100%;
+    /* ===== 术语详情（下沉二级页面） ===== */
+    .term-detail-view {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 99px);
+      color: #344054;
+      background: #fff;
     }
 
-    .term-list-meta {
-      padding: 0 0 8px;
+    .term-detail-view[hidden] {
+      display: none !important;
+    }
+
+    .term-detail-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 2px 0 12px;
+      border-bottom: 1px solid #eef1f5;
+    }
+
+    .term-detail-head-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .term-detail-back {
+      flex: none;
+      height: 26px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #1677ff;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .term-detail-back:hover {
+      text-decoration: underline;
+    }
+
+    .term-detail-badge {
+      flex: none;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #1677ff;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .term-detail-title {
+      margin: 0;
+      color: #101828;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 22px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .term-detail-sub {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      /* 需求：与标题同一行、靠右显示 */
+      flex: none;
+      margin: 0 0 0 auto;
+      color: #667085;
       font-size: 12px;
-      color: #475467;
     }
 
-    .term-list-meta .term-meta-total {
+    .term-detail-sub .term-detail-dot {
+      color: #d0d5dd;
+    }
+
+    .term-detail-actions {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .term-detail-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #e8edf3;
+    }
+
+    .term-detail-tab {
+      position: relative;
+      height: 38px;
+      padding: 0 18px;
+      border: 0;
+      background: transparent;
+      color: #475467;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .term-detail-tab:hover {
+      color: #1677ff;
+    }
+
+    .term-detail-tab.active {
       color: #1677ff;
       font-weight: 600;
     }
 
-    #termPager .pager-state {
-      padding: 0 6px;
-      font-size: 12px;
+    .term-detail-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: -1px;
+      height: 2px;
+      background: #1677ff;
+    }
+
+    .term-detail-tab-count {
+      display: inline-block;
+      min-width: 18px;
+      height: 18px;
+      margin-left: 6px;
+      padding: 0 5px;
+      box-sizing: border-box;
+      border-radius: 9px;
+      background: #f2f4f7;
       color: #475467;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 18px;
+      text-align: center;
+    }
+
+    .term-detail-tab.active .term-detail-tab-count {
+      background: #e8f1ff;
+      color: #1677ff;
+    }
+
+    .term-detail-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding-bottom: 24px;
+    }
+
+    /* ===== 新建 / 编辑术语（二级页面） ===== */
+    .term-edit-view {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 99px);
+      color: #344054;
+      background: #fff;
+    }
+
+    .term-edit-view[hidden] {
+      display: none !important;
+    }
+
+    .term-edit-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 2px 0 14px;
+      border-bottom: 1px solid #eef1f5;
+    }
+
+    .term-edit-head-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+      min-width: 0;
+    }
+
+    .term-edit-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2d3d;
       white-space: nowrap;
+    }
+
+    /* 标题备注：靠右，与标题同一行，不再占标题下方的高度 */
+    .term-edit-sub {
+      flex: 1 1 auto;
+      min-width: 0;
+      margin: 0;
+      text-align: right;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #98a2b3;
+    }
+
+    .term-edit-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .term-edit-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 18px 0 28px;
+    }
+
+    /* 两列排版：短字段并排，长字段整行 */
+    .term-edit-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px 20px;
+      max-width: 960px;
+    }
+
+    /* 需求：创建 / 编辑术语改为左右布局 —— 左列基础信息，右列关联资产 */
+    .term-edit-columns {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .term-edit-col.is-main {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .term-edit-col.is-side {
+      flex: 0 0 420px;
+      min-width: 0;
+      /* 左列内容较长时，右列关联资产跟随滚动，避免滚到下方看不见 */
+      position: sticky;
+      top: 12px;
+    }
+
+    .term-side-card {
+      border: 1px solid #e4e7ec;
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px 16px 16px;
+    }
+
+    /* 右列内字段纵向排列（不再用 116px 标签列） */
+    .term-side-card .term-form-field { display: block; }
+    .term-side-card .term-form-field > label {
+      display: block;
+      margin: 0 0 10px;
+      padding-top: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2d3d;
+    }
+    .term-side-card .term-mount-tab { padding: 6px 10px; }
+    .term-side-card .term-mount-picker-list { min-height: 220px; max-height: 340px; }
+
+    @media (max-width: 1180px) {
+      .term-edit-columns { flex-direction: column; }
+      .term-edit-col.is-side { flex: 1 1 auto; width: 100%; }
+    }
+
+    .term-edit-grid > .span-2 {
+      grid-column: 1 / -1;
+    }
+
+    .term-edit-grid textarea {
+      min-height: 96px;
+    }
+
+    .term-optional {
+      margin-left: 6px;
+      font-size: 11px;
+      font-weight: 400;
+      color: #98a2b3;
+    }
+
+    /* 增强区（术语类型 / 上级 / 值域绑定 / 验证查询）
+       每一行 = 标签 | 控件 | 右侧提示，提示不再占上下高度 */
+    #termFormEnhance {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 100%;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed #eef1f5;
+    }
+
+    #termFormEnhance[hidden] {
+      display: none !important;
+    }
+
+    .term-enh-field {
+      display: grid;
+      /* 左列布局下提示列适当收窄，给中间控件留更多宽度 */
+      grid-template-columns: 116px minmax(0, 1fr) 200px;
+      column-gap: 16px;
+      align-items: start;
+    }
+
+    .term-enh-field > label {
+      margin: 0;
+      padding-top: 7px;
+      font-size: 13px;
+      color: #344054;
+    }
+
+    .term-enh-control {
+      min-width: 0;
+    }
+
+    .term-enh-control > select {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .term-enh-side {
+      margin: 0;
+      padding-top: 7px;
+      font-size: 11px;
+      color: #98a2b3;
+      line-height: 1.65;
+    }
+
+    /* 值域 / 验证查询的行内控件按列宽自适应，窄屏时换行而不是撑破 */
+    .term-enh-control .term-vb-row {
+      flex-wrap: wrap;
+    }
+
+    .term-enh-control .term-vb-row select,
+    .term-enh-control .term-vb-row input {
+      width: auto;
+      flex: 1 1 120px;
+      min-width: 90px;
+    }
+
+    .term-enh-control .term-vb-row .term-vb-op {
+      flex: 0 0 72px;
+      min-width: 0;
+    }
+
+    .term-enh-control .term-vb-row .term-vb-mode {
+      flex: 0 0 96px;
+      min-width: 0;
+    }
+
+    .term-enh-control .term-enh-hint {
+      margin: 4px 0 6px;
+    }
+
+    .term-detail-panel[hidden] {
+      display: none !important;
+    }
+
+    /* 概览 */
+    .td-card {
+      margin-bottom: 14px;
+      padding: 16px 18px;
+      border: 1px solid #eaecf0;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .td-card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      color: #101828;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .td-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px 28px;
+    }
+
+    .td-field {
+      min-width: 0;
+    }
+
+    .td-field-label {
+      margin-bottom: 4px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-field-value {
+      color: #101828;
+      font-size: 13px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .td-desc {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px dashed #eaecf0;
+      color: #344054;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .td-stat-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .td-stat {
+      flex: 1 1 150px;
+      min-width: 140px;
+      padding: 12px 14px;
+      border: 1px solid #eaecf0;
+      border-radius: 8px;
+      background: #fafbfc;
+      cursor: pointer;
+    }
+
+    .td-stat:hover {
+      border-color: #bfdbfe;
+      background: #f5f9ff;
+    }
+
+    .td-stat-label {
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-stat-value {
+      margin-top: 8px;
+      color: #101828;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    /* 挂载清单 */
+    .td-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .td-search {
+      position: relative;
+      flex: 1 1 240px;
+      max-width: 340px;
+    }
+
+    .td-search input {
+      width: 100%;
+      height: 32px;
+      box-sizing: border-box;
+      padding: 0 10px 0 30px;
+      border: 1px solid #d0d5dd;
+      border-radius: 6px;
+      background: #fff;
+      color: #344054;
+      font: inherit;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .td-search input:focus {
+      border-color: #1677ff;
+    }
+
+    .td-search svg {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #98a2b3;
+    }
+
+    .td-type-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .td-chip {
+      height: 28px;
+      padding: 0 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 14px;
+      background: #fff;
+      color: #475467;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .td-chip:hover {
+      border-color: #1677ff;
+      color: #1677ff;
+    }
+
+    .td-chip.active {
+      border-color: #1677ff;
+      background: #eff6ff;
+      color: #1677ff;
+      font-weight: 600;
+    }
+
+    .td-mount-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .td-mount-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid #eaecf0;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .td-mount-item:hover {
+      border-color: #bfdbfe;
+      box-shadow: 0 2px 8px rgba(22, 119, 255, 0.06);
+    }
+
+    .td-mount-check {
+      margin-top: 3px;
+      flex: none;
+    }
+
+    .td-mount-main {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .td-mount-path {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 5px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-mount-path .td-sep {
+      color: #d0d5dd;
+    }
+
+    .td-mount-name {
+      color: #101828;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .td-mount-name a {
+      color: #1677ff;
+      text-decoration: none;
+    }
+
+    .td-mount-name a:hover {
+      text-decoration: underline;
+    }
+
+    .td-mount-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 7px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-type-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 20px;
+      padding: 0 8px;
+      border-radius: 10px;
+      background: #f2f4f7;
+      color: #475467;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .td-type-tag.is-auto {
+      background: #eef6ff;
+      color: #1677ff;
+    }
+
+    .td-type-tag.is-owner {
+      background: #ecfdf3;
+      color: #067647;
+    }
+
+    .td-empty {
+      padding: 48px 0;
+      color: #98a2b3;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* 关系图谱 */
+    .td-graph-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .td-graph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .td-graph-legend i {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 5px;
+      border-radius: 50%;
+    }
+
+    .td-graph-wrap {
+      position: relative;
+      height: calc(100vh - 350px);
+      min-height: 360px;
+      overflow: hidden;
+      border: 1px solid #eaecf0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fbfcfe, #fff);
+    }
+
+    .td-graph-wrap svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .td-graph-tip {
+      position: absolute;
+      left: 12px;
+      bottom: 10px;
+      color: #98a2b3;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    #listCatalogTermPanel {
+      overflow-x: auto;
+      max-width: 100%;
     }
 
     .term-table {
@@ -4442,6 +5572,27 @@
 
     .term-table .col-actions .op-link + .op-link {
       margin-left: 6px;
+    }
+
+    /* 术语列表：名称左对齐、类型标签整体靠右，名称过长时省略号截断 */
+    .term-table tbody td.col-term-name .term-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .term-table .term-name-cell .term-name-link {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .term-table .term-name-cell .term-conflict-flag {
+      flex: 0 0 auto;
+      margin-left: 0;
     }
 
     .term-empty {
@@ -4856,6 +6007,24 @@
       overflow: hidden;
     }
 
+    /* 批量设置术语类型：内容含「类型 + 推荐清单」，弹窗单独加宽，避免内容挤在一起 */
+    #catalogBatchOverlay.is-wide .term-form-modal {
+      width: min(920px, 94vw);
+    }
+
+    #catalogBatchOverlay.is-wide .term-form-body {
+      gap: 18px;
+      padding: 20px 24px 22px;
+    }
+
+    #catalogBatchOverlay.is-wide .term-form-head {
+      padding: 0 24px;
+    }
+
+    #catalogBatchOverlay.is-wide .term-form-foot {
+      padding: 12px 24px 16px;
+    }
+
     .term-form-head {
       flex-shrink: 0;
       height: 48px;
@@ -4895,6 +6064,64 @@
       gap: 14px;
     }
 
+    /* 说明：「术语用途」卡片式单选已移除，术语表单固定按业务资产维护 */
+
+    .term-form-field[hidden] {
+      display: none !important;
+    }
+
+    #termFormEnhance[hidden] {
+      display: none !important;
+    }
+
+    /* 详情页：通用知识大标签 */
+    .term-generic-banner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      border: 1px solid #b7d7ff;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #f0f7ff 0%, #f7fbff 100%);
+    }
+
+    .term-generic-banner .banner-ic {
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #1e80ff;
+      color: #fff;
+      font-size: 19px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .term-generic-banner .banner-main {
+      font-size: 16px;
+      font-weight: 600;
+      color: #14458a;
+      line-height: 1.5;
+    }
+
+    .term-generic-banner .banner-sub {
+      display: block;
+      margin-top: 3px;
+      font-size: 12px;
+      font-weight: 400;
+      color: #5a7ba8;
+    }
+
+    /* 必填标记：统一红色星号（术语表单、术语库抽屉、导入弹窗等共用） */
+    .required {
+      margin-left: 2px;
+      color: #ff4d4f;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+
     .term-form-field label {
       display: block;
       margin-bottom: 6px;
@@ -4904,6 +6131,35 @@
 
     .term-form-field .metric-domain-picker {
       width: 100%;
+    }
+
+    /* 数据域 / 模型 选择器：外层只有一个边框，内部搜索框不再套一层框 */
+    .term-form-field .metric-domain-trigger {
+      min-height: 38px;
+      padding: 6px 10px;
+      border: 1px solid #d0d5dd;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .term-form-field .metric-domain-trigger.is-open {
+      border-color: #1677d2;
+      box-shadow: 0 0 0 2px rgba(22, 119, 210, 0.12);
+    }
+
+    .term-form-field input.metric-domain-search,
+    .term-form-field input.metric-domain-search:focus {
+      width: auto;
+      flex: 1 1 120px;
+      min-width: 90px;
+      height: 22px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      font-size: 13px;
+      color: #344054;
     }
 
     .term-form-field input,
@@ -6409,28 +7665,46 @@
   </nav>
 
   <main class="page">
+    <div class="list-primary-nav" role="tablist" aria-label="语义资产">
+      <!-- 需求调整：暂时隐藏「语义首页」页签（保留代码，仅不展示），默认激活改为「术语中心」 -->
+      <button class="list-primary-tab" type="button" role="tab" data-list-primary="home" aria-selected="false" style="display:none">语义首页</button>
+      <button class="list-primary-tab active" type="button" role="tab" data-list-primary="term" aria-selected="true">术语中心</button>
+      <button class="list-primary-tab" type="button" role="tab" data-list-primary="structure" aria-selected="false">结构语义</button>
+      <button class="list-primary-tab" type="button" role="tab" data-list-primary="document" aria-selected="false">文档中心</button>
+      <button class="list-primary-tab" type="button" role="tab" data-list-primary="permission" aria-selected="false">权限中心</button>
+    </div>
     <div class="layout">
-      <aside class="side" aria-label="业务知识库目录">
-        <div class="tree-create" aria-label="目录搜索">
-          <label class="tree-search">
-            <input id="treeSearchInput" type="search" placeholder="搜索目录" />
-            <span>⌕</span>
-          </label>
-          <div class="tree-tip" id="treeTip">已打开知识列表。可展开业务板块查看数据域，点击节点筛选右侧知识列表。</div>
+      <aside class="side" aria-label="术语库目录">
+        <div id="glossarySideContent" hidden>
+          <div class="glossary-side-header"><div class="glossary-side-title"><svg viewBox="0 0 16 16" fill="none"><path d="M2 4h8l2 2h2v8H2V4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6 7h5M6 10h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span>术语库</span></div><button class="glossary-multi-toggle" id="glossaryMultiToggleBtn" type="button" title="多选删除术语库">多选</button></div>
+          <button class="glossary-add-btn" id="glossaryAddBtn" type="button">+ 添加</button>
+          <ul class="glossary-list" id="glossaryList"></ul>
+          <!-- 操作反馈（本模块没有 setTip，用侧栏内的轻量提示条） -->
+          <div class="glossary-side-tip" id="glossarySideTip" hidden></div>
+          <!-- 需求：术语库目录支持多选删除 -->
+          <div class="glossary-side-foot" id="glossaryMultiBar" hidden>
+            <span class="glossary-multi-summary" id="glossaryMultiSummary">已选 0 个</span>
+            <div class="glossary-side-foot-actions">
+              <button class="glossary-link-btn" id="glossaryMultiAllBtn" type="button">全选</button>
+              <button class="glossary-link-btn" id="glossaryMultiExitBtn" type="button">退出</button>
+              <button class="glossary-danger-btn" id="glossaryMultiDeleteBtn" type="button">删除</button>
+            </div>
+          </div>
         </div>
-        <ul class="tree" id="projectTree"></ul>
+        <div id="knowledgeTreeContent">
+          <div class="tree-create" aria-label="目录搜索">
+            <label class="tree-search">
+              <input id="treeSearchInput" type="search" placeholder="搜索目录" />
+              <span>⌕</span>
+            </label>
+            <div class="tree-tip" id="treeTip">已打开知识列表。可展开业务板块查看数据域，点击节点筛选右侧知识列表。</div>
+          </div>
+          <ul class="tree" id="projectTree"></ul>
+        </div>
       </aside>
 
       <section class="content" aria-label="业务建模列表">
         <div class="list-view" id="listView" data-active-catalog="term">
-          <div class="list-primary-nav" role="tablist" aria-label="语义资产">
-            <!-- 需求调整：暂时隐藏「语义首页」页签（保留代码，仅不展示），默认激活改为「术语中心」 -->
-            <button class="list-primary-tab" type="button" role="tab" data-list-primary="home" aria-selected="false" style="display:none">语义首页</button>
-            <button class="list-primary-tab active" type="button" role="tab" data-list-primary="term" aria-selected="true">术语中心</button>
-            <button class="list-primary-tab" type="button" role="tab" data-list-primary="structure" aria-selected="false">结构语义</button>
-            <button class="list-primary-tab" type="button" role="tab" data-list-primary="document" aria-selected="false">文档中心</button>
-            <button class="list-primary-tab" type="button" role="tab" data-list-primary="permission" aria-selected="false">权限中心</button>
-          </div>
           <section class="toolbar" aria-label="列表工具栏">
             <div class="toolbar-left">
               <label class="field" id="projectFilterField">
@@ -6440,12 +7714,6 @@
                   <option>pmlead-成本指标</option>
                   <option>pmlead-通用AI</option>
                   <option>数据工具链</option>
-                </select>
-              </label>
-              <label class="field" id="domainFilterField" hidden>
-                <span class="field-label">数据域</span>
-                <select class="select" id="catalogDomainFilterSelect" aria-label="数据域筛选">
-                  <option value="">全部</option>
                 </select>
               </label>
             </div>
@@ -6459,7 +7727,7 @@
                 </svg>
               </label>
               <button class="btn-clear-filter" id="clearTableFiltersBtn" type="button">清空筛选</button>
-              <button class="btn-sync-query" id="syncToQueryBtn" type="button" title="将已发布模型与挂接文档同步到智能问数">同步到问数</button>
+              <button class="btn-sync-query" id="syncToQueryBtn" type="button" title="将已发布模型与挂接文档同步到智能消费端应用">同步到智能消费端应用</button>
               <div class="new-menu-wrap">
                 <button class="btn-new" id="newBusinessBtn" type="button">新建<span class="arrow">⌄</span></button>
                 <div class="new-menu" id="newBusinessMenu" hidden>
@@ -6496,7 +7764,7 @@
               <button class="btn-sync-query" id="createMetricBtn" type="button">创建指标</button>
             </div>
             <div class="actions term-toolbar" id="listCatalogTermActions" hidden>
-              <span class="term-toolbar-hint">管理业务术语与同义词；上线后可供指标/字段挂载</span>
+              <span class="term-toolbar-hint" id="termToolbarHint">管理业务术语与同义词；上线后可供指标/字段挂载</span>
               <label class="search">
                 <input id="termSearchInput" type="search" placeholder="搜索术语名称 / 同义词 / 描述" aria-label="搜索术语" />
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -6523,6 +7791,7 @@
               <div class="new-menu-wrap">
                 <button class="btn-batch" id="termBatchActionBtn" type="button">批量操作<span class="arrow">⌄</span></button>
                 <div class="new-menu" id="termBatchActionMenu" hidden>
+                  <button class="new-menu-item" type="button" data-batch-action="set-mount">批量设置关联</button>
                   <button class="new-menu-item" type="button" data-batch-action="move-domain">批量移动域</button>
                   <button class="new-menu-item" type="button" data-batch-action="online">批量上下线</button>
                   <button class="new-menu-item" type="button" data-batch-action="delete">批量删除</button>
@@ -6581,6 +7850,11 @@
                     <div class="domain-filter-panel" id="domainFilterPanel" hidden>
                       <input class="domain-filter-search" id="domainFilterSearch" type="search" placeholder="请输入数据域" autocomplete="off" />
                       <ul class="domain-filter-list" id="domainFilterList"></ul>
+                      <!-- 需求：数据域下拉支持多选（勾选即生效，可继续勾选） -->
+                      <div class="domain-filter-foot" id="domainFilterFoot">
+                        <span class="domain-filter-summary" id="domainFilterSummary">未筛选</span>
+                        <button class="domain-filter-clear" id="domainFilterClearBtn" type="button">清空</button>
+                      </div>
                     </div>
                   </div>
                 </th>
@@ -6621,7 +7895,7 @@
                 <td class="col-index">1</td>
                 <td><a class="name-link" href="#" data-title="合同模板类型" data-type="域模型">合同模板类型</a></td>
                 <td class="domain-cell"></td>
-                <td class="desc-cell" title="用于沉淀合同模板类型相关的核心业务概念、字段关系和问数口径。">用于沉淀合同模板类型相关的核心业务概念、字段关系和问数口径。</td>
+                <td class="desc-cell" title="用于沉淀合同模板类型相关的核心业务概念、字段关系和智能消费端应用口径。">用于沉淀合同模板类型相关的核心业务概念、字段关系和智能消费端应用口径。</td>
                 <td>域模型</td>
                 <td>观华</td>
                 <td>2026-05-08 15:36:56</td>
@@ -6747,7 +8021,7 @@
                       <span class="lineage-legend-item"><span class="lineage-legend-swatch" style="background:#3b82f6"></span>指标</span>
                       <span class="lineage-legend-item"><span class="lineage-legend-swatch" style="background:#60a5fa"></span>字段</span>
                       <span class="lineage-legend-item"><span class="lineage-legend-swatch" style="background:#bfdbfe"></span>文档</span>
-                      <span class="lineage-legend-item"><span class="lineage-legend-swatch" style="background:#dbeafe"></span>问数</span>
+                      <span class="lineage-legend-item"><span class="lineage-legend-swatch" style="background:#dbeafe"></span>智能消费端应用</span>
                     </div>
                     <div class="lineage-legend-row">
                       <span class="lineage-legend-item"><span class="lineage-legend-line"></span>语义关系（挂载 / 绑定 / 派生）</span>
@@ -6762,9 +8036,73 @@
             </div>
           </div>
 
-          <div class="term-list-meta" id="termListMeta" hidden>共 <span class="term-meta-total">0</span> 个术语</div>
-
           <div class="list-catalog-panel" id="listCatalogTermPanel">
+            <div id="glossaryHeaderArea" hidden>
+              <div class="glossary-header">
+                <!-- 需求调整：术语库标题从工具栏（搜索行）移入描述卡最上方；标题+元信息+描述 组成信息卡，置于 tabs 之上，切换页签时始终保留 -->
+                <div class="glossary-desc-card" id="glossaryDescCard">
+                  <!-- 需求：术语库描述移到标题右侧，与标题同一行 -->
+                  <div class="glossary-card-head" id="glossaryHeaderInline" hidden>
+                    <div class="glossary-card-title">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h8l2 2h2v8H2V4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                      <span id="glossaryHeaderNameInline">—</span>
+                    </div>
+                    <div class="glossary-desc-text" id="glossaryDescText"><span class="glossary-desc-empty-text">暂无描述，点击右下角编辑按钮补充术语库说明。</span></div>
+                  </div>
+                  <div class="glossary-desc-meta">
+                    <span class="glossary-desc-meta-item"><span class="meta-label">创建人</span><span class="meta-value" id="glossaryMetaCreator">—</span></span>
+                    <span class="glossary-desc-meta-item"><span class="meta-label">创建时间</span><span class="meta-value" id="glossaryMetaCreatedAt">—</span></span>
+                    <span class="glossary-desc-meta-item"><span class="meta-label">所属数据域</span><span class="meta-value" id="glossaryMetaDomain">—</span></span>
+                  </div>
+                  <!-- 需求：编辑入口移到卡片右下角，重新设计图标（方框 + 铅笔 = 编辑） -->
+                  <button class="glossary-edit-btn" id="glossaryEditBtn" type="button" aria-label="编辑术语库" title="编辑术语库信息">
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M9.6 2.4H3.6A1.6 1.6 0 0 0 2 4v8.4A1.6 1.6 0 0 0 3.6 14H12a1.6 1.6 0 0 0 1.6-1.6V6.4"/>
+                      <path d="M11.7 1.9a1.55 1.55 0 0 1 2.19 2.19L8.4 9.6l-2.9.7.7-2.9 5.5-5.5z"/>
+                    </svg>
+                    <span>编辑</span>
+                  </button>
+                </div>
+                <div class="glossary-row" id="glossaryTabRow">
+                  <div class="glossary-tabs" id="glossaryTabs">
+                    <button class="glossary-tab active" type="button">术语<span class="glossary-tab-count" id="glossaryTabTermCount">0</span></button>
+                    <button class="glossary-tab" type="button">关系图谱</button>
+                    <!-- 需求调整：隐藏「活动信息流」页签（代码保留，仅不展示） -->
+                    <button class="glossary-tab" type="button" style="display:none">活动信息流<span class="glossary-tab-count" id="glossaryTabActivityCount">0</span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 需求：关系图谱页签 —— 展示当前术语库全部术语节点及其挂载的字段、指标、模型 -->
+            <div id="glossaryGraphPanel">
+              <div class="glossary-graph-bar">
+                <div class="glossary-graph-stats" id="glossaryGraphStats">术语 0 · 字段 0 · 指标 0 · 模型 0</div>
+                <!-- 需求：挂载状态筛选，默认「已挂载」 -->
+                <div class="glossary-graph-modes" id="glossaryGraphModes" role="group" aria-label="术语挂载筛选">
+                  <button class="gg-mode" type="button" data-gg-mode="all">展示全部</button>
+                  <button class="gg-mode is-active" type="button" data-gg-mode="mounted">已挂载</button>
+                  <button class="gg-mode" type="button" data-gg-mode="unmounted">无挂载</button>
+                </div>
+                <div class="glossary-graph-tools" aria-label="图谱缩放控制">
+                  <button type="button" data-gg-zoom="in" title="放大">＋</button>
+                  <button type="button" data-gg-zoom="out" title="缩小">－</button>
+                  <button type="button" data-gg-zoom="reset" title="复位">⟲</button>
+                </div>
+              </div>
+              <div class="glossary-graph-stage">
+                <!-- 需求：图例放在画布右上方，点击只看该类型的节点 -->
+                <div class="glossary-graph-legend is-float" id="glossaryGraphLegend"></div>
+                <div class="glossary-graph-wrap" id="glossaryGraphWrap">
+                  <svg id="glossaryGraphSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+                  <div class="glossary-graph-empty" id="glossaryGraphEmpty" hidden>
+                    <svg width="34" height="34" viewBox="0 0 16 16" fill="none"><circle cx="5" cy="5" r="2.4" stroke="currentColor" stroke-width="1.2"/><circle cx="11" cy="11" r="2.4" stroke="currentColor" stroke-width="1.2"/><path d="M6.8 6.8L9.2 9.2" stroke="currentColor" stroke-width="1.2"/></svg>
+                    <div id="glossaryGraphEmptyText">当前术语库暂无术语，先在「术语」页签创建或导入。</div>
+                  </div>
+                  <div class="glossary-graph-tip">悬停节点高亮其挂载关系；点击节点锁定聚焦，点击空白处取消；支持滚轮/按钮缩放与拖拽平移。</div>
+                </div>
+              </div>
+            </div>
+            <div id="glossaryEmptyState" hidden><div class="glossary-empty-state"><div class="glossary-empty-state-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M2 2h7l4 4v8H2V2z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M9 2v4h4" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></div><div class="glossary-empty-state-title">添加第一个术语</div><div class="glossary-empty-state-desc">从团队每天使用的词汇开始：定义一次，其含义便会随数据关联到任何地方延续。</div><button class="glossary-new-term-btn" id="glossaryNewTermBtn" type="button">+ 新术语</button></div></div>
             <table class="term-table" aria-label="术语列表">
               <thead>
                 <tr>
@@ -6812,13 +8150,6 @@
               </thead>
               <tbody id="termTableBody"></tbody>
             </table>
-          </div>
-
-          <div class="pager term-pager" id="termPager" hidden>
-            <span id="termPagerSummary">共 0 条，每页 15 条</span>
-            <button class="pager-btn" id="termPrevPageBtn" type="button">上一页</button>
-            <span class="pager-state" id="termPagerState">第 1 / 1 页</span>
-            <button class="pager-btn" id="termNextPageBtn" type="button">下一页</button>
           </div>
 
           <div class="list-catalog-panel" id="listCatalogDocPanel" hidden>
@@ -6957,6 +8288,112 @@
             </section>
           </div>
         </div>
+
+        <section class="term-detail-view" id="termDetailView" hidden aria-label="术语详情">
+          <div class="term-detail-head">
+            <div class="term-detail-head-main">
+              <button class="term-detail-back" id="termDetailBackBtn" type="button">‹ 返回列表</button>
+              <h2 class="term-detail-title" id="termDetailTitle">术语详情</h2>
+              <!-- 需求：去掉标题左侧图标；数据域 / 工程 / 上线状态与标题同一行并靠右，不再放在标题下方 -->
+              <div class="term-detail-sub">
+                <span id="termDetailDomain">—</span>
+                <span class="term-detail-dot">·</span>
+                <span id="termDetailProject">—</span>
+                <span class="term-detail-dot">·</span>
+                <span class="online-tag is-online" id="termDetailOnlineTag">已上线</span>
+              </div>
+            </div>
+            <div class="term-detail-actions">
+              <button class="model-link-term" id="termDetailEditBtn" type="button">编辑</button>
+              <button class="model-link-term" id="termDetailMountBtn" type="button">挂载资产</button>
+              <button class="model-save" id="termDetailOnlineBtn" type="button">下线</button>
+            </div>
+          </div>
+
+          <div class="term-detail-tabs" role="tablist" aria-label="术语详情">
+            <button class="term-detail-tab active" type="button" role="tab" data-term-detail-tab="overview" aria-selected="true">概览</button>
+            <button class="term-detail-tab" type="button" role="tab" data-term-detail-tab="mounts" aria-selected="false">挂载清单<span class="term-detail-tab-count" id="termDetailMountCount">0</span></button>
+            <button class="term-detail-tab" type="button" role="tab" data-term-detail-tab="lineage" aria-selected="false">关系图谱</button>
+          </div>
+
+          <div class="term-detail-body">
+            <div class="term-detail-panel" id="termDetailOverviewPanel" data-term-detail-panel="overview"></div>
+            <div class="term-detail-panel" id="termDetailMountsPanel" data-term-detail-panel="mounts" hidden></div>
+            <div class="term-detail-panel" id="termDetailLineagePanel" data-term-detail-panel="lineage" hidden></div>
+          </div>
+        </section>
+
+        <!-- 新建 / 编辑术语：下沉二级页面（原弹窗），左列为必填基础信息，右列为可选配置 -->
+        <section class="term-edit-view" id="termEditView" hidden aria-label="新建或编辑术语">
+          <div class="term-edit-head">
+            <div class="term-edit-head-main">
+              <button class="term-detail-back" id="termEditBackBtn" type="button">‹ 返回</button>
+              <h2 class="term-edit-title" id="termFormTitle">创建术语</h2>
+            </div>
+            <div class="term-edit-sub" id="termFormSubTitle">填写术语基础信息，系统据此建立可被智能消费端应用理解的业务语义</div>
+            <div class="term-edit-actions">
+              <button class="model-link-term" id="termFormCancelBtn" type="button">取消</button>
+              <button class="model-save" id="termFormSaveBtn" type="button">保存</button>
+            </div>
+          </div>
+
+          <div class="term-edit-body">
+            <!-- 需求：创建 / 编辑术语改为左右布局，左列基础信息 + 上级术语 / 值域绑定，右列关联资产 -->
+            <div class="term-edit-columns">
+              <div class="term-edit-col is-main">
+                <div class="term-edit-grid">
+              <div class="term-form-field">
+                <label>数据域<span class="required">*</span></label>
+                <div class="metric-domain-picker" id="termDomainPicker">
+                  <div class="metric-domain-trigger" id="termDomainTrigger">
+                    <div class="metric-domain-tags" id="termDomainTags"></div>
+                    <input class="metric-domain-search" id="termDomainSearch" type="search" placeholder="搜索并选择数据域" autocomplete="off" />
+                  </div>
+                  <div class="metric-domain-dropdown" id="termDomainDropdown" hidden>
+                    <div class="metric-domain-list" id="termDomainList"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="term-form-field" id="termModelField">
+                <!-- 需求：术语类型字段已移除，生效模型统一为非必填（选中后用于限定关联资产与值域字段的候选范围） -->
+                <label>生效模型<span class="required" id="termModelRequiredMark" hidden>*</span><span class="term-optional" id="termModelOptionalMark">非必填</span></label>
+                <div class="metric-domain-picker" id="termModelPicker">
+                  <div class="metric-domain-trigger" id="termModelTrigger">
+                    <div class="metric-domain-tags" id="termModelTags"></div>
+                    <input class="metric-domain-search" id="termModelSearch" type="search" placeholder="可选。不选则对该数据域下全部模型生效" autocomplete="off" aria-label="选择模型" />
+                  </div>
+                  <div class="metric-domain-dropdown" id="termModelDropdown" hidden>
+                    <div class="metric-domain-list" id="termModelList"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="term-form-field">
+                <label for="termFormName">术语名称<span class="required">*</span></label>
+                <input id="termFormName" type="text" placeholder="请输入术语名称" />
+              </div>
+
+              <div class="term-form-field">
+                <label for="termFormSynonyms">同义词</label>
+                <input id="termFormSynonyms" type="text" placeholder="多个同义词可用逗号分隔" />
+              </div>
+
+              <div class="term-form-field span-2">
+                <label for="termFormDescription">术语描述<span class="required" id="termDescRequiredMark" hidden>*</span><span class="term-optional" id="termDescOptionalMark">选填</span></label>
+                <textarea id="termFormDescription" placeholder="可填写业务规则、统计口径、排除项等；通用知识类术语将据此由 AI 智能解析"></textarea>
+              </div>
+                </div>
+                <!-- 上级术语 / 值域绑定 / 保存确认条由 term-module 注入 -->
+                <div id="termFormEnhanceHost"></div>
+              </div>
+              <aside class="term-edit-col is-side">
+                <!-- 关联资产（5 个类型页签）由 term-module 注入 -->
+                <div class="term-side-card" id="termFormMountHost" aria-label="关联资产"></div>
+              </aside>
+            </div>
+          </div>
+        </section>
 
         <section class="model-view" id="modelView" hidden aria-label="业务模型编辑">
           <div class="model-head">
@@ -7454,7 +8891,7 @@
         <div class="indicator-form-row">
           <label class="indicator-caliber-label-wrap" for="metricDefaultBizDateSelect">
             <span>默认业务日期</span>
-            <i class="indicator-info-tip" data-tip="问数解析「上个月 / 上季度」等时间问法时，按该业务日期字段映射统计区间。">i</i>
+            <i class="indicator-info-tip" data-tip="智能消费端应用解析「上个月 / 上季度」等时间问法时，按该业务日期字段映射统计区间。">i</i>
           </label>
           <select class="modal-control" id="metricDefaultBizDateSelect">
             <option value="">请选择默认业务日期字段</option>
@@ -7464,7 +8901,7 @@
         <div class="indicator-form-row indicator-form-row--top">
           <label>分析维度<span style="font-weight:400;color:#98a2b3">（可选）</span></label>
           <div class="metric-dim-bind" id="metricBoundDimSection">
-            <p class="metric-dim-bind-tip">可勾选多个维度供问数切换；若勾选多个，请指定一个<strong>默认维度</strong>（问数首次出图按默认维度分组）。</p>
+            <p class="metric-dim-bind-tip">可勾选多个维度供智能消费端应用切换；若勾选多个，请指定一个<strong>默认维度</strong>（智能消费端应用首次出图按默认维度分组）。</p>
             <div class="metric-dim-options" id="metricBoundDimOptions"></div>
           </div>
         </div>
@@ -7472,7 +8909,7 @@
         <div class="indicator-form-row indicator-form-row--top">
           <label class="indicator-caliber-label-wrap">
             <span>图表样式</span>
-            <i class="indicator-info-tip" data-tip="问数结果默认按该样式出图；用户可在结果页临时切换，不回写指标配置。">i</i>
+            <i class="indicator-info-tip" data-tip="智能消费端应用结果默认按该样式出图；用户可在结果页临时切换，不回写指标配置。">i</i>
           </label>
           <div class="metric-chart-options" id="metricChartStyleOptions" role="radiogroup" aria-label="图表样式">
             <label class="metric-chart-chip is-checked"><input type="radio" name="metricChartStyle" value="bar" checked /> 柱状图</label>
@@ -7673,7 +9110,7 @@
     </div>
     <div class="drawer-scroll-host">
       <div class="bridge-section">
-        <h4>已挂接文档（问数解释依据）</h4>
+        <h4>已挂接文档（智能消费端应用解释依据）</h4>
         <div id="docLinkDrawerBody"></div>
       </div>
       <div class="bridge-section">
@@ -7704,6 +9141,38 @@
     <div id="metricBindDrawerBody"></div>
   </aside>
 
+  <!-- 需求：删除术语库前的「整库删除影响」确认弹窗 -->
+  <div class="modal-overlay" id="glossaryDeleteModal" hidden>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="glossaryDeleteTitle">
+      <div class="modal-head">
+        <h3 id="glossaryDeleteTitle">删除术语库</h3>
+        <button class="modal-close" id="closeGlossaryDeleteModal" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="modal-form" style="padding: 14px 20px 0;">
+        <div class="gdel-warn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 5.6v3.2M8 11.2h.01M6.9 2.5L1.9 11.4a1.3 1.3 0 0 0 1.13 2h9.94a1.3 1.3 0 0 0 1.13-2L9.1 2.5a1.3 1.3 0 0 0-2.2 0z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="glossaryDeleteWarnText">删除后不可恢复，关联的术语将失去库归属。</span>
+        </div>
+        <div class="gdel-block">
+          <div class="gdel-block-title">将删除以下术语库</div>
+          <ul class="gdel-lib-list" id="glossaryDeleteLibList"></ul>
+        </div>
+        <div class="gdel-block">
+          <div class="gdel-block-title">影响分析</div>
+          <ul class="gdel-impact-list" id="glossaryDeleteImpactList"></ul>
+        </div>
+        <label class="gdel-ack">
+          <input type="checkbox" id="glossaryDeleteAck" />
+          <span>我已了解上述影响，确认删除</span>
+        </label>
+      </div>
+      <div class="modal-foot">
+        <button class="modal-btn ghost" id="cancelGlossaryDeleteBtn" type="button">取消</button>
+        <button class="modal-btn danger" id="confirmGlossaryDeleteBtn" type="button" disabled>确认删除</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="docParseModal" hidden>
     <div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="docParseTitle">
       <div class="modal-head">
@@ -7711,7 +9180,7 @@
         <button class="modal-close" id="closeDocParseModal" type="button" aria-label="关闭">×</button>
       </div>
       <div class="modal-form" style="padding: 12px 20px 0;">
-        <p class="modal-hint">文档必须绑定业务域；系统按已发布的基础指标与派生指标切出口径段落，供问数回调展示。</p>
+        <p class="modal-hint">文档必须绑定业务域；系统按已发布的基础指标与派生指标切出口径段落，供智能消费端应用回调展示。</p>
         <div class="modal-field">
           <label for="docParseName">文档</label>
           <input class="modal-control" id="docParseName" type="text" readonly />
@@ -7762,7 +9231,6 @@
         <div class="modal-field">
           <label for="basicModelNameInput">模型名称</label>
           <input class="modal-control" id="basicModelNameInput" type="text" placeholder="请输入模型名称" required />
-          <div class="modal-field-hint" id="basicModelNameHint" hidden></div>
         </div>
         <div class="modal-field modal-field-top">
           <label for="basicModelDescInput">描述<span class="optional">（非必填）</span></label>
@@ -7772,58 +9240,6 @@
       <div class="modal-foot">
         <button class="modal-btn ghost" id="cancelBasicModelCreate" type="button">取消</button>
         <button class="modal-btn primary" type="submit" form="basicModelCreateForm">确定</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="term-form-overlay" id="termFormOverlay" hidden>
-    <div class="term-form-modal" role="dialog" aria-modal="true" aria-labelledby="termFormTitle">
-      <div class="term-form-head">
-        <h3 id="termFormTitle">创建术语</h3>
-        <button class="term-form-close" id="closeTermFormBtn" type="button" aria-label="关闭">×</button>
-      </div>
-      <div class="term-form-body">
-        <!-- 需求调整：数据域、模型两个字段移动到术语名称上方 -->
-        <div class="term-form-field">
-          <label>数据域<span class="required">*</span></label>
-          <div class="metric-domain-picker" id="termDomainPicker">
-            <div class="metric-domain-trigger" id="termDomainTrigger">
-              <div class="metric-domain-tags" id="termDomainTags"></div>
-              <input class="metric-domain-search" id="termDomainSearch" type="search" placeholder="搜索并选择数据域" autocomplete="off" />
-            </div>
-            <div class="metric-domain-dropdown" id="termDomainDropdown" hidden>
-              <div class="metric-domain-list" id="termDomainList"></div>
-            </div>
-          </div>
-        </div>
-        <div class="term-form-field">
-          <label>模型</label>
-          <div class="metric-domain-picker" id="termModelPicker">
-            <div class="metric-domain-trigger" id="termModelTrigger">
-              <div class="metric-domain-tags" id="termModelTags"></div>
-              <input class="metric-domain-search" id="termModelSearch" type="search" placeholder="可选。不选则对该数据域下全部模型生效" autocomplete="off" aria-label="选择模型" />
-            </div>
-            <div class="metric-domain-dropdown" id="termModelDropdown" hidden>
-              <div class="metric-domain-list" id="termModelList"></div>
-            </div>
-          </div>
-        </div>
-        <div class="term-form-field">
-          <label for="termFormName">术语名称<span class="required">*</span></label>
-          <input id="termFormName" type="text" placeholder="请输入术语名称" />
-        </div>
-        <div class="term-form-field">
-          <label for="termFormSynonyms">同义词</label>
-          <input id="termFormSynonyms" type="text" placeholder="多个同义词可用逗号分隔" />
-        </div>
-        <div class="term-form-field">
-          <label for="termFormDescription">术语描述</label>
-          <textarea id="termFormDescription" placeholder="请输入术语描述"></textarea>
-        </div>
-      </div>
-      <div class="term-form-foot">
-        <button class="modal-btn ghost" id="termFormCancelBtn" type="button">取消</button>
-        <button class="modal-btn primary" id="termFormSaveBtn" type="button">确定</button>
       </div>
     </div>
   </div>
@@ -7932,27 +9348,66 @@
         <div id="catalogBatchOnlinePanel" hidden>
           <p class="modal-hint">将选中项统一设为上线或下线。</p>
         </div>
+        <!-- 批量设置关联：挂载类型多选 + 自动推荐开关（打开后按所选类型匹配资源），可决定是否立刻后台批量关联 -->
+        <div id="catalogBatchMountPanel" hidden>
+          <div class="term-form-field">
+            <label>挂载类型<span class="required">*</span></label>
+            <div class="term-batch-types" id="catalogBatchMountTypes"></div>
+            <p class="term-batch-tip">可多选；自动推荐只在勾选的类型里匹配资源。</p>
+          </div>
+          <div class="term-form-field">
+            <div class="term-batch-autorow">
+              <span class="term-batch-autolabel">自动推荐</span>
+              <label class="term-batch-switch">
+                <input type="checkbox" id="catalogBatchMountAuto" />
+                <span class="term-batch-switch-track"><span class="term-batch-switch-dot"></span></span>
+                <span class="term-batch-switch-text">开启后按所选挂载类型，自动推荐数据域内匹配的资源</span>
+              </label>
+            </div>
+            <div class="term-batch-rules">
+              <div class="term-batch-rules-title">匹配规则</div>
+              <ol class="term-batch-rules-list" id="catalogBatchMountRules"></ol>
+            </div>
+          </div>
+          <div class="term-form-field" id="catalogBatchMountPreviewField">
+            <label>推荐结果（可逐条调整）</label>
+            <p class="term-batch-scope" id="catalogBatchMountScope"></p>
+            <div class="term-batch-preview" id="catalogBatchMountPreview"></div>
+          </div>
+          <label class="term-batch-run">
+            <input type="checkbox" id="catalogBatchMountRun" />
+            确定后立刻启动后台批量关联挂载（执行期间术语库内容不可操作）
+          </label>
+        </div>
       </div>
       <div class="term-form-foot">
         <button class="modal-btn ghost" id="catalogBatchCancelBtn" type="button">取消</button>
         <button class="modal-btn ghost" id="catalogBatchOfflineBtn" type="button" hidden>全部下线</button>
         <button class="modal-btn primary" id="catalogBatchOnlineBtn" type="button" hidden>全部上线</button>
         <button class="modal-btn primary" id="catalogBatchConfirmBtn" type="button">确定</button>
+        <button class="modal-btn primary" id="catalogBatchMountConfirmBtn" type="button" hidden>确定</button>
       </div>
     </div>
   </div>
 
-  <aside class="drawer bridge-drawer" id="termDetailDrawer" hidden aria-label="术语详情">
-    <div class="drawer-head">
-      <strong id="termDetailDrawerTitle">术语详情</strong>
-      <button class="drawer-close" id="closeTermDetailDrawerBtn" type="button" aria-label="关闭">×</button>
+  <aside class="drawer" id="glossaryCreateDrawer" hidden aria-label="新建术语库">
+    <div class="drawer-head"><span>新建术语库</span><button class="drawer-close" id="closeGlossaryCreateBtn" type="button" aria-label="关闭">×</button></div>
+    <div class="drawer-scroll-host" style="padding:20px 22px;">
+      <div class="term-form-field"><label for="glossaryCreateName">名称 <span class="required">*</span></label><input id="glossaryCreateName" type="text" placeholder="请输入术语库名称" maxlength="50" /></div>
+      <div class="term-form-field"><label for="glossaryCreateDesc">描述</label><textarea id="glossaryCreateDesc" rows="3" placeholder="简单描述这个术语库的用途和覆盖范围（选填）" maxlength="300"></textarea></div>
+      <div class="term-form-field"><label for="glossaryCreateDomain">所属数据域 <span class="required">*</span></label><select id="glossaryCreateDomain"><option value="">请选择数据域</option></select><p class="modal-hint">该术语库将基于所选数据域进行管理和展示。</p></div>
     </div>
-    <div id="termDetailDrawerBody"></div>
+    <div class="term-form-foot"><button class="modal-btn ghost" id="glossaryCreateCancelBtn" type="button">取消</button><button class="modal-btn primary" id="glossaryCreateSaveBtn" type="button">保存</button></div>
   </aside>
 
   <div class="term-link-job" id="termLinkJob" hidden role="status" aria-live="polite">
     <span class="term-link-job-spin" aria-hidden="true"></span>
     <span id="termLinkJobText">自动关联中</span>
+  </div>
+
+  <div class="term-link-job" id="termBatchMountJob" hidden role="status" aria-live="polite">
+    <span class="term-link-job-spin" aria-hidden="true"></span>
+    <span id="termBatchMountJobText">批量关联资产任务执行中</span>
   </div>
 
   <div class="drawer-backdrop" id="drawerBackdrop" hidden aria-hidden="true"></div>
@@ -7976,16 +9431,732 @@
     </div>
   </aside>
 
-  <script src="../shared/semantic-bridge.js?v=2026100918"></script>
+  <script src="../shared/semantic-bridge.js?v=2026102301"></script>
   <script src="permission-module.js?v=2026100918"></script>
-  <script src="metric-module.js?v=2026100918"></script>
-  <script src="term-module.js?v=2026101301"></script>
-  <script src="lineage-module.js?v=2026100918"></script>
+  <script src="metric-module.js?v=2026102312"></script>
+  <script src="term-module.js?v=2026102322"></script>
+  <script src="lineage-module.js?v=2026102312"></script>
   <script>
     const embedMode = new URLSearchParams(window.location.search).get("embed");
-    if (embedMode === "list") {
-      document.body.classList.add("embed-list");
+    if (embedMode === "list") { document.body.classList.add("embed-list"); }
+
+    /* ===== Glossary 术语库 数据层 ===== */
+    const GLOSSARY_KEY = "biz-modeling-glossaries-v1";
+    const GLOSSARY_CURRENT_KEY = "biz-modeling-glossary-current";
+
+    /* 术语库创建时间：统一 YYYY-MM-DD HH:mm */
+    const glossaryPad2 = (n) => String(n).padStart(2, "0");
+    const glossaryNowStamp = (d = new Date()) =>
+      `${d.getFullYear()}-${glossaryPad2(d.getMonth() + 1)}-${glossaryPad2(d.getDate())} ${glossaryPad2(d.getHours())}:${glossaryPad2(d.getMinutes())}`;
+    const DEFAULT_GLOSSARIES = [
+      { id: "glossary-transaction", name: "交易业务术语库", description: "存放交易域相关业务名词，用于 AI 智能消费端应用、术语消歧、元数据语义治理，支撑订单营收查询。", domain: "收入管理", creator: "王丽", createdAt: "2026-06-18 09:32" },
+      { id: "glossary-contract", name: "合同库", description: "沉淀合同签订、履约、变更相关的核心业务术语。", domain: "合同管理", creator: "张强", createdAt: "2026-07-02 14:15" },
+      { id: "glossary-engineering", name: "工程技术库", description: "覆盖工程施工、技术管理、项目交付等技术领域术语。", domain: "工程技术", creator: "李敏", createdAt: "2026-07-21 16:40" },
+      { id: "glossary-operation", name: "经营管控业务术语库", description: "经营分析、成本管控、绩效考核相关的业务术语集合。", domain: "成本管理", creator: "刘颖", createdAt: "2026-08-05 10:08" },
+    ];
+    let glossaries = (() => {
+  try {
+    const r = localStorage.getItem(GLOSSARY_KEY);
+    if (r) {
+      const p = JSON.parse(r);
+      if (Array.isArray(p)) {
+        /* 兼容历史数据：早期创建的术语库没有创建人/创建时间，补一次并落盘，避免一直显示「—」 */
+        let dirty = false;
+        p.forEach((g) => {
+          if (!g.creator) { g.creator = "系统管理员"; dirty = true; }
+          if (!g.createdAt) { g.createdAt = glossaryNowStamp(); dirty = true; }
+        });
+        if (dirty) localStorage.setItem(GLOSSARY_KEY, JSON.stringify(p));
+        return p;
+      }
     }
+  } catch (_) {}
+  localStorage.setItem(GLOSSARY_KEY, JSON.stringify(DEFAULT_GLOSSARIES));
+  return [...DEFAULT_GLOSSARIES];
+})();
+    let currentGlossaryId = localStorage.getItem(GLOSSARY_CURRENT_KEY) || glossaries[0]?.id || "";
+    const persist = () => { try { localStorage.setItem(GLOSSARY_KEY, JSON.stringify(glossaries)); } catch (_) {} };
+    const persistCur = () => { try { localStorage.setItem(GLOSSARY_CURRENT_KEY, currentGlossaryId || ""); } catch (_) {} };
+    const getG = (id) => glossaries.find((g) => g.id === id) || null;
+    const getCurG = () => getG(currentGlossaryId);
+    const createG = ({ name, description, domain }) => { const it = { id: `glossary-${Date.now()}-${Math.random().toString(36).slice(2,6)}`, name, description: description || "", domain, creator: "系统管理员", createdAt: glossaryNowStamp() }; glossaries.unshift(it); persist(); return it; };
+    const deleteG = (id) => { glossaries = glossaries.filter((g) => g.id !== id); persist(); if (currentGlossaryId === id) { currentGlossaryId = glossaries[0]?.id || ""; persistCur(); } };
+    const updateG = (id, patch) => { const i = glossaries.findIndex((g) => g.id === id); if (i < 0) return null; glossaries[i] = { ...glossaries[i], ...patch }; persist(); return glossaries[i]; };
+    const termCount = (id) => { const g = getG(id); if (!g) return 0; const ts = window.BizTermUI?.readTerms?.() || window.TermModule?.readTerms?.() || []; return ts.filter((t) => { const ds = t.domains || (t.domain || "").split(/[、,，]/).map((d)=>d.trim()).filter(Boolean); return ds.includes(g.domain); }).length; };
+    /* 术语库目录：支持多选模式（勾选框 + 底部操作条），多选态与选中态独立 */
+    let glossaryMultiMode = false;
+    const glossaryMultiSelected = new Set();
+
+    function renderSide() {
+      const el = document.getElementById("glossaryList");
+      if (!el) return;
+      el.classList.toggle("is-multi", glossaryMultiMode);
+      if (!glossaries.length) {
+        el.innerHTML = `<div class="glossary-empty">暂无术语库，点击上方「+ 添加」创建</div>`;
+        syncGlossaryMultiBar();
+        return;
+      }
+      el.innerHTML = glossaries
+        .map((g) => {
+          const active = g.id === currentGlossaryId ? " active" : "";
+          const checked = glossaryMultiSelected.has(g.id) ? " is-checked" : "";
+          return `<li class="glossary-item${active}${checked}" data-glossary-id="${g.id}" aria-selected="${glossaryMultiSelected.has(g.id) ? "true" : "false"}"><span class="gl-check" aria-hidden="true"></span><svg class="glossary-item-icon" viewBox="0 0 16 16" fill="none"><path d="M2 4h8l2 2h2v8H2V4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="glossary-item-name">${g.name}</span></li>`;
+        })
+        .join("");
+      syncGlossaryMultiBar();
+    }
+
+    function setGlossaryMultiMode(on) {
+      glossaryMultiMode = Boolean(on);
+      if (!glossaryMultiMode) glossaryMultiSelected.clear();
+      const btn = document.getElementById("glossaryMultiToggleBtn");
+      if (btn) {
+        btn.textContent = glossaryMultiMode ? "退出多选" : "多选";
+        btn.classList.toggle("is-on", glossaryMultiMode);
+      }
+      renderSide();
+    }
+
+    function syncGlossaryMultiBar() {
+      const bar = document.getElementById("glossaryMultiBar");
+      const summary = document.getElementById("glossaryMultiSummary");
+      const delBtn = document.getElementById("glossaryMultiDeleteBtn");
+      if (bar) bar.hidden = !glossaryMultiMode;
+      if (summary) summary.textContent = `已选 ${glossaryMultiSelected.size} 个术语库`;
+      if (delBtn) {
+        delBtn.disabled = glossaryMultiSelected.size === 0;
+        delBtn.textContent = glossaryMultiSelected.size ? `删除（${glossaryMultiSelected.size}）` : "删除";
+      }
+    }
+
+    /* 轻量提示条：术语库模块内没有 setTip，删除结果在这里反馈 */
+    let glossaryTipTimer = 0;
+    function flashGlossaryTip(message) {
+      const el = document.getElementById("glossarySideTip");
+      if (!el) return;
+      el.textContent = message;
+      el.hidden = false;
+      clearTimeout(glossaryTipTimer);
+      glossaryTipTimer = setTimeout(() => {
+        el.hidden = true;
+      }, 4000);
+    }
+
+    function toggleGlossaryChecked(id) {
+      if (glossaryMultiSelected.has(id)) glossaryMultiSelected.delete(id);
+      else glossaryMultiSelected.add(id);
+      renderSide();
+    }
+
+    /* 术语归属：术语库按数据域收纳术语，故以数据域匹配库内术语 */
+    function termDomainValues(term) {
+      if (Array.isArray(term.domains) && term.domains.length) return term.domains.map((d) => String(d || "").trim()).filter(Boolean);
+      return String(term.domain || "").split(/[、,，]/).map((d) => d.trim()).filter(Boolean);
+    }
+
+    function glossaryTerms(glossary) {
+      const all = window.BizTermUI?.readTerms?.() || window.TermModule?.readTerms?.() || [];
+      return all.filter((t) => termDomainValues(t).includes(glossary.domain));
+    }
+
+    /* 整库删除的影响：库内术语（含已上线）、挂载资产、被引用的指标 / 字段 */
+    function buildGlossaryDeleteImpact(ids) {
+      const list = ids.map(getG).filter(Boolean);
+      const seen = new Set();
+      const terms = [];
+      list.forEach((g) => {
+        glossaryTerms(g).forEach((t) => {
+          if (seen.has(t.id)) return;
+          seen.add(t.id);
+          terms.push(t);
+        });
+      });
+      const onlineCount = terms.filter((t) => t.online !== false).length;
+      const mountCount = terms.reduce((n, t) => n + ((t.mounts || []).length), 0);
+      let refs = { metricCount: 0, fieldCount: 0 };
+      try {
+        refs = window.BizTermUI?.summarizeTermReferences?.(terms.map((t) => t.id)) || refs;
+      } catch (_err) {
+        /* ignore */
+      }
+      const remainAfter = glossaries.length - list.length;
+      return { list, terms, onlineCount, mountCount, metricCount: refs.metricCount || 0, fieldCount: refs.fieldCount || 0, remainAfter };
+    }
+
+    function openGlossaryDeleteModal() {
+      const ids = [...glossaryMultiSelected];
+      if (!ids.length) return;
+      const impact = buildGlossaryDeleteImpact(ids);
+      const libList = document.getElementById("glossaryDeleteLibList");
+      if (libList) {
+        libList.innerHTML = impact.list
+          .map(
+            (g) =>
+              `<li><span class="gdel-lib-name">${g.name}</span><span class="gdel-lib-meta">数据域 ${g.domain || "—"} · ${g.creator || "系统管理员"} · ${g.createdAt || "—"}</span><span class="gdel-lib-meta">${glossaryTerms(g).length} 个术语</span></li>`
+          )
+          .join("");
+      }
+      const items = [];
+      items.push(`<li${impact.terms.length ? " class='is-risk'" : ""}>库内术语 <strong>${impact.terms.length}</strong> 个（已上线 ${impact.onlineCount} 个）将失去库归属，不再在该库中展示、检索与筛选</li>`);
+      if (impact.metricCount || impact.fieldCount) {
+        items.push(`<li class="is-risk">引用这些术语的 <strong>${impact.metricCount}</strong> 个指标、<strong>${impact.fieldCount}</strong> 个字段，智能消费端应用解析将失效</li>`);
+      } else {
+        items.push(`<li>未发现引用这些术语的指标 / 字段</li>`);
+      }
+      if (impact.mountCount) {
+        items.push(`<li class="is-risk">术语上已固化的 <strong>${impact.mountCount}</strong> 项挂载资产（值域、标准 SQL、值层级等）将一并失去支撑</li>`);
+      }
+      items.push(`<li>术语本身不会被删除，仍保留在术语资产中；若其他术语库为同一数据域，仍可在那里继续展示</li>`);
+      items.push(`<li>删除后不可恢复。${impact.remainAfter > 0 ? `剩余 ${impact.remainAfter} 个术语库` : "将没有任何术语库，术语中心显示空状态"}</li>`);
+      const impactList = document.getElementById("glossaryDeleteImpactList");
+      if (impactList) impactList.innerHTML = items.join("");
+      const warn = document.getElementById("glossaryDeleteWarnText");
+      if (warn) {
+        warn.textContent =
+          impact.terms.length || impact.metricCount || impact.fieldCount
+            ? `删除后不可恢复：库内 ${impact.terms.length} 个术语将失去库归属，相关引用一并失效。`
+            : "删除后不可恢复。该库暂无术语，可直接删除。";
+      }
+      const ack = document.getElementById("glossaryDeleteAck");
+      const confirmBtn = document.getElementById("confirmGlossaryDeleteBtn");
+      if (ack) ack.checked = false;
+      if (confirmBtn) confirmBtn.disabled = true;
+      const modal = document.getElementById("glossaryDeleteModal");
+      if (modal) modal.hidden = false;
+    }
+
+    function closeGlossaryDeleteModal() {
+      const modal = document.getElementById("glossaryDeleteModal");
+      if (modal) modal.hidden = true;
+    }
+
+    function confirmGlossaryDelete() {
+      const ids = [...glossaryMultiSelected];
+      if (!ids.length) return;
+      const names = ids.map((id) => getG(id)?.name).filter(Boolean);
+      const impact = buildGlossaryDeleteImpact(ids);
+      ids.forEach((id) => deleteG(id));
+      closeGlossaryDeleteModal();
+      setGlossaryMultiMode(false);
+      renderSide();
+      renderHeader();
+      if (document.getElementById("listCatalogTermPanel")?.classList.contains("graph-mode")) window.renderGlossaryGraph?.();
+      flashGlossaryTip(`已删除 ${names.length} 个术语库：${names.join("、")}；${impact.terms.length} 个术语失去库归属（术语本身保留）`);
+    }
+    function renderHeader() { const lv = document.getElementById("listView"); const isTerm = lv?.dataset.activeCatalog === "term"; const a = document.getElementById("glossaryHeaderArea"); const gi = document.getElementById("glossaryHeaderInline"); const hint = document.getElementById("termToolbarHint"); if (!a) return; if (!isTerm) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } const g = getCurG(); if (!g) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } a.hidden = false; if (gi) { gi.hidden = false; const ni = document.getElementById("glossaryHeaderNameInline"); if (ni) ni.textContent = g.name; } if (hint) hint.style.display = "none"; const d = document.getElementById("glossaryDescText"); if (d) d.innerHTML = g.description ? g.description : `<span class=\"glossary-desc-empty-text\">暂无描述，点击编辑按钮补充术语库说明。</span>`; const mc = document.getElementById("glossaryMetaCreator"); if (mc) mc.textContent = g.creator || "系统管理员"; const mt = document.getElementById("glossaryMetaCreatedAt"); if (mt) mt.textContent = g.createdAt || "—"; const md = document.getElementById("glossaryMetaDomain"); if (md) md.textContent = g.domain || "—"; const c = document.getElementById("glossaryTabTermCount"); const cnt = termCount(g.id); if (c) c.textContent = cnt; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = cnt > 0; const tt = document.querySelector("#listCatalogTermPanel .term-table"); if (tt) tt.hidden = cnt === 0; if (g.domain && window.BizTermUI?.setDomainFilter) window.BizTermUI.setDomainFilter(g.domain); }
+    function selectG(id) { currentGlossaryId = id; persistCur(); renderSide(); renderHeader(); }
+    function openGDrawer(mode, id) { const isEdit = mode === "edit"; editingGlossaryId = isEdit ? id || getCurG()?.id || "" : ""; const dr = document.getElementById("glossaryCreateDrawer"); const bd = document.getElementById("drawerBackdrop"); const n = document.getElementById("glossaryCreateName"); const d = document.getElementById("glossaryCreateDesc"); const o = document.getElementById("glossaryCreateDomain"); const hd = dr?.querySelector(".drawer-head span"); if (hd) hd.textContent = isEdit ? "编辑术语库" : "新建术语库"; if (!dr) return; const labels = (window.collectUniqueDomainLabels && window.collectUniqueDomainLabels()) || ["收入管理","成本管理","经营管理","合同管理","工程技术"]; if (o) { o.innerHTML = `<option value=\"\">请选择数据域</option>` + labels.map((x)=>`<option value=\"${x}\">${x}</option>`).join(""); if (!isEdit) o.value = ""; } if (isEdit && editingGlossaryId) { const g = getG(editingGlossaryId); if (n) n.value = g?.name || ""; if (d) d.value = g?.description || ""; if (o && g?.domain) o.value = g.domain; } else { if (n) n.value = ""; if (d) d.value = ""; } dr.hidden = false; if (bd) bd.hidden = false; if (n) setTimeout(()=>n.focus(), 60); }
+    function closeGDrawer() { editingGlossaryId = ""; const dr = document.getElementById("glossaryCreateDrawer"); const bd = document.getElementById("drawerBackdrop"); if (dr) dr.hidden = true; if (bd) bd.hidden = true; }
+    function saveGDrawer() { const n = (document.getElementById("glossaryCreateName")?.value || "").trim(); const d = (document.getElementById("glossaryCreateDesc")?.value || "").trim(); const o = (document.getElementById("glossaryCreateDomain")?.value || "").trim(); if (!n) { window.alert("请填写术语库名称"); document.getElementById("glossaryCreateName")?.focus(); return; } if (!o) { window.alert("请选择所属数据域"); document.getElementById("glossaryCreateDomain")?.focus(); return; } if (editingGlossaryId) { updateG(editingGlossaryId, { name: n, description: d, domain: o }); selectG(editingGlossaryId); } else { const it = createG({ name: n, description: d, domain: o }); selectG(it.id); } closeGDrawer(); }
+    /* 需求调整：术语 catalog 下，工具栏（搜索/下载模板等）移至 glossary 页签行下方，且仅在「术语」页签显示；切换 关系图谱/活动信息流 或其他 catalog 时恢复原位 */
+    function syncTermToolbarState() { const lv = document.getElementById("listView"); const toolbar = document.querySelector("#listView .toolbar"); if (!lv || !toolbar) return; const isTerm = lv.dataset.activeCatalog === "term"; const tabRow = document.getElementById("glossaryTabRow"); if (isTerm && tabRow) { if (toolbar.parentElement !== tabRow) tabRow.appendChild(toolbar); const tabs = document.querySelectorAll("#glossaryTabs .glossary-tab"); const activeIdx = Array.from(tabs).findIndex((t) => t.classList.contains("active")); toolbar.style.display = activeIdx === 0 ? "" : "none"; } else { toolbar.style.display = ""; if (lv.firstElementChild !== toolbar) lv.prepend(toolbar); } }
+    function initGlossary() { const lv = document.getElementById("listView"); const layout = document.querySelector(".layout"); const content = document.querySelector(".content"); const isTerm = lv?.dataset.activeCatalog === "term"; const gs = document.getElementById("glossarySideContent"); const ts = document.getElementById("knowledgeTreeContent"); const se = document.querySelector(".side"); if (gs) gs.hidden = !isTerm; if (ts) ts.hidden = isTerm; if (se) { if (isTerm) { se.style.cssText = "display:flex;flex-direction:column;width:240px;min-width:240px;border-right:1px solid #e5e8ef;background:#fff;flex-shrink:0;"; } else { se.style.display = "none"; } } /* 关键：layout 切换为 flex 两列布局，让 side 显示在 content 左侧 */ if (layout) { if (isTerm) { layout.style.cssText = "display:flex;align-items:stretch;min-width:0;"; } else { layout.style.cssText = ""; } } if (content && isTerm) { content.style.minWidth = "0"; } renderSide(); renderHeader(); syncTermToolbarState(); document.getElementById("glossaryList")?.addEventListener("click", (e) => { const it = e.target.closest(".glossary-item"); if (it?.dataset.glossaryId) { if (glossaryMultiMode) { toggleGlossaryChecked(it.dataset.glossaryId); return; } selectG(it.dataset.glossaryId); /* 需求：图谱页签下切换术语库时同步重渲染关系图谱 */ if (document.getElementById("listCatalogTermPanel")?.classList.contains("graph-mode")) window.renderGlossaryGraph?.(); } }); document.getElementById("glossaryAddBtn")?.addEventListener("click", openGDrawer);
+            /* 术语库目录多选删除 */
+            document.getElementById("glossaryMultiToggleBtn")?.addEventListener("click", () => setGlossaryMultiMode(!glossaryMultiMode));
+            document.getElementById("glossaryMultiAllBtn")?.addEventListener("click", () => {
+              const all = glossaries.every((g) => glossaryMultiSelected.has(g.id));
+              glossaryMultiSelected.clear();
+              if (!all) glossaries.forEach((g) => glossaryMultiSelected.add(g.id));
+              renderSide();
+            });
+            document.getElementById("glossaryMultiExitBtn")?.addEventListener("click", () => setGlossaryMultiMode(false));
+            document.getElementById("glossaryMultiDeleteBtn")?.addEventListener("click", openGlossaryDeleteModal);
+            document.getElementById("closeGlossaryDeleteModal")?.addEventListener("click", closeGlossaryDeleteModal);
+            document.getElementById("cancelGlossaryDeleteBtn")?.addEventListener("click", closeGlossaryDeleteModal);
+            document.getElementById("confirmGlossaryDeleteBtn")?.addEventListener("click", confirmGlossaryDelete);
+            document.getElementById("glossaryDeleteAck")?.addEventListener("change", (e) => {
+              const btn = document.getElementById("confirmGlossaryDeleteBtn");
+              if (btn) btn.disabled = !e.target.checked;
+            });
+            document.getElementById("glossaryDeleteModal")?.addEventListener("click", (e) => {
+              if (e.target.id === "glossaryDeleteModal") closeGlossaryDeleteModal();
+            });
+            /* Esc：先关弹窗，再退出多选 */
+            document.addEventListener("keydown", (e) => {
+              if (e.key !== "Escape") return;
+              if (!document.getElementById("glossaryDeleteModal")?.hidden) {
+                closeGlossaryDeleteModal();
+                return;
+              }
+              if (glossaryMultiMode) setGlossaryMultiMode(false);
+            }); document.getElementById("closeGlossaryCreateBtn")?.addEventListener("click", closeGDrawer); document.getElementById("glossaryCreateCancelBtn")?.addEventListener("click", closeGDrawer); document.getElementById("glossaryCreateSaveBtn")?.addEventListener("click", saveGDrawer); document.getElementById("glossaryNewTermBtn")?.addEventListener("click", () => document.getElementById("termCreateBtn")?.click()); document.querySelectorAll("#glossaryTabs .glossary-tab").forEach((tab, idx) => tab.addEventListener("click", () => { document.querySelectorAll("#glossaryTabs .glossary-tab").forEach(t => t.classList.remove("active")); tab.classList.add("active"); /* 需求：术语/关系图谱 页签切换内容区（graph-mode 由 CSS 控制表格与图谱显隐），进入图谱时实时渲染 */ const isGraph = idx === 1; document.getElementById("listCatalogTermPanel")?.classList.toggle("graph-mode", isGraph); if (isGraph) window.renderGlossaryGraph?.(); syncTermToolbarState(); })); if (lv && window.MutationObserver) { new MutationObserver(() => { const nt = lv.dataset.activeCatalog === "term"; const layout = document.querySelector(".layout"); if (gs) gs.hidden = !nt; if (ts) ts.hidden = nt; if (se) { if (nt) { se.style.cssText = "display:flex;flex-direction:column;width:240px;min-width:240px;border-right:1px solid #e5e8ef;background:#fff;flex-shrink:0;"; } else { se.style.display = "none"; } } if (layout) { if (nt) { layout.style.cssText = "display:flex;align-items:stretch;min-width:0;"; } else { layout.style.cssText = ""; } } renderHeader(); syncTermToolbarState(); }).observe(lv, { attributes: true, attributeFilter: ["data-active-catalog"] }); } }
+    window.GlossaryUI = { renderSide, renderHeader, selectG, openGDrawer, getCurG };
+
+    /* ===== 需求：术语库「关系图谱」页签 —— 展示当前术语库全部术语节点及其挂载的字段、指标、模型 ===== */
+    (function initGlossaryRelationGraph() {
+      const NODE_STYLE = {
+        term: { fill: "#2563eb", stroke: "#1d4ed8", r: 13 },
+        field: { fill: "#60a5fa", stroke: "#3b82f6", r: 8 },
+        metric: { fill: "#3b82f6", stroke: "#2563eb", r: 10 },
+        model: { fill: "#1d4ed8", stroke: "#1e40af", r: 9 },
+      };
+      const EDGE_STYLE = {
+        "field-term": "#60a5fa",
+        "term-metric": "#3b82f6",
+        "model-term": "#1d4ed8",
+        "model-field": "#93c5fd",
+      };
+      const COL_X = { model: 130, field: 450, term: 830, metric: 1210 };
+      const ROW_GAP = 52, TOP_PAD = 50, SIDE_PAD = 60;
+      /* 画布状态挂在各自的 wrap 元素上：术语库图谱与「单个术语」图谱互不干扰 */
+      const stateOf = (wrap) => {
+        if (!wrap.__ggState) wrap.__ggState = { zoom: 1, tx: 0, ty: 0, locked: "" };
+        return wrap.__ggState;
+      };
+
+      const esc = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+      function collectGraphData() {
+        const g = window.GlossaryUI?.getCurG?.();
+        const allTerms = window.TermModule?.readTerms?.() || [];
+        const domainsOf = (t) => t.domains || String(t.domain || "").split(/[、,，]/).map((d) => d.trim()).filter(Boolean);
+        const terms = g ? allTerms.filter((t) => domainsOf(t).includes(g.domain)) : [];
+        const termIds = new Set(terms.map((t) => t.id));
+        const fields = [];
+        Object.entries(window.TermModule?.readFieldTermMap?.() || {}).forEach(([key, ids]) => {
+          const hit = (ids || []).filter((id) => termIds.has(id) && !window.TermModule?.isFieldTermDismissed?.(key, id));
+          if (!hit.length) return;
+          const sep = key.indexOf("|");
+          fields.push({ key, modelName: sep > 0 ? key.slice(0, sep) : "", field: sep > 0 ? key.slice(sep + 1) : key, termIds: hit });
+        });
+        const metrics = (window.MetricModule?.readMetrics?.() || []).filter((m) => (m.termIds || []).some((id) => termIds.has(id)));
+        const modelSet = new Map();
+        terms.forEach((t) => (t.modelNames || []).forEach((n) => n && modelSet.set(n, { name: n, via: "term" })));
+        fields.forEach((f) => f.modelName && !modelSet.has(f.modelName) && modelSet.set(f.modelName, { name: f.modelName, via: "field" }));
+        /* 已挂载：挂了资产（字段 / 指标 / 模型 / 手动挂载），其余为「无挂载」 */
+        const mountedIds = new Set();
+        fields.forEach((f) => f.termIds.forEach((id) => mountedIds.add(id)));
+        metrics.forEach((m) => (m.termIds || []).forEach((id) => termIds.has(id) && mountedIds.add(id)));
+        terms.forEach((t) => {
+          if ((t.mounts || []).length || (t.modelNames || []).length) mountedIds.add(t.id);
+        });
+        return { glossary: g, terms, fields, metrics, models: [...modelSet.values()], mountedIds };
+      }
+
+      /* 布局：四列（模型 / 字段 / 术语 / 指标）按画布宽度均分，列内按画布高度垂直居中分布 */
+      function buildNodesEdges(data, layout = {}) {
+        const nodes = [], edges = [], pos = new Map();
+        const colX = layout.colX || COL_X;
+        const height = layout.height || 460;
+        const place = (type, list, make) => {
+          const x = colX[type];
+          const gap = list.length > 1 ? Math.min(76, Math.max(42, (height - 150) / (list.length - 1))) : 0;
+          const startY = height / 2 - ((list.length - 1) * gap) / 2;
+          list.forEach((item, i) => {
+            const node = make(item, i);
+            const y = Math.max(54, startY + i * gap);
+            pos.set(node.id, { x, y });
+            nodes.push(node);
+          });
+        };
+        place("model", data.models, (m) => ({ id: "mo:" + m.name, type: "model", label: m.name, sub: m.via === "field" ? "字段所属模型" : "术语生效模型" }));
+        place("field", data.fields, (f) => ({ id: "f:" + f.key, type: "field", label: f.field, sub: f.modelName }));
+        place("term", data.terms, (t) => ({ id: "t:" + t.id, type: "term", label: t.name, sub: (t.domains && t.domains[0]) || t.domain || "" }));
+        place("metric", data.metrics, (m) => ({ id: "m:" + m.id, type: "metric", label: m.name, sub: m.code || "指标" }));
+        data.fields.forEach((f) => f.termIds.forEach((tid) => edges.push({ from: "f:" + f.key, to: "t:" + tid, kind: "field-term" })));
+        data.models.forEach((m) => data.terms.forEach((t) => (t.modelNames || []).includes(m.name) && edges.push({ from: "mo:" + m.name, to: "t:" + t.id, kind: "model-term" })));
+        /* 字段归属于模型：补一条 模型 → 字段 的边，保证「模型 → 字段 → 术语 → 指标」整条链路连通 */
+        data.fields.forEach((f) => f.modelName && modelExists(data, f.modelName) && edges.push({ from: "mo:" + f.modelName, to: "f:" + f.key, kind: "model-field" }));
+        data.metrics.forEach((m) => (m.termIds || []).forEach((tid) => termExists(data, tid) && edges.push({ from: "t:" + tid, to: "m:" + m.id, kind: "term-metric" })));
+        return { nodes, edges, pos };
+      }
+
+      function termExists(data, id) { return data.terms.some((t) => t.id === id); }
+      function modelExists(data, name) { return data.models.some((m) => m.name === name); }
+
+      /* ===== 需求：挂载状态筛选 + 图例类型筛选 ===== */
+      function buildEdges(data) {
+        const edges = [];
+        data.fields.forEach((f) => f.termIds.forEach((tid) => edges.push({ from: "f:" + f.key, to: "t:" + tid, kind: "field-term" })));
+        data.models.forEach((m) => data.terms.forEach((t) => (t.modelNames || []).includes(m.name) && edges.push({ from: "mo:" + m.name, to: "t:" + t.id, kind: "model-term" })));
+        /* 字段归属于模型：补一条 模型 → 字段 的边，保证「模型 → 字段 → 术语 → 指标」整条链路连通 */
+        data.fields.forEach((f) => f.modelName && modelExists(data, f.modelName) && edges.push({ from: "mo:" + f.modelName, to: "f:" + f.key, kind: "model-field" }));
+        data.metrics.forEach((m) => (m.termIds || []).forEach((tid) => termExists(data, tid) && edges.push({ from: "t:" + tid, to: "m:" + m.id, kind: "term-metric" })));
+        return edges;
+      }
+
+      /* 画布不代表默认为已挂载：mode = mounted / unmounted / all；legendTypes 为空集表示不限类型 */
+      function filterGraphData(data, mode, legendTypes) {
+        const mounted = data.mountedIds instanceof Set ? data.mountedIds : new Set();
+        let terms = data.terms || [];
+        if (mode === "mounted") terms = terms.filter((t) => mounted.has(t.id));
+        if (mode === "unmounted") terms = terms.filter((t) => !mounted.has(t.id));
+        const termSet = new Set(terms.map((t) => t.id));
+        let fields = (data.fields || []).filter((f) => f.termIds.some((id) => termSet.has(id)));
+        let metrics = (data.metrics || []).filter((m) => (m.termIds || []).some((id) => termSet.has(id)));
+        if (mode === "unmounted") {
+          /* 无挂载术语没有任何资产，资产侧节点全部清空 */
+          fields = [];
+          metrics = [];
+        }
+        if (legendTypes && legendTypes.size) {
+          if (!legendTypes.has("field")) fields = [];
+          if (!legendTypes.has("metric")) metrics = [];
+        }
+        const modelSet = new Map();
+        terms.forEach((t) => (t.modelNames || []).forEach((n) => n && modelSet.set(n, { name: n, via: "term" })));
+        fields.forEach((f) => f.modelName && !modelSet.has(f.modelName) && modelSet.set(f.modelName, { name: f.modelName, via: "field" }));
+        let models = [...modelSet.values()];
+        if (legendTypes && legendTypes.size && !legendTypes.has("model")) models = [];
+        let keptTerms = terms;
+        if (legendTypes && legendTypes.size && !legendTypes.has("term")) keptTerms = [];
+        return { glossary: data.glossary, terms: keptTerms, fields, metrics, models, mountedIds: mounted };
+      }
+
+      /* ===== 需求：流式布局 —— 从左到右依次摆放，到画布右侧折行；
+             全部模式下「已挂载链路」在上、「无挂载术语」在下 ===== */
+      const FLOW_STEP = { model: 158, field: 136, term: 150, metric: 152 };
+      const FLOW_ROW_H = 86, FLOW_TOP = 58, BAND_GAP = 52;
+
+      function flowItemMatrix(data, opts = {}) {
+        const { termsOnly = false, mountedIds, keepMounted = true, allTerms = false } = opts;
+        const items = [];
+        if (!termsOnly) {
+          data.models.forEach((m) => items.push({ type: "model", make: () => ({ id: "mo:" + m.name, type: "model", label: m.name, sub: m.via === "field" ? "字段所属模型" : "术语生效模型" }) }));
+          data.fields.forEach((f) => items.push({ type: "field", make: () => ({ id: "f:" + f.key, type: "field", label: f.field, sub: f.modelName }) }));
+        }
+        (data.terms || [])
+          .filter((t) => (allTerms ? true : Boolean(mountedIds && mountedIds.has(t.id)) === keepMounted))
+          .forEach((t) => items.push({ type: "term", make: () => ({ id: "t:" + t.id, type: "term", label: t.name, sub: (t.domains && t.domains[0]) || t.domain || "" }) }));
+        if (!termsOnly) {
+          data.metrics.forEach((m) => items.push({ type: "metric", make: () => ({ id: "m:" + m.id, type: "metric", label: m.name, sub: m.code || "指标" }) }));
+        }
+        return items;
+      }
+
+      function buildFlowNodesEdges(data, layout = {}) {
+        const nodes = [], pos = new Map();
+        const width = layout.width || 900;
+        const padRight = layout.padRight || SIDE_PAD;
+        const rowH = layout.rowH || FLOW_ROW_H;
+        const mountedIds = layout.mountedIds instanceof Set ? layout.mountedIds : new Set();
+        let cursorY = layout.top || FLOW_TOP;
+        const bands = [];
+        const place = (items) => {
+          if (!items.length) return;
+          let x = SIDE_PAD;
+          items.forEach((item) => {
+            const step = FLOW_STEP[item.type] || 140;
+            /* 到画布最右侧即折行 */
+            if (x + step > width - padRight) {
+              x = SIDE_PAD;
+              cursorY += rowH;
+            }
+            const node = item.make();
+            pos.set(node.id, { x, y: cursorY });
+            nodes.push(node);
+            x += step;
+          });
+        };
+        const addBand = (title, sub, items) => {
+          if (!items.length) return;
+          const top = cursorY;
+          place(items);
+          bands.push({ title, sub: Boolean(sub), top });
+          cursorY += rowH + BAND_GAP;
+        };
+        if (layout.bands) {
+          addBand("已挂载链路（术语 + 关联资产）", false, flowItemMatrix(data, { mountedIds, keepMounted: true }));
+          addBand("无挂载术语（未挂载任何资产）", true, flowItemMatrix(data, { mountedIds, keepMounted: false, termsOnly: true }));
+        } else {
+          /* 单分区（无挂载模式）：数据已按模式过滤，直接全量流式摆放 */
+          addBand("", false, flowItemMatrix(data, { mountedIds, allTerms: true }));
+        }
+        return { nodes, edges: buildEdges(data), pos, bands, heightNeeded: cursorY + 40 };
+      }
+
+      function applyView(wrap) {
+        const st = stateOf(wrap);
+        const vp = wrap.querySelector(".gg-viewport");
+        if (vp) vp.setAttribute("transform", `translate(${st.tx},${st.ty}) scale(${st.zoom})`);
+      }
+
+      /* 链路高亮：以选中节点为中心，沿上下游把整条链路点亮（模型 → 字段 → 术语 → 指标），其余淡出 */
+      function setHighlight(root, id) {
+        const edges = [...root.querySelectorAll(".gg-edge")];
+        const nodes = [...root.querySelectorAll(".gg-node")];
+        if (!id) {
+          edges.concat(nodes).forEach((el) => el.classList.remove("dim", "hl", "is-focus"));
+          return;
+        }
+        const up = new Map();
+        const down = new Map();
+        edges.forEach((e) => {
+          const from = e.dataset.from;
+          const to = e.dataset.to;
+          if (!up.has(to)) up.set(to, []);
+          up.get(to).push(from);
+          if (!down.has(from)) down.set(from, []);
+          down.get(from).push(to);
+        });
+        const walk = (start, map, seen) => {
+          const stack = [start];
+          while (stack.length) {
+            const cur = stack.pop();
+            (map.get(cur) || []).forEach((next) => {
+              if (!seen.has(next)) {
+                seen.add(next);
+                stack.push(next);
+              }
+            });
+          }
+        };
+        const chain = new Set([id]);
+        walk(id, up, chain);
+        walk(id, down, chain);
+        const chainEdges = new Set(
+          edges
+            .filter((e) => chain.has(e.dataset.from) && chain.has(e.dataset.to))
+            .map((e) => `${e.dataset.from}->${e.dataset.to}`)
+        );
+        edges.forEach((e) => {
+          const hit = chainEdges.has(`${e.dataset.from}->${e.dataset.to}`);
+          e.classList.toggle("dim", !hit);
+          e.classList.toggle("hl", hit);
+        });
+        nodes.forEach((n) => {
+          const hit = chain.has(n.dataset.id);
+          n.classList.toggle("dim", !hit);
+          n.classList.toggle("hl", hit);
+          /* 被点中的那个节点单独加聚焦环，和「链路高亮」区分开 */
+          n.classList.toggle("is-focus", n.dataset.id === id);
+        });
+      }
+
+      /* 画布交互（缩放 / 平移 / 点空白取消）按 wrap 绑定一次，两套图谱各自独立 */
+      function bindCanvas(svg, wrap, zoomAttr) {
+        if (!svg || !wrap || wrap.dataset.ggBound === zoomAttr) return;
+        wrap.dataset.ggBound = zoomAttr;
+        const st = stateOf(wrap);
+        const zoomAt = (factor, cx, cy) => {
+          const next = Math.min(2.2, Math.max(0.5, st.zoom * factor));
+          const rect = wrap.getBoundingClientRect();
+          const px = cx ?? rect.width / 2;
+          const py = cy ?? rect.height / 2;
+          st.tx = px - (px - st.tx) * (next / st.zoom);
+          st.ty = py - (py - st.ty) * (next / st.zoom);
+          st.zoom = next;
+          applyView(wrap);
+        };
+        svg.addEventListener("click", () => { st.locked = ""; setHighlight(svg, ""); });
+        svg.addEventListener(
+          "wheel",
+          (ev) => {
+            if (!ev.ctrlKey && !ev.metaKey) return;
+            ev.preventDefault();
+            zoomAt(ev.deltaY < 0 ? 1.15 : 0.87, ev.offsetX, ev.offsetY);
+          },
+          { passive: false }
+        );
+        /* data-td-zoom → dataset.tdZoom */
+        const datasetKey = zoomAttr.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+        document.addEventListener("click", (e) => {
+          const btn = e.target.closest(`[data-${zoomAttr}]`);
+          if (!btn) return;
+          const act = btn.dataset[datasetKey];
+          if (act === "reset") {
+            st.zoom = 1;
+            st.tx = 0;
+            st.ty = 0;
+            applyView(wrap);
+          } else {
+            zoomAt(act === "in" ? 1.2 : 0.83);
+          }
+        });
+        let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
+        wrap.addEventListener("mousedown", (e) => { dragging = true; sx = e.clientX; sy = e.clientY; ox = st.tx; oy = st.ty; });
+        window.addEventListener("mousemove", (e) => { if (!dragging) return; st.tx = ox + (e.clientX - sx); st.ty = oy + (e.clientY - sy); applyView(wrap); });
+        window.addEventListener("mouseup", () => { dragging = false; });
+      }
+
+      /* 通用绘制：术语库图谱与「单个术语」图谱共用，保证样式一致
+         data: { terms, fields, metrics, models } */
+      function renderGraphInto(svg, wrap, data, opts = {}) {
+        if (!svg || !wrap || !data) return;
+        const st = stateOf(wrap);
+        const stats = opts.statsEl || (opts.statsId ? document.getElementById(opts.statsId) : null);
+        const empty = opts.emptyEl || (opts.emptyId ? document.getElementById(opts.emptyId) : null);
+        const total =
+          (data.terms?.length || 0) + (data.fields?.length || 0) + (data.metrics?.length || 0) + (data.models?.length || 0);
+        if (stats) stats.textContent = `术语 ${data.terms.length} · 字段 ${data.fields.length} · 指标 ${data.metrics.length} · 模型 ${data.models.length}`;
+        if (empty) {
+          empty.hidden = total > 0;
+          if (!total && opts.emptyText) {
+            const textEl = empty.querySelector("[data-graph-empty-text]") || empty.querySelector("div");
+            if (textEl) textEl.textContent = opts.emptyText;
+          }
+        }
+        bindCanvas(svg, wrap, opts.zoomAttr || "gg-zoom");
+        if (!total) { svg.innerHTML = ""; return; }
+        /* 画布尺寸跟容器一致，避免出现横向滚动条与大片留白 */
+        const width = Math.max(360, Math.floor(wrap.clientWidth || 900));
+        const baseHeight = Math.max(300, Math.floor((wrap.clientHeight || 460) - 30));
+        /* 图例浮在画布右上方，右侧留出安全距离，避免节点被遮住 */
+        const padRight = opts.legend ? 150 : SIDE_PAD;
+        const flowMode = opts.layout === "bands" || opts.layout === "flow";
+        let built;
+        let height = baseHeight;
+        if (flowMode) {
+          built = buildFlowNodesEdges(data, {
+            width,
+            padRight,
+            bands: opts.layout === "bands",
+            mountedIds: opts.mountedIds,
+          });
+          /* 节点多了就加高画布，容器可滚动，不会被裁掉 */
+          height = Math.max(baseHeight, built.heightNeeded);
+        } else {
+          const colX = {
+            model: Math.round(width * 0.12),
+            field: Math.round(width * 0.38),
+            term: Math.round(width * 0.63),
+            metric: Math.round(width * 0.88),
+          };
+          built = buildNodesEdges(data, { colX, height });
+        }
+        const { nodes, edges, pos } = built;
+        svg.setAttribute("width", width);
+        svg.setAttribute("height", height);
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        let html = `<g class="gg-viewport">`;
+        /* 分区标题：全部模式下区分「已挂载」与「无挂载」两块画布区域 */
+        (built.bands || []).forEach((band) => {
+          if (!band.title) return;
+          html += `<text class="gg-band-title${band.sub ? " gg-band-sub" : ""}" x="18" y="${Math.max(16, band.top - 26)}">${esc(band.title)}</text>`;
+          if (band.top > FLOW_TOP) {
+            html += `<path d="M 18 ${band.top - 18} H ${width - SIDE_PAD}" stroke="#e4e7ec" stroke-width="1" stroke-dasharray="4 4" fill="none"></path>`;
+          }
+        });
+        edges.forEach((e) => {
+          const a = pos.get(e.from), b = pos.get(e.to);
+          if (!a || !b) return;
+          const mid = (a.x + b.x) / 2;
+          html += `<path class="gg-edge" data-from="${esc(e.from)}" data-to="${esc(e.to)}" data-kind="${e.kind}" d="M ${a.x} ${a.y} C ${mid} ${a.y}, ${mid} ${b.y}, ${b.x} ${b.y}" fill="none" stroke="${EDGE_STYLE[e.kind]}" stroke-width="1.4" stroke-opacity="0.35"></path>`;
+        });
+        nodes.forEach((n) => {
+          const p = pos.get(n.id); if (!p) return;
+          const st = NODE_STYLE[n.type];
+          const title = n.type === "field" ? `${n.sub || ""}${n.sub ? " · " : ""}${n.label}` : n.label;
+          html += `<g class="gg-node" data-id="${esc(n.id)}" data-type="${n.type}" transform="translate(${p.x},${p.y})">
+            <circle r="${st.r + 4}" fill="${st.fill}" fill-opacity="0.12" stroke="none"></circle>
+            <circle r="${st.r}" fill="${st.fill}" stroke="${st.stroke}" stroke-width="1.6"></circle>
+            <text y="${st.r + 14}" text-anchor="middle">${esc(clip(n.label, n.type === "term" ? 12 : 10))}</text>
+            ${n.sub ? `<text class="gg-sub" y="${st.r + 27}" text-anchor="middle">${esc(clip(n.sub, 9))}</text>` : ""}
+            <title>${esc(title)}（${{ term: "术语", field: "字段", metric: "指标", model: "模型" }[n.type]}）</title>
+          </g>`;
+        });
+        html += `</g>`;
+        svg.innerHTML = html;
+        st.zoom = 1;
+        st.tx = 0;
+        st.ty = 0;
+        st.locked = "";
+        applyView(wrap);
+        svg.querySelectorAll(".gg-node").forEach((el) => {
+          el.addEventListener("mouseenter", () => { if (!st.locked) setHighlight(svg, el.dataset.id); });
+          el.addEventListener("mouseleave", () => { if (!st.locked) setHighlight(svg, ""); });
+          el.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            st.locked = st.locked === el.dataset.id ? "" : el.dataset.id;
+            setHighlight(svg, st.locked);
+          });
+        });
+        /* 单个术语图谱：进入即以该术语为中心点亮完整链路 */
+        if (opts.autoSelect) {
+          const rootNode = nodes.find((n) => n.type === "term") || nodes[0];
+          if (rootNode) {
+            st.locked = rootNode.id;
+            setHighlight(svg, st.locked);
+          }
+        }
+      }
+
+      function clip(text, max) { const s = String(text || ""); return s.length > max ? s.slice(0, max - 1) + "…" : s; }
+
+      /* 对外暴露：术语库图谱 + 术语详情「关系图谱」共用同一画布 */
+      window.SemanticGraphCanvas = { render: renderGraphInto, buildNodesEdges };
+
+      /* ===== 术语库图谱专属：挂载筛选（展示全部 / 已挂载 / 无挂载）+ 右上可点击图例 ===== */
+      const LEGEND_META = [
+        { type: "term", label: "术语" },
+        { type: "field", label: "字段" },
+        { type: "metric", label: "指标" },
+        { type: "model", label: "模型" },
+      ];
+      const MODE_EMPTY_TEXT = {
+        all: "当前术语库暂无术语，先在「术语」页签创建或导入。",
+        mounted: "当前术语库还没有挂资产的术语，先在「术语」页签挂载字段 / 指标 / 模型。",
+        unmounted: "当前术语库已全部挂载资产，暂无「无挂载」术语。",
+      };
+      let graphMountMode = "mounted";
+      const graphLegendTypes = new Set();
+
+      function syncGraphModeUi() {
+        document.querySelectorAll("#glossaryGraphModes .gg-mode").forEach((btn) => {
+          btn.classList.toggle("is-active", btn.dataset.ggMode === graphMountMode);
+          btn.setAttribute("aria-pressed", btn.dataset.ggMode === graphMountMode ? "true" : "false");
+        });
+      }
+
+      function renderGraphLegend(data) {
+        const box = document.getElementById("glossaryGraphLegend");
+        if (!box) return;
+        const counts = {
+          term: (data.terms || []).length,
+          field: (data.fields || []).length,
+          metric: (data.metrics || []).length,
+          model: (data.models || []).length,
+        };
+        box.innerHTML =
+          `<div class="lg-tip">点击图例只看该类型</div>` +
+          LEGEND_META.map((item) => {
+            const on = graphLegendTypes.size === 0 || graphLegendTypes.has(item.type);
+            return `<button class="lg-item ${on ? "is-on" : "is-off"}" type="button" data-gg-legend="${item.type}" title="只看${item.label}" aria-pressed="${on ? "true" : "false"}"><i class="lg-dot lg-${item.type}"></i><span>${item.label}</span><span class="lg-n">${counts[item.type]}</span></button>`;
+          }).join("");
+        if (box.dataset.lgBound === "1") return;
+        box.dataset.lgBound = "1";
+        box.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-gg-legend]");
+          if (!btn) return;
+          const type = btn.dataset.ggLegend;
+          if (graphLegendTypes.has(type)) graphLegendTypes.delete(type);
+          else graphLegendTypes.add(type);
+          /* 四种类型都点亮等同于不限，收敛为空集 */
+          if (graphLegendTypes.size === LEGEND_META.length) graphLegendTypes.clear();
+          window.renderGlossaryGraph();
+        });
+      }
+
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("#glossaryGraphModes [data-gg-mode]");
+        if (!btn) return;
+        const next = btn.dataset.ggMode;
+        if (!next || next === graphMountMode) return;
+        graphMountMode = next;
+        window.renderGlossaryGraph();
+      });
+
+      window.renderGlossaryGraph = function renderGlossaryGraph() {
+        const raw = collectGraphData();
+        const data = filterGraphData(raw, graphMountMode, graphLegendTypes);
+        renderGraphInto(document.getElementById("glossaryGraphSvg"), document.getElementById("glossaryGraphWrap"), data, {
+          statsId: "glossaryGraphStats",
+          emptyId: "glossaryGraphEmpty",
+          zoomAttr: "gg-zoom",
+          emptyText: MODE_EMPTY_TEXT[graphMountMode] || MODE_EMPTY_TEXT.all,
+          layout: graphMountMode === "all" ? "bands" : graphMountMode === "unmounted" ? "flow" : "columns",
+          mountedIds: raw.mountedIds,
+          legend: true,
+        });
+        syncGraphModeUi();
+        renderGraphLegend(filterGraphData(raw, graphMountMode, null));
+      };
+    })();
+    let editingGlossaryId = "";
+    setTimeout(() => {
+      document.getElementById("glossaryEditBtn")?.addEventListener("click", () => openGDrawer("edit"));
+      initGlossary();
+    }, 80);
 
     const TREE_ALL_ID = "tree-all";
 
@@ -8153,6 +10324,17 @@
     const catalogBatchDomainSingleWrapEl = document.getElementById("catalogBatchDomainSingleWrap");
     const catalogBatchDomainMultiWrapEl = document.getElementById("catalogBatchDomainMultiWrap");
     const catalogBatchDomainSelectEl = document.getElementById("catalogBatchDomainSelect");
+    const catalogBatchMountPanelEl = document.getElementById("catalogBatchMountPanel");
+    const catalogBatchMountTypesEl = document.getElementById("catalogBatchMountTypes");
+    const catalogBatchMountAutoEl = document.getElementById("catalogBatchMountAuto");
+    const catalogBatchMountRulesEl = document.getElementById("catalogBatchMountRules");
+    const catalogBatchMountPreviewFieldEl = document.getElementById("catalogBatchMountPreviewField");
+    const catalogBatchMountScopeEl = document.getElementById("catalogBatchMountScope");
+    const catalogBatchMountPreviewEl = document.getElementById("catalogBatchMountPreview");
+    const catalogBatchMountRunEl = document.getElementById("catalogBatchMountRun");
+    const catalogBatchMountConfirmBtnEl = document.getElementById("catalogBatchMountConfirmBtn");
+    const termBatchMountJobEl = document.getElementById("termBatchMountJob");
+    const termBatchMountJobTextEl = document.getElementById("termBatchMountJobText");
     const catalogBatchConfirmBtnEl = document.getElementById("catalogBatchConfirmBtn");
     const catalogBatchOnlineBtnEl = document.getElementById("catalogBatchOnlineBtn");
     const catalogBatchOfflineBtnEl = document.getElementById("catalogBatchOfflineBtn");
@@ -8239,7 +10421,6 @@
     let pendingCreateType = "基础模型";
     const basicModelProjectSelectEl = document.getElementById("basicModelProjectSelect");
     const basicModelNameInputEl = document.getElementById("basicModelNameInput");
-    const basicModelNameHintEl = document.getElementById("basicModelNameHint");
     const basicModelDescInputEl = document.getElementById("basicModelDescInput");
     const closeBasicModelCreateModalEl = document.getElementById("closeBasicModelCreateModal");
     const cancelBasicModelCreateEl = document.getElementById("cancelBasicModelCreate");
@@ -8474,7 +10655,8 @@
         return;
       }
       const query = (docSearchInputEl?.value || "").trim().toLowerCase();
-      const domainFilter = getCatalogDomainFilter("document");
+      /* 数据域支持多选：命中任一即保留 */
+      const domainFilterValues = getCatalogDomainFilterList("document");
       const visibleRows = [];
       Array.from(documentListBodyEl.querySelectorAll("tr")).forEach((row) => {
         const name = (row.dataset.listName || "").toLowerCase();
@@ -8482,7 +10664,8 @@
         const domain = row.dataset.domain || "";
         const matchSearch = !query || name.includes(query) || description.includes(query);
         const domainParts = String(domain).split(/[、,，]/).map((item) => item.trim()).filter(Boolean);
-        const matchDomain = !domainFilter || domain === domainFilter || domainParts.includes(domainFilter);
+        const matchDomain = !domainFilterValues.length
+          || domainFilterValues.some((value) => domain === value || domainParts.includes(value));
         const matchScope = rowMatchesDataScope(row);
         row.hidden = !(matchSearch && matchDomain && matchScope);
         if (!row.hidden) visibleRows.push(row);
@@ -8670,6 +10853,10 @@
         }
 
         const rowValue = getTableCellValue(row, key);
+        /* 数据域支持多选：命中任一即保留 */
+        if (key === "domain" && Array.isArray(value)) {
+          return value.length === 0 || value.includes(rowValue);
+        }
         if (key === "type" || key === "domain") {
           return rowValue === value;
         }
@@ -8745,6 +10932,11 @@
         el.value = "";
       });
       catalogDomainFilters["data-model"] = "";
+      catalogDomainFilters.term = "";
+      catalogDomainFilters.document = "";
+      catalogDomainFilters.metric = "";
+      window.BizTermUI?.setDomainFilter?.("");
+      window.BizMetricUI?.setDomainFilter?.("");
       domainFilterSearchQuery = "";
       if (domainFilterSearchEl) {
         domainFilterSearchEl.value = "";
@@ -8762,7 +10954,15 @@
     }
 
     function getCatalogDomainFilter(catalog) {
-      return catalogDomainFilters[catalog] || "";
+      const raw = catalogDomainFilters[catalog];
+      /* 多选存数组，对外仍以「、」连接的字符串表示（兼容旧的单值逻辑） */
+      return Array.isArray(raw) ? raw.filter(Boolean).join("、") : raw || "";
+    }
+
+    function getCatalogDomainFilterList(catalog) {
+      const raw = catalogDomainFilters[catalog];
+      if (Array.isArray(raw)) return raw.filter(Boolean);
+      return raw ? [raw] : [];
     }
 
     function setCatalogDomainFilter(catalog, value) {
@@ -8800,11 +11000,12 @@
     function syncDomainFilterTriggerState() {
       document.querySelectorAll("[data-domain-filter-catalog]").forEach((btn) => {
         const catalog = btn.dataset.domainFilterCatalog;
-        const value = getCatalogDomainFilter(catalog);
+        const list = getCatalogDomainFilterList(catalog);
         const isOpen = Boolean(domainFilterPanelEl && !domainFilterPanelEl.hidden && activeDomainFilterCatalog === catalog);
-        btn.classList.toggle("is-active", Boolean(value));
+        btn.classList.toggle("is-active", list.length > 0);
         btn.classList.toggle("is-open", isOpen);
         btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        btn.title = list.length ? `已选数据域：${list.join("、")}（满足任一即展示）` : "筛选数据域（可多选）";
       });
     }
 
@@ -8816,7 +11017,7 @@
       const labels = collectUniqueDomainLabels().filter(
         (label) => !query || label.toLowerCase().includes(query)
       );
-      const currentValue = getCatalogDomainFilter(activeDomainFilterCatalog);
+      const selectedSet = new Set(getCatalogDomainFilterList(activeDomainFilterCatalog));
       const items = [{ value: "", label: "全部" }, ...labels.map((label) => ({ value: label, label }))];
       if (!items.length) {
         domainFilterListEl.innerHTML = '<li class="domain-filter-empty">无匹配数据域</li>';
@@ -8824,10 +11025,15 @@
       }
       domainFilterListEl.innerHTML = items
         .map((item) => {
-          const selected = item.value === currentValue ? " is-selected" : "";
-          return `<li class="domain-filter-item${selected}" data-domain-value="${escapeHtml(item.value)}" role="option">${escapeHtml(item.label)}</li>`;
+          /* 「全部」= 未勾选任何数据域 */
+          const selected = item.value ? selectedSet.has(item.value) : selectedSet.size === 0;
+          return `<li class="domain-filter-item${selected ? " is-selected" : ""}" data-domain-value="${escapeHtml(item.value)}" role="option" aria-selected="${selected ? "true" : "false"}"><span class="df-check" aria-hidden="true"></span><span>${escapeHtml(item.label)}</span></li>`;
         })
         .join("");
+      const summaryEl = document.getElementById("domainFilterSummary");
+      if (summaryEl) {
+        summaryEl.textContent = selectedSet.size ? `已选 ${selectedSet.size} 个数据域` : "未筛选";
+      }
     }
 
     function openDomainFilterPanel(triggerEl, catalog) {
@@ -10145,10 +12351,21 @@
       modelViewEl.classList.remove("model-view--basic");
       const metricEditViewEl = document.getElementById("metricEditView");
       if (metricEditViewEl) metricEditViewEl.hidden = true;
+      const termDetailViewEl = document.getElementById("termDetailView");
+      if (termDetailViewEl) termDetailViewEl.hidden = true;
       closeBasicDataPreview();
       listViewEl.hidden = false;
       initFeatureHelpTips();
     }
+
+    /* 需求：切换一级/二级页签时必须彻底回到列表视图
+       —— 否则从模型「字段设置」页直接点「术语中心」，右侧仍停留在 modelView / metricEditView */
+    document.querySelectorAll(".list-primary-tab, .list-catalog-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        showListView();
+        if (tab.dataset.listPrimary === "term") window.setTimeout(initGlossary, 0);
+      });
+    });
 
     function getFieldRowEnglishName(row) {
       const nameCell = row.cells[2];
@@ -10287,7 +12504,7 @@
 
     function generateDescription(name, type) {
       if (type === "域模型") {
-        return `用于沉淀${name}相关的核心业务概念、字段关系和问数口径。`;
+        return `用于沉淀${name}相关的核心业务概念、字段关系和智能消费端应用口径。`;
       }
 
       if (type === "基础模型") {
@@ -10400,7 +12617,7 @@
         applyRowOnlineState(row, nextOnline);
         syncRowOnlineToBridge(row, nextOnline);
         const name = getRowPlainName(row) || "该项";
-        setTip(nextOnline ? `「${name}」已上线，可对问数生效` : `「${name}」已下线，暂不对问数生效`);
+        setTip(nextOnline ? `「${name}」已上线，可对智能消费端应用生效` : `「${name}」已下线，暂不对智能消费端应用生效`);
       });
     }
 
@@ -10906,34 +13123,6 @@
       }
     }
 
-    function findDuplicateModelRow(name, domain) {
-      const target = String(name || "").trim();
-      if (!target) return null;
-      return (
-        Array.from(businessListBodyEl.querySelectorAll("tr")).find((row) => {
-          const rowDomain = row.dataset.domain || "";
-          const rowName = (row.dataset.listName || getRowPlainName(row) || "").trim();
-          return rowDomain === domain && rowName === target;
-        }) || null
-      );
-    }
-
-    function refreshBasicModelNameHint() {
-      if (!basicModelNameHintEl) return;
-      const name = basicModelNameInputEl.value.trim();
-      const domain = basicModelDomainSelectEl.value;
-      const dupRow = findDuplicateModelRow(name, domain);
-      if (dupRow) {
-        const dupType = dupRow.dataset.listType || "模型";
-        const dupName = (dupRow.dataset.listName || "").trim() || name;
-        basicModelNameHintEl.textContent = `该数据域下已存在同名${dupType}「${dupName}」，重名仅作提醒，可继续创建，无需额外处理`;
-        basicModelNameHintEl.hidden = false;
-      } else {
-        basicModelNameHintEl.textContent = "";
-        basicModelNameHintEl.hidden = true;
-      }
-    }
-
     function applyRandomBasicModelDefaults() {
       const domain = pickRandomItem(collectUniqueDomainLabels());
       const project = pickRandomItem(PROJECT_OPTIONS);
@@ -10941,10 +13130,6 @@
       fillBasicModelProjectSelect(project || PROJECT_OPTIONS[0]);
       basicModelNameInputEl.value = "";
       basicModelDescInputEl.value = "";
-      if (basicModelNameHintEl) {
-        basicModelNameHintEl.textContent = "";
-        basicModelNameHintEl.hidden = true;
-      }
     }
 
     function openModelCreateDialog(type) {
@@ -11117,6 +13302,265 @@
       if (catalogBatchOverlayEl) catalogBatchOverlayEl.hidden = true;
     }
 
+    /* ===== 批量设置关联：挂载类型多选 → 自动推荐开关 → 匹配结果，可选择是否立刻后台批量关联 ===== */
+    const BATCH_ASSET_LABELS = { model: "模型", dataset: "数据集", metric: "指标", dimension: "维度", field: "字段" };
+    let batchMountContext = { ids: [], types: [], items: [], off: new Set(), dropped: new Set() };
+    let batchMountJob = null;
+    let batchMountHideTimer = 0;
+
+    /* 挂载类型：chip 式多选 */
+    function fillBatchMountTypes() {
+      if (!catalogBatchMountTypesEl) return;
+      const options = window.BizTermUI?.getMountTypeOptions?.() || [];
+      catalogBatchMountTypesEl.innerHTML = options
+        .map(
+          (t) => `
+        <label class="term-batch-type" title="${escapeHtml(t.desc)}">
+          <input type="checkbox" data-bm-type="${escapeHtml(t.value)}" />
+          <b>${escapeHtml(t.label)}</b><span>${escapeHtml(t.desc)}</span>
+        </label>`
+        )
+        .join("");
+    }
+
+    function selectedBatchMountTypes() {
+      return [...(catalogBatchMountTypesEl?.querySelectorAll("input[data-bm-type]") || [])]
+        .filter((box) => box.checked)
+        .map((box) => box.dataset.bmType);
+    }
+
+    /* visible=false：整块收起；visible=true 但带 message：展示空态提示 */
+    function showBatchMountPreview(visible, message) {
+      if (catalogBatchMountPreviewFieldEl) catalogBatchMountPreviewFieldEl.hidden = !visible;
+      if (!catalogBatchMountPreviewEl) return;
+      if (!visible || message) {
+        catalogBatchMountPreviewEl.innerHTML = `<div class="term-batch-none">${escapeHtml(message || "")}</div>`;
+      }
+    }
+
+    function renderBatchMountPreview(ids, types) {
+      if (!catalogBatchMountPreviewEl) return;
+      const data = window.BizTermUI?.previewBatchMount?.(ids, types);
+      const items = data?.items || [];
+      batchMountContext = { ids: [...ids], types: [...types], items, off: new Set(), dropped: new Set() };
+      const counts = data?.counts || {};
+      if (catalogBatchMountScopeEl) {
+        catalogBatchMountScopeEl.textContent = `数据域「${(data?.domains || []).join("、") || "—"}」下共 ${data?.total || 0} 个资源：模型 ${counts.model || 0} / 数据集 ${counts.dataset || 0} / 字段 ${counts.field || 0} / 指标 ${counts.metric || 0} / 维度 ${counts.dimension || 0}`;
+      }
+      if (!items.length) {
+        catalogBatchMountPreviewEl.innerHTML = `<div class="term-batch-none">当前数据域下暂无术语可选</div>`;
+        return;
+      }
+      catalogBatchMountPreviewEl.innerHTML = items
+        .map((item) => {
+          const chips = item.assets.length
+            ? item.assets
+                .map(
+                  (asset) => `
+              <span class="term-batch-chip" data-bm-asset="${escapeHtml(asset.key)}" title="${escapeHtml(asset.path || "")}">
+                <i>${escapeHtml(BATCH_ASSET_LABELS[asset.type] || asset.type)}</i>${escapeHtml(asset.name)}
+                <button type="button" data-bm-drop="${escapeHtml(asset.key)}" aria-label="移除 ${escapeHtml(asset.name)}">×</button>
+              </span>`
+                )
+                .join("")
+            : `<span class="term-batch-none">该数据域下暂无可推荐资产</span>`;
+          return `
+          <div class="term-batch-row${item.assets.length ? "" : " is-off"}" data-bm-term="${escapeHtml(item.id)}">
+            <label><input type="checkbox" data-bm-on="1" ${item.assets.length ? "checked" : "disabled"} />${escapeHtml(item.name)}</label>
+            <div class="term-batch-assets">${chips}</div>
+          </div>`;
+        })
+        .join("");
+    }
+
+    function bindBatchMountPreview() {
+      if (!catalogBatchMountPreviewEl || catalogBatchMountPreviewEl.dataset.bound) return;
+      catalogBatchMountPreviewEl.dataset.bound = "1";
+      catalogBatchMountPreviewEl.addEventListener("change", (event) => {
+        const box = event.target.closest("[data-bm-on]");
+        if (!box) return;
+        const row = box.closest(".term-batch-row");
+        const id = row?.dataset.bmTerm || "";
+        if (!id) return;
+        row.classList.toggle("is-off", !box.checked);
+        if (box.checked) batchMountContext.off.delete(id);
+        else batchMountContext.off.add(id);
+      });
+      catalogBatchMountPreviewEl.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-bm-drop]");
+        if (!btn) return;
+        const row = btn.closest(".term-batch-row");
+        const chip = btn.closest("[data-bm-asset]");
+        const id = row?.dataset.bmTerm || "";
+        chip?.remove();
+        if (id) batchMountContext.dropped.add(`${id}|${btn.dataset.bmDrop || ""}`);
+        if (row && !row.querySelector("[data-bm-asset]")) {
+          row.classList.add("is-off");
+          const box = row.querySelector("[data-bm-on]");
+          if (box) {
+            box.checked = false;
+            box.disabled = true;
+          }
+          if (!row.querySelector(".term-batch-none")) {
+            const host = row.querySelector(".term-batch-assets");
+            if (host) host.innerHTML = `<span class="term-batch-none">已移除全部推荐</span>`;
+          }
+          if (id) batchMountContext.off.add(id);
+        }
+      });
+    }
+
+    /* 汇总用户最终认可的推荐：整条未勾选的术语跳过、被 × 掉的单个资源剔除 */
+    function collectBatchMountPlan() {
+      const entries = [];
+      let assetTotal = 0;
+      batchMountContext.items.forEach((item) => {
+        if (batchMountContext.off.has(item.id)) return;
+        const assets = item.assets.filter((asset) => !batchMountContext.dropped.has(`${item.id}|${asset.key}`));
+        if (!assets.length) return;
+        entries.push({ id: item.id, name: item.name, assets });
+        assetTotal += assets.length;
+      });
+      return { entries, assetTotal };
+    }
+
+    /* 自动推荐开关：打开后按所选挂载类型重算推荐；关闭则不展示推荐结果 */
+    function syncBatchMountAuto() {
+      const ids = batchMountContext.ids.length
+        ? batchMountContext.ids
+        : getCatalogBatchSelection(catalogBatchContext.catalog || currentListCatalog()).ids;
+      const types = selectedBatchMountTypes();
+      const on = Boolean(catalogBatchMountAutoEl?.checked);
+      if (!on) {
+        showBatchMountPreview(false, "未开启自动推荐，打开上方开关后按所选挂载类型匹配资源");
+        return;
+      }
+      if (!types.length) {
+        showBatchMountPreview(true, "请至少选择一个挂载类型，再开启自动推荐");
+        if (catalogBatchMountScopeEl) catalogBatchMountScopeEl.textContent = "尚未选择挂载类型";
+        return;
+      }
+      showBatchMountPreview(true, "");
+      renderBatchMountPreview(ids, types);
+    }
+
+    /* 任务执行期间：术语列表区 + 左侧术语库侧栏整体锁定 */
+    function lockBatchMountTargets(locked) {
+      const targets = [listViewEl, document.getElementById("glossarySideContent")];
+      targets.forEach((el) => {
+        if (!el) return;
+        if (!locked) {
+          el.classList.remove("is-batch-locked");
+          el.querySelectorAll(":scope > .batch-lock-mask").forEach((mask) => mask.remove());
+          return;
+        }
+        if (!el.querySelector(":scope > .batch-lock-mask")) {
+          const mask = document.createElement("div");
+          mask.className = "batch-lock-mask";
+          mask.innerHTML =
+            el === listViewEl
+              ? `<div class="batch-lock-card"><span class="term-link-job-spin" aria-hidden="true"></span><strong>批量关联资产任务执行中</strong><span id="batchLockProgress">正在处理 0 条术语</span></div>`
+              : `<div class="batch-lock-card is-side"><span class="batch-lock-lock">🔒</span><span>批量关联中，术语库暂不可操作</span></div>`;
+          el.appendChild(mask);
+        }
+        el.classList.add("is-batch-locked");
+      });
+    }
+
+    function showBatchMountJob(text, loading) {
+      if (!termBatchMountJobEl) return;
+      window.clearTimeout(batchMountHideTimer);
+      termBatchMountJobEl.hidden = false;
+      termBatchMountJobEl.classList.toggle("is-done", !loading);
+      if (termBatchMountJobTextEl) termBatchMountJobTextEl.textContent = text;
+    }
+
+    function updateBatchMountProgress() {
+      const el = document.getElementById("batchLockProgress");
+      if (el && batchMountJob) el.textContent = `正在处理 ${batchMountJob.index}/${batchMountJob.entries.length} 条术语`;
+    }
+
+    function startBatchMountJob(entries) {
+      if (batchMountJob) {
+        setTip("已有批量关联资产任务在执行，请等待其完成");
+        return;
+      }
+      batchMountJob = { entries, index: 0, mounted: 0 };
+      lockBatchMountTargets(true);
+      showBatchMountJob(`批量关联资产任务执行中：0/${entries.length} 条术语`, true);
+      updateBatchMountProgress();
+      window.setTimeout(stepBatchMountJob, 320);
+    }
+
+    function stepBatchMountJob() {
+      const job = batchMountJob;
+      if (!job) return;
+      const entry = job.entries[job.index];
+      if (entry) {
+        job.index += 1;
+        job.mounted += window.BizTermUI?.batchApplyMounts?.({ [entry.id]: entry.assets }) || 0;
+      }
+      showBatchMountJob(`批量关联资产任务执行中：${job.index}/${job.entries.length} 条术语`, true);
+      updateBatchMountProgress();
+      if (job.index < job.entries.length) {
+        window.setTimeout(stepBatchMountJob, 320);
+        return;
+      }
+      finishBatchMountJob();
+    }
+
+    function finishBatchMountJob() {
+      const { entries, mounted } = batchMountJob || { entries: [], mounted: 0 };
+      batchMountJob = null;
+      lockBatchMountTargets(false);
+      const message = mounted
+        ? `批量关联资产任务完成：已为 ${entries.length} 条术语新增 ${mounted} 个资产挂载`
+        : `批量关联资产任务完成：所选资产此前均已挂载，无新增`;
+      showBatchMountJob(message, false);
+      setTip(message);
+      batchMountHideTimer = window.setTimeout(() => {
+        if (termBatchMountJobEl) termBatchMountJobEl.hidden = true;
+      }, 3200);
+    }
+
+    function confirmCatalogBatchMount() {
+      const { catalog } = catalogBatchContext;
+      const selected = getCatalogBatchSelection(catalog);
+      if (!selected.count) {
+        setTip("请先勾选要操作的数据");
+        return;
+      }
+      const types = selectedBatchMountTypes();
+      if (!types.length) {
+        setTip("请至少选择一个挂载类型");
+        return;
+      }
+      const autoOn = Boolean(catalogBatchMountAutoEl?.checked);
+      if (!autoOn) {
+        setTip("请先开启「自动推荐」，由系统按所选挂载类型匹配资源后再关联");
+        return;
+      }
+      const plan = collectBatchMountPlan();
+      const runNow = Boolean(catalogBatchMountRunEl?.checked);
+      const labels = (window.BizTermUI?.getMountTypeOptions?.() || [])
+        .filter((t) => types.includes(t.value))
+        .map((t) => t.label);
+      const typeText = labels.join("、");
+      closeCatalogBatchOverlay();
+      if (!plan.entries.length) {
+        setTip(`挂载类型「${typeText}」下没有匹配到可关联的资源`);
+        return;
+      }
+      if (runNow) {
+        setTip(`已按挂载类型「${typeText}」匹配 ${plan.assetTotal} 个资源，后台批量关联任务已启动`);
+        startBatchMountJob(plan.entries);
+        return;
+      }
+      setTip(
+        `已按挂载类型「${typeText}」匹配 ${plan.assetTotal} 个资源（未启动关联，可再次进入批量设置勾选「立刻启动」）`
+      );
+    }
+
     function openCatalogBatchOverlay(action) {
       const catalog = currentListCatalog();
       const selected = getCatalogBatchSelection(catalog);
@@ -11130,12 +13574,35 @@
       if (catalogBatchHintEl) catalogBatchHintEl.textContent = `已选择 ${selected.count} 条${label}`;
       const isMove = action === "move-domain";
       const isOnline = action === "online";
+      const isBatchMount = action === "set-mount";
       if (catalogBatchMovePanelEl) catalogBatchMovePanelEl.hidden = !isMove;
       if (catalogBatchOnlinePanelEl) catalogBatchOnlinePanelEl.hidden = !isOnline;
+      if (catalogBatchMountPanelEl) catalogBatchMountPanelEl.hidden = !isBatchMount;
       if (catalogBatchConfirmBtnEl) catalogBatchConfirmBtnEl.hidden = !isMove;
+      if (catalogBatchMountConfirmBtnEl) catalogBatchMountConfirmBtnEl.hidden = !isBatchMount;
       if (catalogBatchOnlineBtnEl) catalogBatchOnlineBtnEl.hidden = !isOnline;
       if (catalogBatchOfflineBtnEl) catalogBatchOfflineBtnEl.hidden = !isOnline;
-      if (catalogBatchTitleEl) catalogBatchTitleEl.textContent = isMove ? "批量移动域" : "批量上下线";
+      if (catalogBatchTitleEl) {
+        catalogBatchTitleEl.textContent = isMove ? "批量移动域" : isOnline ? "批量上下线" : "批量设置关联";
+      }
+      /* 只有「批量设置关联」用加宽弹窗 */
+      if (catalogBatchOverlayEl) catalogBatchOverlayEl.classList.toggle("is-wide", isBatchMount);
+      if (isBatchMount) {
+        if (catalogBatchHintEl) catalogBatchHintEl.textContent = `已选择 ${selected.count} 条术语，按挂载类型匹配该数据域下的资源`;
+        fillBatchMountTypes();
+        bindBatchMountPreview();
+        if (catalogBatchMountRunEl) catalogBatchMountRunEl.checked = false;
+        if (catalogBatchMountAutoEl) catalogBatchMountAutoEl.checked = false;
+        /* 匹配规则原文由 term-module 提供，保证与推荐算法一致 */
+        if (catalogBatchMountRulesEl) {
+          const rules = window.BizTermUI?.getBatchMatchRules?.() || [];
+          catalogBatchMountRulesEl.innerHTML = rules.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("");
+        }
+        batchMountContext = { ids: [...selected.ids], types: [], items: [], off: new Set(), dropped: new Set() };
+        syncBatchMountAuto();
+        if (catalogBatchOverlayEl) catalogBatchOverlayEl.hidden = false;
+        return;
+      }
       const isTermMove = isMove && catalog === "term";
       if (catalogBatchDomainSingleWrapEl) catalogBatchDomainSingleWrapEl.hidden = isTermMove;
       if (catalogBatchDomainMultiWrapEl) catalogBatchDomainMultiWrapEl.hidden = !isTermMove;
@@ -11226,6 +13693,14 @@
         return;
       }
       if (action === "move-domain" || action === "online") {
+        openCatalogBatchOverlay(action);
+        return;
+      }
+      if (action === "set-mount") {
+        if (catalog !== "term") {
+          setTip("批量设置关联仅支持术语库");
+          return;
+        }
         openCatalogBatchOverlay(action);
         return;
       }
@@ -11606,7 +14081,7 @@
         modelType: currentModelType,
       });
       syncCurrentModelToBridge({ publishStatus: undefined });
-      setTip(`已保存${currentModelType}：${modelName}（已写入问数语义桥）`);
+      setTip(`已保存${currentModelType}：${modelName}（已写入智能消费端应用语义桥）`);
     });
 
     function resolveBridgeModelId(name, type) {
@@ -11638,7 +14113,7 @@
         relations: existing?.relations || [],
         lineage: existing?.lineage || {
           upstream: ["（待接入血缘平台）"],
-          downstream: ["智能问数"],
+          downstream: ["智能消费端应用"],
         },
         datasets: existing?.datasets || [{
           id: `ds-${window.SemanticBridge.slugify(currentModelName)}`,
@@ -11737,7 +14212,7 @@
         return;
       }
       window.SemanticBridge.ensureSeed(false);
-      // 将列表上的上线状态回写到语义桥，未上线的不参与问数生效
+      // 将列表上的上线状态回写到语义桥，未上线的不参与智能消费端应用生效
       const applyOnlineFromRows = (rows) => {
         rows.forEach((row) => syncRowOnlineToBridge(row, isRowOnline(row)));
       };
@@ -11745,7 +14220,15 @@
       applyOnlineFromRows(Array.from(documentListBodyEl?.querySelectorAll("tr") || []));
       const published = window.SemanticBridge.getPublishedModels();
       const onlineDocs = (window.SemanticBridge.getDocs?.() || []).filter((d) => d.online !== false).length;
-      setTip(`已同步语义资产到问数：${published.length} 个已上线模型 + ${onlineDocs} 份已上线文档依据。`);
+      /* 术语一并下发：智能消费端应用侧据此做概念绑定 / 值绑定 / 层级展开 / Schema 裁剪 */
+      let termCount = 0;
+      if (typeof window.BizTermUI?.syncTermsToBridge === "function") {
+        termCount = window.BizTermUI.syncTermsToBridge() || 0;
+      }
+      const onlineTerms = (window.SemanticBridge.getTerms?.() || []).filter((t) => t.online !== false).length;
+      setTip(
+        `已同步语义资产到智能消费端应用：${published.length} 个已上线模型 + ${onlineDocs} 份已上线文档依据 + ${onlineTerms} 个术语（共 ${termCount} 个，未上线的不下发）。`
+      );
     }
 
     document.getElementById("openTermLinkBtn")?.addEventListener("click", autoLinkTermsForCurrentModel);
@@ -11776,19 +14259,40 @@
     domainFilterSearchEl?.addEventListener("click", (event) => {
       event.stopPropagation();
     });
+    /* 需求：数据域下拉支持多选 —— 勾选即加入筛选，面板保持打开可继续勾选；「全部」= 清空 */
     domainFilterListEl?.addEventListener("click", (event) => {
       const item = event.target.closest("[data-domain-value]");
       if (!item) {
         return;
       }
       event.stopPropagation();
-      const nextValue = item.dataset.domainValue || "";
       const catalog = activeDomainFilterCatalog || "data-model";
-      setCatalogDomainFilter(catalog, nextValue);
+      const value = item.dataset.domainValue || "";
+      const nextList = value
+        ? (() => {
+            const set = new Set(getCatalogDomainFilterList(catalog));
+            if (set.has(value)) set.delete(value);
+            else set.add(value);
+            return [...set];
+          })()
+        : [];
+      setCatalogDomainFilter(catalog, nextList);
       renderDomainFilterList();
       syncDomainFilterTriggerState();
-      closeDomainFilterPanel();
-      setTip(nextValue ? `已按数据域「${nextValue}」筛选` : "已显示全部数据域");
+      setTip(
+        nextList.length
+          ? `已按数据域「${nextList.join("、")}」筛选（共 ${nextList.length} 个，满足任一即展示）`
+          : "已显示全部数据域"
+      );
+      if (!value) closeDomainFilterPanel();
+    });
+    document.getElementById("domainFilterClearBtn")?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const catalog = activeDomainFilterCatalog || "data-model";
+      setCatalogDomainFilter(catalog, []);
+      renderDomainFilterList();
+      syncDomainFilterTriggerState();
+      setTip("已清空数据域筛选");
     });
     document.addEventListener("click", (event) => {
       if (!domainFilterPanelEl || domainFilterPanelEl.hidden) {
@@ -11879,6 +14383,14 @@
     catalogBatchConfirmBtnEl?.addEventListener("click", confirmCatalogBatchMove);
     catalogBatchOnlineBtnEl?.addEventListener("click", () => confirmCatalogBatchOnline(true));
     catalogBatchOfflineBtnEl?.addEventListener("click", () => confirmCatalogBatchOnline(false));
+    /* 批量设置术语类型：切换类型即刻按数据域重算推荐 */
+    /* 挂载类型多选变化：自动推荐开着就立即按新类型重算 */
+    catalogBatchMountTypesEl?.addEventListener("change", (event) => {
+      if (!event.target.closest("input[data-bm-type]")) return;
+      syncBatchMountAuto();
+    });
+    catalogBatchMountAutoEl?.addEventListener("change", syncBatchMountAuto);
+    catalogBatchMountConfirmBtnEl?.addEventListener("click", confirmCatalogBatchMount);
     if (basicModelTableSearchEl) {
       basicModelTableSearchEl.addEventListener("input", () => {
         basicModelTableQuery = basicModelTableSearchEl.value;
@@ -12000,9 +14512,6 @@
       unionResultFieldRowsEl.addEventListener("change", handleUnionResultTableChange);
     }
     basicModelCreateFormEl.addEventListener("submit", submitBasicModelCreateForm);
-    basicModelNameInputEl.addEventListener("input", refreshBasicModelNameHint);
-    basicModelNameInputEl.addEventListener("blur", refreshBasicModelNameHint);
-    basicModelDomainSelectEl.addEventListener("change", refreshBasicModelNameHint);
     closeBasicModelCreateModalEl.addEventListener("click", closeBasicModelCreateDialog);
     cancelBasicModelCreateEl.addEventListener("click", closeBasicModelCreateDialog);
     basicModelCreateModalEl.addEventListener("click", (event) => {
@@ -12893,6 +15402,27 @@
           setTip(`文件「${fileName}」已自动保存到文档中心`);
         },
       });
+      /* 需求：关系图谱演示种子 —— 无任何指标挂载术语时，按「指标名/依赖字段名 = 术语名」补挂（直写指标存储并派发刷新事件） */
+      (function seedGraphMetricRelations() { try {
+          const metrics = window.MetricModule?.readMetrics?.() || [];          if (!metrics.length || metrics.some((m) => (m.termIds || []).length)) return;
+          const termList = window.TermModule?.readTerms?.() || [];
+          if (!termList.length) return;
+          const byName = new Map(termList.map((t) => [t.name, t]));
+          let changed = false;
+          const next = metrics.map((m) => {
+            const ids = new Set();
+            [m.name, ...(m.fieldNames || [])].forEach((n) => { const t = byName.get(n); if (t) ids.add(t.id); });
+            if (!ids.size) return m;
+            changed = true;
+            return { ...m, termIds: [...ids] };
+          });
+          if (!changed) return;
+          localStorage.setItem("glodon.biz-metrics.v7", JSON.stringify(next));
+          window.dispatchEvent(new CustomEvent("biz-metrics-updated", { detail: next }));
+        } catch (_err) { /* ignore */ }
+      })();
+      /* Glossary 在 mount 之后重新设置 domainFilter 让表格真正按术语库过滤 */
+      window.GlossaryUI?.renderHeader?.();
     }
 
     function refreshAllDataScopeViews() {
