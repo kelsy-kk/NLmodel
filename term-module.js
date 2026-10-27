@@ -187,6 +187,12 @@
     } catch (_err) {
       /* ignore */
     }
+    /* 术语数量 / 数据域变化会影响「未归属术语」计数，写入后刷新左侧目录 */
+    try {
+      global.GlossaryUI?.renderSide?.();
+    } catch (_err) {
+      /* ignore */
+    }
   }
 
   function seedTerms(fallbackDomains = [], project = DEFAULT_PROJECT) {
@@ -1283,8 +1289,9 @@
           .map(
             (item, index) => {
               const modelText = termModelList(item).join("、") || "全部模型";
+              const online = isTermOnline(item);
               /* 需求：列表不再在术语名称右侧打术语类型标签，类型只在详情页展示 */
-              const conflictFlag = conflictKeys.has(item.id) ? '<span class="term-conflict-flag" title="该术语的名称/同义词与其他术语冲突，智能消费端应用路由可能歧义">⚠️</span>' : "";
+              const conflictFlag = conflictKeys.has(item.id) ? '<span class="term-conflict-flag" title="该术语的名称/同义词与同一数据域内的其他术语重复，智能消费端应用时可能出现路由歧义，详见术语详情">⚠️</span>' : "";
               return `
           <tr data-id="${item.id}" class="${item.online === false ? "is-offline" : ""}">
             <td class="col-check"><input type="checkbox" class="term-row-check" data-id="${item.id}" ${selection.has(item.id) ? "checked" : ""} aria-label="选择行" /></td>
@@ -1299,9 +1306,11 @@
             <td class="col-online">${onlineTagHtml(isTermOnline(item))}</td>
             <td class="col-actions">
               ${MOUNT_ENTRY_ENABLED ? `<a class="op-link" href="#" data-term-action="mount" data-id="${item.id}" title="挂载 数据域/模型/维度/指标/字段 资产">挂载${(item.mounts || []).length ? `(${item.mounts.length})` : ""}</a>` : ""}
-              <a class="op-link" href="#" data-term-action="online" data-id="${item.id}">${isTermOnline(item) ? "下线" : "上线"}</a>
+              <a class="op-link" href="#" data-term-action="online" data-id="${item.id}">${online ? "下线" : "上线"}</a>
               <a class="op-link" href="#" data-term-action="edit" data-id="${item.id}">编辑</a>
-              <a class="op-link" href="#" data-term-action="delete" data-id="${item.id}">删除</a>
+              ${online
+                ? `<a class="op-link is-disabled" href="#" data-term-action="delete" data-id="${item.id}" title="下线状态下才可删除" aria-disabled="true" tabindex="-1">删除</a>`
+                : `<a class="op-link" href="#" data-term-action="delete" data-id="${item.id}" title="删除术语，删除后不可恢复">删除</a>`}
             </td>
           </tr>
         `;
@@ -1319,6 +1328,8 @@
       if (typeof window.GlossaryUI?.getCurG !== "function") return;
       const g = window.GlossaryUI.getCurG();
       if (!g) return;
+      /* 「未归属术语」虚拟库的数据域为空，空态 / 计数由 index.html 的 renderHeader 统一处理 */
+      if (g.id === "__orphan__") return;
       const domainsOf = (t) => t.domains || (t.domain || "").split(/[、,，]/).map((d) => d.trim()).filter(Boolean);
       const cnt = terms.filter((t) => domainsOf(t).includes(g.domain)).length;
       const es = document.getElementById("glossaryEmptyState");
@@ -1450,18 +1461,80 @@
       );
     }
 
-    /* 需求：重名提醒统一文案 —— 「数据域」已存在同名术语：名称、名称（顿号分割），确定则直接覆盖 */
+    /* 需求：重名提醒统一文案 —— 「数据域」已存在同名术语：名称（路径），保存后直接覆盖 */
     function formatDupGroups(duplicates, scopeDomains) {
       const groups = new Map();
       (duplicates || []).forEach((item) => {
         const domainsOfItem = termDomainList(item);
         const hitDomains = (scopeDomains || []).filter((d) => domainsOfItem.includes(d));
         (hitDomains.length ? hitDomains : domainsOfItem.length ? domainsOfItem : ["未分域"]).forEach((d) => {
-          if (!groups.has(d)) groups.set(d, new Set());
-          groups.get(d).add(item.name);
+          if (!groups.has(d)) groups.set(d, new Map());
+          const bucket = groups.get(d);
+          if (!bucket.has(item.name)) bucket.set(item.name, termPathLabel(item));
         });
       });
-      return [...groups.entries()].map(([domain, names]) => `「${domain}」数据域已存在同名术语：${[...names].join("、")}`).join("；");
+      return [...groups.entries()]
+        .map(
+          ([domain, bucket]) =>
+            `「${domain}」数据域已存在同名术语：${[...bucket.entries()]
+              .map(([termName, path]) => `「${termName}」（${path}）`)
+              .join("、")}`
+        )
+        .join("；");
+    }
+
+    /* 术语所在路径：术语中心 / 术语库 / 术语名（由 index.html 的 GlossaryUI 提供） */
+    function termPathLabel(term) {
+      try {
+        const loc = global.GlossaryUI?.termLocation?.(term);
+        if (loc?.path) return loc.path;
+      } catch (_err) {
+        /* ignore */
+      }
+      const ds = termDomainList(term);
+      return `术语中心 / ${ds.length ? ds.join("、") : "未分域"} / ${term?.name || "—"}`;
+    }
+
+    /* 需求：名称 / 同义词校验（详情页用）—— 名称重名与同义词冲突都在「术语生效的数据域」内判定 */
+    function collectTermConflicts(term) {
+      const ownDomains = termDomainList(term);
+      const nameDuplicates = terms.filter(
+        (item) =>
+          item.id !== term.id &&
+          item.name === term.name &&
+          ownDomains.some((d) => termHasDomain(item, d))
+      );
+      const synonymConflicts = findSynonymConflicts(term.name, term.synonyms, term.id, ownDomains)
+        .filter((c) => c.word !== term.name);
+      return { ownDomains, nameDuplicates, synonymConflicts };
+    }
+
+    /* 需求：详情页也要展示名称重名 / 同义词冲突，并给出冲突术语名称与所在路径 */
+    function renderTermConflictBlock(term) {
+      const { ownDomains, nameDuplicates, synonymConflicts } = collectTermConflicts(term);
+      if (!nameDuplicates.length && !synonymConflicts.length) return "";
+      const items = [];
+      nameDuplicates.forEach((item) => {
+        items.push(
+          `<li class="is-risk">名称重名：与术语「${escapeHtml(item.name)}」重名（同在${ownDomains.map((d) => `「${escapeHtml(d)}」`).join("、") || "同一数据域"}），所在路径 <span class="term-conflict-path">${escapeHtml(termPathLabel(item))}</span>；该术语保存时将直接覆盖此同名术语</li>`
+        );
+      });
+      synonymConflicts.slice(0, 6).forEach((c) => {
+        items.push(
+          `<li class="is-risk">同义词冲突：本术语的名称 / 同义词「${escapeHtml(c.word)}」与术语「${escapeHtml(c.term.name)}」的名称或同义词重复，所在路径 <span class="term-conflict-path">${escapeHtml(termPathLabel(c.term))}</span>，智能消费端应用时会出现同词多义的路由歧义</li>`
+        );
+      });
+      if (synonymConflicts.length > 6) {
+        items.push(`<li>…等共 ${synonymConflicts.length} 处同义词冲突</li>`);
+      }
+      return `
+        <div class="term-conflict-banner">
+          <span class="banner-ic">⚠</span>
+          <div>
+            <span class="banner-main">名称 / 同义词校验：发现 ${nameDuplicates.length + synonymConflicts.length} 处冲突（仅在${ownDomains.map((d) => `「${escapeHtml(d)}」`).join("、")}数据域内校验）</span>
+            <ul class="term-conflict-list">${items.join("")}</ul>
+          </div>
+        </div>`;
     }
 
     function ensureTermNameDupHintEl() {
@@ -1494,7 +1567,7 @@
         return [];
       }
       const scope = selectedFormDomains.size ? "所选数据域" : "当前系统";
-      hintEl.textContent = `⚠ 重名提醒：${formatDupGroups(duplicates, [...selectedFormDomains]) || scope}，请调整名称或数据域，确定则直接覆盖。`;
+      hintEl.textContent = `⚠ 名称重名：${formatDupGroups(duplicates, [...selectedFormDomains]) || scope}，保存后将直接覆盖该同名术语。`;
       hintEl.style.color = "#c2410c";
       hintEl.style.display = "";
       return duplicates;
@@ -1536,7 +1609,7 @@
         return;
       }
       const detail = formatDupGroups(conflicts, domains) || "所选目标数据域";
-      hintEl.textContent = `⚠ 重名提醒：${detail}，请调整名称或数据域，确定则直接覆盖。`;
+      hintEl.textContent = `⚠ 名称重名：${detail}，移动后将直接覆盖同名术语。`;
       hintEl.style.color = "#c2410c";
       hintEl.style.display = "";
     }
@@ -1569,13 +1642,8 @@
       }
       /* 需求：术语用途 / 术语类型已移除，表单不再有「字段类型必须选模型」「通用知识必须填描述」两类校验 */
       const project = currentProject();
+      /* 需求：名称重名只在「用户生效的数据域」内校验，命中则在创建过程中直接覆盖，不再弹窗拦截 */
       const duplicates = findTermNameDuplicates(name, editingId, domains);
-      if (duplicates.length) {
-        /* 需求：重名不再拦截，确认后直接覆盖保存 */
-        const ok = window.confirm(`重名提醒：${formatDupGroups(duplicates, domains)}，请调整名称或数据域，确定则直接覆盖。`);
-        renderTermNameDupHint();
-        if (!ok) return;
-      }
       /* 生效模型来自「关联资产 → 模型」页签勾选：写回 modelNames / modelIds，
          列表「生效模型」列与详情保持一致口径；未勾选则表示对该数据域下全部模型生效 */
       const modelNames = formMountedModelNames();
@@ -1599,9 +1667,11 @@
       if (conflicts.length && !force) {
         const detail = conflicts
           .slice(0, 4)
-          .map((c) => `「${c.word}」已被术语「${c.term.name}」占用（${c.term.domain || "未分组"}${c.crossDomain ? "，跨数据域冲突" : ""}）`)
+          .map((c) => `「${c.word}」与术语「${c.term.name}」的名称 / 同义词重复（${termPathLabel(c.term)}）`)
           .join("；");
-        showSaveConfirm(`同义词冲突提醒：${detail}。\n智能消费端应用时同词多义会导致路由歧义，建议调整。确认无影响可点「仍要保存」。`);
+        showSaveConfirm(
+          `同义词冲突提醒：${detail}。\n冲突仅在当前生效数据域（${domains.join("、")}）内校验。\n智能消费端应用时同词多义会导致路由歧义，建议调整名称或同义词；确认无影响可点「仍要保存」。`
+        );
         return;
       }
       const values = {
@@ -1619,9 +1689,11 @@
         mounts: nextMounts,
         kind: "asset",
       };
-      if (editingId) {
-        const target = terms.find((item) => item.id === editingId);
-        if (!target) {
+      /* 新建时若生效数据域内已存在同名术语 → 直接覆盖它（保留其 id / 版本历史 / 挂载） */
+      const overwriteTarget = editingId ? null : duplicates[0] || null;
+      const target = editingId ? terms.find((item) => item.id === editingId) : overwriteTarget;
+      if (target) {
+        if (editingId && !target) {
           setTip("术语不存在或已删除");
           return;
         }
@@ -1663,9 +1735,18 @@
           ];
         }
         const prevMetricKeys = (target.mounts || []).filter((m) => m.type === "metric").map((m) => m.key);
+        const prevOnline = target.online !== false;
         Object.assign(target, values);
+        /* 覆盖同名术语时不能把「已上线 / 创建信息」清掉 */
+        target.online = prevOnline;
+        if (overwriteTarget) {
+          target.creator = overwriteTarget.creator || target.creator;
+          target.createdAt = overwriteTarget.createdAt || target.createdAt;
+        }
         setTip(
-          `已更新术语：${name}${changed ? `（${kindLabel}，已存 ${target.versions.length} 个历史版本）` : ""}`
+          editingId
+            ? `已更新术语：${name}${changed ? `（${kindLabel}，已存 ${target.versions.length} 个历史版本）` : ""}`
+            : `已创建术语：${name}（${ domains.join("、") }数据域内已存在同名术语，已采用直接覆盖的方式写入：${termPathLabel(overwriteTarget)}）`
         );
         syncMetricTermLinks(
           prevMetricKeys,
@@ -1999,21 +2080,9 @@
             <div class="td-stat-value">${countOf(type)}</div>
           </div>`;
       }).join("");
-      /* 描述里写了较长业务规则、且没有挂载任何指标/字段资产 → 判定为通用知识，给出大标签 */
-      const descLength = String(term.description || "").trim().length;
-      const isGenericKnowledge = descLength >= 30 && items.length === 0;
-      const genericBanner = isGenericKnowledge
-        ? `
-        <div class="term-generic-banner">
-          <span class="banner-ic">✦</span>
-          <div>
-            <span class="banner-main">当前术语为通用知识，由 AI 智能解析</span>
-            <span class="banner-sub">未挂载任何指标 / 字段资产，智能消费端应用时将依据上方描述智能解析业务规则与口径（描述 ${descLength} 字）</span>
-          </div>
-        </div>`
-        : "";
+      /* 需求：详情页展示「名称 / 同义词冲突」提醒（含冲突术语名称 + 所在路径） */
       detailOverviewPanelEl.innerHTML = `
-        ${genericBanner}
+        ${renderTermConflictBlock(term)}
         <div class="td-card">
           <div class="td-card-title">
             <span>基本信息</span>
@@ -3112,12 +3181,15 @@
       if (document.getElementById("termValueBindingRows")) renderValueBindingRows();
     }
 
-    /* 结构语义模型里的数据集节点（SemanticBridge store.models[].datasets） */
-    function collectSemanticDatasets() {
+    /* 结构语义模型里的数据集节点（SemanticBridge store.models[].datasets）
+       传入 modelNames 时只取这些模型下的数据集——数据集来源于模型，
+       模型候选按所选数据域过滤后，数据集必须同步收敛，避免域外模型的数据集漏进来 */
+    function collectSemanticDatasets(modelNames) {
       const out = [];
       try {
         const store = global.SemanticBridge?.ensureSeed?.();
         (store?.models || []).forEach((model) => {
+          if (modelNames && !modelNames.has(model.name)) return;
           (model.datasets || []).forEach((ds) => {
             out.push({
               key: `dataset:${ds.id || ds.name}`,
@@ -3132,6 +3204,30 @@
         /* ignore */
       }
       return out;
+    }
+
+    /* 模型 → 字段名清单：优先建模侧落库的字段设置（fieldSettings）与数据集字段（真实编辑内容），
+       为空时由调用方回退到模型自带 fieldNames。指标（metrics）是指标回写不算物理字段，不取 */
+    function collectSemanticFieldMap() {
+      const map = new Map();
+      try {
+        const store = global.SemanticBridge?.ensureSeed?.();
+        (store?.models || []).forEach((model) => {
+          const names = [];
+          const push = (name) => {
+            const value = String(name || "").trim();
+            if (value && !names.includes(value)) names.push(value);
+          };
+          (model.fieldSettings || []).forEach((group) => (group.fields || []).forEach((f) => push(f.name)));
+          (model.datasets || []).forEach((ds) => {
+            [...(ds.dimensions || []), ...(ds.measures || [])].forEach((f) => push(f.name));
+          });
+          if (names.length) map.set(model.name, names);
+        });
+      } catch (_err) {
+        /* ignore */
+      }
+      return map;
     }
 
     /* ===== 关联资产（v0.3 挂载融合）：表单内按 模型/数据集/字段/指标/维度 五个页签勾选，
@@ -3180,8 +3276,13 @@
       const metricAssets = [];
       const dimOwners = new Map();
       const fieldAssets = [];
+      /* 字段/维度来源于模型的数据集字段设置：建模侧落库过（fieldSettings / datasets）就用真实内容，
+         否则回退模型自带 fieldNames */
+      const semanticFieldMap = collectSemanticFieldMap();
       models.forEach((model) => {
-        (model.fieldNames || []).forEach((fieldName) => {
+        const bridgeFields = semanticFieldMap.get(model.name);
+        const fieldList = bridgeFields && bridgeFields.length ? bridgeFields : model.fieldNames || [];
+        fieldList.forEach((fieldName) => {
           fieldAssets.push({ key: `field:${model.name}|${fieldName}`, type: "field", name: fieldName, path: model.name });
           if (!MOUNT_MEASURE_NAME_RE.test(fieldName)) {
             if (!dimOwners.has(fieldName)) dimOwners.set(fieldName, new Set());
@@ -3211,7 +3312,15 @@
           meta: metric.code || "",
         });
       });
-      return [...modelAssets, ...collectSemanticDatasets(), ...metricAssets, ...dimAssets, ...fieldAssets];
+      /* 数据集来源于模型：未选数据域时给全量；选了域则只保留范围内模型的数据集
+         （与模型页签同源过滤，范围内没有模型时数据集也为空） */
+      return [
+        ...modelAssets,
+        ...collectSemanticDatasets(domains.length ? modelNames : null),
+        ...metricAssets,
+        ...dimAssets,
+        ...fieldAssets,
+      ];
     }
 
     function renderFormMountChips() {
@@ -3400,35 +3509,37 @@
           .join("");
     }
 
-    /* 同义词冲突检测：本术语的同义词/名称与其他术语的名称/同义词相撞（跨域冲突最危险） */
+    /* 同义词冲突检测：本术语的名称/同义词与其他术语的名称/同义词相撞。
+       需求：只在「生效的数据域」内判定 —— 数据域不同不属于冲突（各自域内独立路由） */
     function findSynonymConflicts(nameText, synonymsText, editingIdLocal, domainList) {
       const ownWords = new Set(
         [nameText, ...(synonymsText || "").split(/[,，、;；\s]+/)].map((s) => s.trim()).filter((s) => s.length >= 2)
       );
+      const scopeDomains = domainList || [];
       const conflicts = [];
       terms.forEach((other) => {
         if (other.id === editingIdLocal) return;
+        /* 不在生效数据域内的术语不参与冲突判定 */
+        if (scopeDomains.length && !scopeDomains.some((d) => termHasDomain(other, d))) return;
         const otherWords = [other.name, ...(other.synonyms || "").split(/[,，、;；\s]+/)].map((s) => s.trim()).filter(Boolean);
         otherWords.forEach((word) => {
           if (word.length >= 2 && ownWords.has(word)) {
-            const crossDomain = !(other.domain || "").split(/[、,，]/).some((d) => domainsOverlap(d, domainList));
-            conflicts.push({ word, term: other, crossDomain });
+            conflicts.push({ word, term: other, crossDomain: false });
           }
         });
       });
       return conflicts;
     }
 
-    function domainsOverlap(domainA, domainList) {
-      return (domainList || []).some((d) => d && (domainA || "").includes(d));
-    }
-
+    /* 列表标记：两条术语只有「数据域存在交集」时才可能在同一生效域内冲突 */
     function collectSynonymConflictKeys() {
       const keys = new Set();
       terms.forEach((term) => {
         const own = [term.name, ...(term.synonyms || "").split(/[,，、;；\s]+/)].map((s) => s.trim()).filter((s) => s.length >= 2);
+        const termDomains = termDomainList(term);
         terms.forEach((other) => {
           if (other.id === term.id) return;
+          if (!termDomains.some((d) => termHasDomain(other, d))) return;
           const otherWords = [other.name, ...(other.synonyms || "").split(/[,，、;；\s]+/)].map((s) => s.trim());
           if (own.some((word) => otherWords.includes(word))) keys.add(term.id);
         });
@@ -3634,8 +3745,35 @@
       }
     }
 
+    /* 需求：确认步骤不能只有一个提示 —— 补一张摘要清单，导入前可核对关键信息 */
+    function renderImportConfirm() {
+      const el = document.getElementById("termImportConfirm");
+      if (!el) return;
+      const domains = [...selectedImportDomains];
+      const mode = importModeEls().find((item) => item.checked)?.value || "create";
+      const modeLabels = {
+        create: "新增（重名失败）",
+        upsert: "增量更新（同名更新，无则新增）",
+        replace: "覆盖（清空所选数据域后再写入）",
+      };
+      const ok = validatedRows.filter((r) => r.status === "ok").length;
+      const update = validatedRows.filter((r) => r.status === "update").length;
+      const err = validatedRows.filter((r) => r.status === "error").length;
+      const rows = [
+        ["导入文件", escapeHtml(importSourceName || importSourceFile?.name || "—")],
+        ["目标数据域", domains.length ? escapeHtml(domains.join("、")) : "—"],
+        ["导入模式", modeLabels[mode] || mode],
+        ["写入结果", `新增 ${ok} 个、更新 ${update} 个，跳过失败 ${err} 行`],
+      ];
+      if (mode === "replace") {
+        rows.push(["风险提示", "将先清空所选数据域下的全部术语，引用这些术语的指标 / 字段解析会受影响"]);
+      }
+      el.innerHTML = rows.map(([key, value]) => `<dt>${key}</dt><dd>${value}</dd>`).join("");
+    }
+
     function setImportStep(step) {
       importStep = step;
+      if (step === 4) renderImportConfirm();
       importStepEls().forEach((panel) => {
         panel.hidden = Number(panel.dataset.termImportStepPanel) !== step;
       });
@@ -3722,6 +3860,7 @@
       importModeEls().forEach((el) => {
         el.checked = el.value === "create";
       });
+      setImportModeCards();
       if (importFileInputEl) importFileInputEl.value = "";
       if (importPreviewBodyEl) importPreviewBodyEl.innerHTML = "";
       if (importSummaryEl) importSummaryEl.textContent = "请先上传 CSV 或使用示例文件";
@@ -3773,6 +3912,12 @@
       });
     }
 
+    function setImportModeCards() {
+      document.querySelectorAll(".term-import-mode").forEach((wrap) => {
+        wrap.classList.toggle("is-checked", Boolean(wrap.querySelector("input:checked")));
+      });
+    }
+
     function renderImportPreview() {
       const ok = validatedRows.filter((r) => r.status === "ok").length;
       const update = validatedRows.filter((r) => r.status === "update").length;
@@ -3780,6 +3925,14 @@
       if (importSummaryEl) {
         importSummaryEl.textContent = `共 ${validatedRows.length} 行：可新增 ${ok}，将更新 ${update}，失败 ${err}`;
       }
+      /* 需求：预览页顶部用统计卡承载结果，避免只有一行文字不好扫读 */
+      const stat = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = String(value);
+      };
+      stat("termImportStatTotal", validatedRows.length);
+      stat("termImportStatPass", ok + update);
+      stat("termImportStatErr", err);
       if (!importPreviewBodyEl) return;
       importPreviewBodyEl.innerHTML = validatedRows
         .map(
@@ -3940,6 +4093,8 @@
       setTip(`已导出 ${items.length} 条术语`);
     });
     importBtnEl?.addEventListener("click", openImportWizard);
+    /* 导入模式卡片：跟随 radio 勾选切换高亮（兼容不支持 :has() 的环境） */
+    importModeEls().forEach((el) => el.addEventListener("change", setImportModeCards));
     importCloseBtnEl?.addEventListener("click", closeImportWizard);
     importCancelBtnEl?.addEventListener("click", closeImportWizard);
     importPrevBtnEl?.addEventListener("click", () => {
@@ -4021,6 +4176,17 @@
         setTip(item.online !== false ? `术语「${item.name}」已上线` : `术语「${item.name}」已下线`);
       }
       if (action === "delete") {
+        /* 需求：只有下线状态才允许删除，上线时按钮已置灰，这里再做一层拦截 */
+        if (isTermOnline(item)) {
+          setTip(`术语「${item.name}」处于上线状态，下线后才可删除`);
+          return;
+        }
+        /* 需求：术语上线 / 下线都允许删除；删除前统一走「影响分析 + 风险自担」弹窗（由 index.html 提供），
+           弹窗不存在时回退到原生确认，保证单文件调用也能用 */
+        if (typeof global.openTermDeleteModal === "function") {
+          global.openTermDeleteModal([id]);
+          return;
+        }
         if (!window.confirm(`确定删除术语「${item.name}」吗？\n该术语${duplicateRefSummary(item)}，删除后指标/字段上的对应挂载引用将一并失效。`)) return;
         deleteByIds([id]);
         setTip(`已删除术语：${item.name}`);

@@ -353,11 +353,6 @@
       vertical-align: top;
     }
 
-    .modal-dialog--wide {
-      width: 720px;
-      max-width: calc(100vw - 32px);
-    }
-
     body.embed-list {
       --app-top-chrome-height: 0px;
     }
@@ -460,6 +455,13 @@
     .glossary-item-icon { width:14px;height:14px;margin-right:6px;color:#98a2b3; }
     .glossary-item.active .glossary-item-icon { color:#1677d2; }
     .glossary-item-name { flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    /* 未归属术语：数据域已没有术语库的术语（删库后归入这里），用虚线分隔 + 橙色区分 */
+    .glossary-item.is-orphan { margin-top:6px; border-top:1px dashed #e4e7ec; color:#8a5a00; }
+    .glossary-item.is-orphan .glossary-item-icon { color:#d99028; }
+    .glossary-item.is-orphan:hover { background:#fff8ec; color:#b25e09; }
+    .glossary-item.is-orphan.active { background:#fff4e5; color:#b25e09; font-weight:500; }
+    .glossary-item.is-orphan.active::before { background:#d99028; }
+    .glossary-item-count { flex:0 0 auto; margin-left:8px; padding:0 6px; border-radius:9px; background:#f2f4f7; color:#667085; font-size:11px; line-height:16px; }
     /* 术语库目录多选：勾选框 + 底部操作条 */
     .glossary-multi-toggle { height:22px;padding:0 8px;border:1px solid #dfe5ee;border-radius:4px;background:#fff;color:#667085;font-size:12px;cursor:pointer; }
     .glossary-multi-toggle:hover { color:#1677d2;border-color:#88bdfb;background:#f4f9ff; }
@@ -482,17 +484,37 @@
     .glossary-danger-btn:hover { border-color:#d4380d;background:#fff2f0; }
     .glossary-danger-btn:disabled { border-color:#e4e7ec;color:#98a2b3;background:#f7f8fa;cursor:not-allowed; }
     /* 删除确认弹窗：整库影响清单 */
-    .gdel-warn { display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1px solid #ffd8a8;border-radius:4px;background:#fff9ec;color:#8a5a00;font-size:12px;line-height:1.6; }
+    .gdel-warn { display:flex;align-items:flex-start;gap:8px;padding:11px 14px;border:1px solid #ffd8a8;border-radius:4px;background:#fff9ec;color:#8a5a00;font-size:12.5px;line-height:1.7; }
     .gdel-warn svg { flex:0 0 auto;margin-top:1px;color:#f59a23; }
+    .gdel-warn > span { flex:1 1 auto;min-width:0; }
     .gdel-block { margin-top:14px; }
     .gdel-block-title { margin-bottom:6px;color:#344054;font-size:13px;font-weight:600; }
     .gdel-lib-list, .gdel-impact-list { margin:0;padding:0;list-style:none; }
-    .gdel-lib-list li { display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #eef1f5;border-radius:4px;background:#fafbfc;font-size:12px;color:#344054;margin-bottom:6px; }
+    .gdel-lib-list li { display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 12px;border:1px solid #eef1f5;border-radius:4px;background:#fafbfc;font-size:12.5px;color:#344054;margin-bottom:6px; }
     .gdel-lib-list .gdel-lib-name { font-weight:600;color:#1f2d3d; }
     .gdel-lib-list .gdel-lib-meta { color:#98a2b3; }
-    .gdel-impact-list li { display:flex;align-items:flex-start;gap:8px;padding:5px 0 5px 2px;font-size:12px;color:#475467;line-height:1.6; }
-    .gdel-impact-list li::before { content:"";flex:0 0 auto;width:5px;height:5px;margin-top:6px;border-radius:50%;background:#1677d2; }
-    .gdel-impact-list li.is-risk::before { background:#d4380d; }
+    /* 影响条目：不能用 flex（文本节点 + <strong> 会被拆成多个 flex item 导致断行错位），
+       改为块级流式排版 + 绝对定位的圆点 */
+    .gdel-impact-list li {
+      position: relative;
+      padding: 6px 0 6px 16px;
+      font-size: 13px;
+      color: #475467;
+      line-height: 1.7;
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+    .gdel-impact-list li::before {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 12px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #1677d2;
+    }
+    .gdel-impact-list li.is-risk::before { background: #d4380d; }
     .gdel-impact-list li strong { color:#d4380d;font-weight:600; }
     .gdel-ack { display:flex;align-items:center;gap:8px;margin:16px 0 4px;color:#344054;font-size:13px;cursor:pointer;user-select:none; }
     .modal-btn.danger { border:1px solid #d4380d;background:#d4380d;color:#fff; }
@@ -1697,6 +1719,18 @@
 
     .op-link + .op-link {
       margin-left: 18px;
+    }
+
+    /* 需求：上线状态的术语不可删除 —— 删除链接置灰、不可点（保留 hover 以便显示 title 提示） */
+    .op-link.is-disabled {
+      color: #98a2b3;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+
+    .op-link.is-disabled:hover {
+      color: #98a2b3;
+      text-decoration: none;
     }
 
     .name-cell-inner {
@@ -3769,6 +3803,19 @@
       overflow: hidden;
     }
 
+    /* 信息过载的弹窗（影响清单 / 多步说明 / 预览表格）统一加宽，避免文字挤压错位；
+       必须写在 .modal-dialog 之后，否则同特异性会被 520px 覆盖 */
+    .modal-dialog--wide {
+      width: 760px;
+      max-width: calc(100vw - 32px);
+    }
+
+    /* 信息量更大的弹窗（多栏对比 / 宽表格预览） */
+    .modal-dialog--xwide {
+      width: 920px;
+      max-width: calc(100vw - 32px);
+    }
+
     .modal-dialog .modal-foot,
     .modal-dialog .modal-body-scroll {
       flex-shrink: 0;
@@ -5658,6 +5705,74 @@
       margin-left: 0;
     }
 
+    /* 详情页：名称 / 同义词校验冲突块（橙色，与「通用知识」蓝块区分） */
+    .term-conflict-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      border: 1px solid #ffd8a8;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #fff9ec 0%, #fffdf7 100%);
+    }
+
+    .term-conflict-banner .banner-ic {
+      flex: 0 0 auto;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #f59a23;
+      color: #fff;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .term-conflict-banner .banner-main {
+      font-size: 14px;
+      font-weight: 600;
+      color: #8a5a00;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .term-conflict-list {
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .term-conflict-list li {
+      position: relative;
+      padding: 5px 0 5px 16px;
+      font-size: 13px;
+      color: #475467;
+      line-height: 1.7;
+      overflow-wrap: break-word;
+    }
+
+    .term-conflict-list li::before {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 13px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #1677d2;
+    }
+
+    .term-conflict-list li.is-risk::before {
+      background: #d4380d;
+    }
+
+    .term-conflict-path {
+      color: #8a5a00;
+      font-weight: 500;
+    }
+
     .term-empty {
       padding: 36px 12px;
       color: #98a2b3;
@@ -6137,46 +6252,6 @@
       display: none !important;
     }
 
-    /* 详情页：通用知识大标签 */
-    .term-generic-banner {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 18px 20px;
-      margin-bottom: 12px;
-      border: 1px solid #b7d7ff;
-      border-radius: 8px;
-      background: linear-gradient(90deg, #f0f7ff 0%, #f7fbff 100%);
-    }
-
-    .term-generic-banner .banner-ic {
-      flex: 0 0 auto;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #1e80ff;
-      color: #fff;
-      font-size: 19px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .term-generic-banner .banner-main {
-      font-size: 16px;
-      font-weight: 600;
-      color: #14458a;
-      line-height: 1.5;
-    }
-
-    .term-generic-banner .banner-sub {
-      display: block;
-      margin-top: 3px;
-      font-size: 12px;
-      font-weight: 400;
-      color: #5a7ba8;
-    }
-
     /* 必填标记：统一红色星号（术语表单、术语库抽屉、导入弹窗等共用） */
     .required {
       margin-left: 2px;
@@ -6260,40 +6335,311 @@
     }
 
     .term-import-modal {
-      width: min(860px, 96vw);
+      width: min(920px, 96vw);
       max-height: 90vh;
-      overflow: auto;
+      overflow: hidden;
     }
 
+    /* 各步骤本体等高 + 内部滚动，避免换步骤时弹窗高度忽大忽小导致位置跳动 */
+    .term-import-modal .term-form-body {
+      min-height: 360px;
+      padding: 20px 24px 22px;
+      gap: 16px;
+    }
+
+    .term-import-modal .term-form-head {
+      padding: 0 24px;
+    }
+
+    .term-import-modal .term-form-foot {
+      padding: 12px 24px 16px;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* 步骤条：序号圆标 + 连接线，激活蓝、已完成绿 */
     .term-import-steps {
       display: flex;
-      gap: 8px;
-      padding: 0 20px 8px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 0;
+      margin: 0;
+      padding: 14px 24px 16px;
+      border-bottom: 1px solid #eef1f5;
+      list-style: none;
     }
 
     .term-import-step {
-      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       color: #98a2b3;
-      padding: 4px 10px;
-      border-radius: 12px;
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+
+    .term-import-step + .term-import-step::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      margin: 0 10px;
+      background: #d0d5dd;
+    }
+
+    .term-import-step-no {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
       background: #f2f4f7;
+      color: #98a2b3;
+      font-size: 11px;
+      font-weight: 600;
     }
 
     .term-import-step.is-active {
       color: #175cd3;
-      background: #eff8ff;
       font-weight: 600;
+    }
+
+    .term-import-step.is-active .term-import-step-no {
+      background: #1677d2;
+      color: #fff;
     }
 
     .term-import-step.is-done {
       color: #067647;
+    }
+
+    .term-import-step.is-done .term-import-step-no {
       background: #e8f8ef;
+      color: #067647;
+    }
+
+    .term-import-step.is-done .term-import-step-no::after {
+      content: "✓";
+    }
+
+    .term-import-step.is-done .term-import-step-no {
+      font-size: 0;
+    }
+
+    /* 步骤 1：上传区卡片化，原生 file input 收进按钮里 */
+    .term-import-drop {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 26px 20px 22px;
+      border: 1px dashed #bfdbfe;
+      border-radius: 8px;
+      background: #f5f9ff;
+      color: #1677d2;
+      text-align: center;
+    }
+
+    .term-import-drop-title {
+      margin: 0;
+      color: #175cd3;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .term-import-drop-sub {
+      margin: 0;
+      color: #5a7ba8;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .term-import-drop-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .term-import-file-btn {
+      display: inline-flex;
+      align-items: center;
+      height: 30px;
+      padding: 0 14px;
+      border: 1px solid #1677d2;
+      border-radius: 4px;
+      background: #fff;
+      color: #1677d2;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+
+    .term-import-file-btn:hover {
+      background: #e8f2ff;
+    }
+
+    .term-import-file-btn input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .term-import-field-tip {
+      margin: 6px 0 0;
+      color: #98a2b3;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* 步骤 2：目标数据域 / 导入模式左右分栏，避免竖向堆叠把弹窗顶高 */
+    .term-import-two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .term-import-two-col > .term-form-field {
+      min-width: 0;
+    }
+
+    /* 步骤 2：导入模式卡片式单选（原来三个挤在同一行） */
+    .term-import-modes {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .term-import-mode {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid #e4e7ec;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .term-import-mode:hover {
+      border-color: #93c5fd;
+      background: #f5f9ff;
+    }
+
+    .term-import-mode input[type="radio"] {
+      flex: 0 0 auto;
+      margin: 2px 0 0;
+    }
+
+    .term-import-mode-body {
+      display: block;
+      min-width: 0;
+    }
+
+    .term-import-mode-title {
+      display: block;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .term-import-mode-desc {
+      display: block;
+      margin-top: 1px;
+      color: #667085;
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+
+    .term-import-mode:has(input:checked) {
+      border-color: #1677d2;
+      background: #f0f7ff;
+    }
+
+    .term-import-mode.is-danger:has(input:checked) {
+      border-color: #f0b4b4;
+      background: #fff5f4;
+    }
+
+    .term-import-mode.is-danger.is-checked {
+      border-color: #f0b4b4;
+      background: #fff5f4;
+    }
+
+    /* 步骤 3：统计卡（与挂载概况一致的淡蓝色） */
+    .term-import-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .term-import-stat {
+      flex: 1 1 130px;
+      min-width: 120px;
+      padding: 10px 12px;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      background: #f5f9ff;
+    }
+
+    .term-import-stat-value {
+      display: block;
+      color: #101828;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.3;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .term-import-stat-label {
+      display: block;
+      margin-top: 2px;
+      color: #5a7ba8;
+      font-size: 12px;
+    }
+
+    .term-import-stat.is-ok .term-import-stat-value {
+      color: #067647;
+    }
+
+    .term-import-stat.is-error .term-import-stat-value {
+      color: #b42318;
+    }
+
+    /* 步骤 4：确认摘要清单 */
+    .term-import-confirm {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 8px 12px;
+      padding: 14px 16px;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      background: #f5f9ff;
+      font-size: 12.5px;
+      line-height: 1.7;
+    }
+
+    .term-import-confirm dt {
+      color: #5a7ba8;
+    }
+
+    .term-import-confirm dd {
+      margin: 0;
+      color: #344054;
+      word-break: break-all;
     }
 
     .term-import-file-status {
-      margin: 10px 0 0;
-      padding: 8px 10px;
+      margin: 0;
+      padding: 9px 12px;
       border-radius: 4px;
       background: #f8fafc;
       border: 1px solid #e4e7ec;
@@ -6315,28 +6661,67 @@
     }
 
     .term-import-preview-wrap {
-      max-height: 320px;
+      flex: 1 1 auto;
+      min-height: 200px;
+      max-height: 300px;
       overflow: auto;
       border: 1px solid #eef2f6;
-      border-radius: 4px;
+      border-radius: 6px;
     }
 
     .term-import-preview-table {
       width: 100%;
-      border-collapse: collapse;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
       font-size: 12px;
     }
 
-    .term-import-preview-table th,
-    .term-import-preview-table td {
-      padding: 8px;
+    /* 固定列宽，避免 6 列互抢空间导致描述/原因列被挤成一团 */
+    .term-import-preview-table th.col-line { width: 56px; }
+    .term-import-preview-table th:nth-child(2) { width: 17%; }
+    .term-import-preview-table th:nth-child(3) { width: 15%; }
+    .term-import-preview-table th:nth-child(4) { width: 26%; }
+    .term-import-preview-table th.col-result { width: 62px; }
+    .term-import-preview-table th.col-reason { width: auto; }
+
+    .term-import-preview-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 8px 10px;
       border-bottom: 1px solid #eef2f6;
+      background: #fafbfc;
+      color: #667085;
+      font-weight: 600;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .term-import-preview-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #eef2f6;
+      color: #344054;
       text-align: left;
       vertical-align: top;
+      word-break: break-word;
+    }
+
+    .term-import-preview-table tbody tr:hover td {
+      background: #f8fafc;
     }
 
     .term-import-preview-table tr.is-import-error td {
-      background: #fef3f2;
+      background: #fff5f4;
+      color: #b42318;
+    }
+
+    /* 失败行左侧红条，一眼分辨 */
+    .term-import-preview-table tr.is-import-error td:first-child {
+      box-shadow: inset 3px 0 0 0 #f04438;
+    }
+
+    .term-import-preview-table .import-error-cell {
       color: #b42318;
     }
 
@@ -9197,12 +9582,12 @@
 
   <!-- 需求：删除术语库前的「整库删除影响」确认弹窗 -->
   <div class="modal-overlay" id="glossaryDeleteModal" hidden>
-    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="glossaryDeleteTitle">
+    <div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="glossaryDeleteTitle">
       <div class="modal-head">
         <h3 id="glossaryDeleteTitle">删除术语库</h3>
         <button class="modal-close" id="closeGlossaryDeleteModal" type="button" aria-label="关闭">×</button>
       </div>
-      <div class="modal-form" style="padding: 14px 20px 0;">
+      <div class="modal-form" style="padding: 18px 24px 0;">
         <div class="gdel-warn">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 5.6v3.2M8 11.2h.01M6.9 2.5L1.9 11.4a1.3 1.3 0 0 0 1.13 2h9.94a1.3 1.3 0 0 0 1.13-2L9.1 2.5a1.3 1.3 0 0 0-2.2 0z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span id="glossaryDeleteWarnText">删除后不可恢复，关联的术语将失去库归属。</span>
@@ -9223,6 +9608,38 @@
       <div class="modal-foot">
         <button class="modal-btn ghost" id="cancelGlossaryDeleteBtn" type="button">取消</button>
         <button class="modal-btn danger" id="confirmGlossaryDeleteBtn" type="button" disabled>确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 需求：删除术语前的「影响分析 + 风险自担」确认弹窗（下线状态同样允许删除） -->
+  <div class="modal-overlay" id="termDeleteModal" hidden>
+    <div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="termDeleteTitle">
+      <div class="modal-head">
+        <h3 id="termDeleteTitle">删除术语</h3>
+        <button class="modal-close" id="closeTermDeleteModal" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="modal-form" style="padding: 18px 24px 0;">
+        <div class="gdel-warn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 5.6v3.2M8 11.2h.01M6.9 2.5L1.9 11.4a1.3 1.3 0 0 0 1.13 2h9.94a1.3 1.3 0 0 0 1.13-2L9.1 2.5a1.3 1.3 0 0 0-2.2 0z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="termDeleteWarnText">删除后不可恢复。</span>
+        </div>
+        <div class="gdel-block">
+          <div class="gdel-block-title" id="termDeleteListTitle">将删除以下术语</div>
+          <ul class="gdel-lib-list" id="termDeleteTermList"></ul>
+        </div>
+        <div class="gdel-block">
+          <div class="gdel-block-title">影响分析</div>
+          <ul class="gdel-impact-list" id="termDeleteImpactList"></ul>
+        </div>
+        <label class="gdel-ack">
+          <input type="checkbox" id="termDeleteAck" />
+          <span>我已了解上述影响，确认删除，并自行承担由此带来的风险</span>
+        </label>
+      </div>
+      <div class="modal-foot">
+        <button class="modal-btn ghost" id="cancelTermDeleteBtn" type="button">取消</button>
+        <button class="modal-btn danger" id="confirmTermDeleteBtn" type="button" disabled>确认删除</button>
       </div>
     </div>
   </div>
@@ -9304,26 +9721,35 @@
         <h3 id="termImportTitle">术语导入</h3>
         <button class="term-form-close" id="closeTermImportBtn" type="button" aria-label="关闭">×</button>
       </div>
-      <div class="term-import-steps" aria-label="导入步骤">
-        <span class="term-import-step is-active" data-term-import-step="1">1 上传</span>
-        <span class="term-import-step" data-term-import-step="2">2 分类与模式</span>
-        <span class="term-import-step" data-term-import-step="3">3 预览校验</span>
-        <span class="term-import-step" data-term-import-step="4">4 确认</span>
-      </div>
+      <!-- 需求：导入向导重排 —— 步骤条带序号与连接线、上传区卡片化、模式卡片化、
+           预览页加统计卡、确认页补摘要清单，并统一各步骤高度避免弹窗跳动 -->
+      <ol class="term-import-steps" aria-label="导入步骤">
+        <li class="term-import-step is-active" data-term-import-step="1"><span class="term-import-step-no">1</span><span>上传文件</span></li>
+        <li class="term-import-step" data-term-import-step="2"><span class="term-import-step-no">2</span><span>分类与模式</span></li>
+        <li class="term-import-step" data-term-import-step="3"><span class="term-import-step-no">3</span><span>预览校验</span></li>
+        <li class="term-import-step" data-term-import-step="4"><span class="term-import-step-no">4</span><span>确认导入</span></li>
+      </ol>
       <div class="term-form-body">
         <div data-term-import-step-panel="1">
-          <p class="modal-hint">上传标准 CSV（术语名称、同义词、术语描述）。</p>
-          <div class="term-form-field">
-            <label for="termImportFileInput">选择 CSV 文件</label>
-            <input id="termImportFileInput" type="file" accept=".csv,text/csv,.txt" />
+          <div class="term-import-drop">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p class="term-import-drop-title">上传标准 CSV 文件</p>
+            <p class="term-import-drop-sub">表头需为：术语名称、同义词、术语描述（逗号分隔，UTF-8 编码）</p>
+            <div class="term-import-drop-actions">
+              <label class="term-import-file-btn">
+                <input id="termImportFileInput" type="file" accept=".csv,text/csv,.txt" />
+                <span>选择 CSV 文件</span>
+              </label>
+              <button class="btn-clear-filter" id="termImportUseSampleBtn" type="button">使用示例文件（含错误行）</button>
+            </div>
           </div>
-          <button class="btn-clear-filter" id="termImportUseSampleBtn" type="button">使用示例文件（含错误行）</button>
           <p class="term-import-file-status" id="termImportFileStatus">尚未载入文件。请选择 CSV，或点「使用示例文件」。</p>
         </div>
         <div data-term-import-step-panel="2" hidden>
-          <div class="term-form-field">
-            <label>目标数据域<span class="required">*</span></label>
-            <div class="metric-domain-picker" id="termImportDomainPicker">
+          <div class="term-import-two-col">
+            <div class="term-form-field">
+              <label>目标数据域<span class="required">*</span></label>
+              <div class="metric-domain-picker" id="termImportDomainPicker">
               <div class="metric-domain-trigger" id="termImportDomainTrigger">
                 <div class="metric-domain-tags" id="termImportDomainTags"></div>
                 <input class="metric-domain-search" id="termImportDomainSearch" type="search" placeholder="搜索并选择数据域，可多选" autocomplete="off" aria-label="选择数据域" />
@@ -9332,28 +9758,53 @@
                 <div class="metric-domain-list" id="termImportDomainList"></div>
               </div>
             </div>
+            <p class="term-import-field-tip">导入的术语将归入所选数据域，可在所属术语库中查看；留空则沿用当前术语库的域。</p>
           </div>
           <div class="term-form-field">
             <label>导入模式</label>
             <div class="term-import-modes">
-              <label><input type="radio" name="termImportMode" value="create" checked /> 新增（重名失败）</label>
-              <label><input type="radio" name="termImportMode" value="upsert" /> 增量更新（同名更新，无则新增）</label>
-              <label><input type="radio" name="termImportMode" value="replace" /> 覆盖（清空所选数据域后再写入）</label>
+              <label class="term-import-mode">
+                <input type="radio" name="termImportMode" value="create" checked />
+                <span class="term-import-mode-body">
+                  <span class="term-import-mode-title">新增（重名失败）</span>
+                  <span class="term-import-mode-desc">仅写入所选数据域下不存在同名术语的行；已存在则标记失败。</span>
+                </span>
+              </label>
+              <label class="term-import-mode">
+                <input type="radio" name="termImportMode" value="upsert" />
+                <span class="term-import-mode-body">
+                  <span class="term-import-mode-title">增量更新（同名更新，无则新增）</span>
+                  <span class="term-import-mode-desc">按「数据域 + 术语名称」匹配，命中则更新同义词与描述，未命中则新增。</span>
+                </span>
+              </label>
+              <label class="term-import-mode is-danger">
+                <input type="radio" name="termImportMode" value="replace" />
+                <span class="term-import-mode-body">
+                  <span class="term-import-mode-title">覆盖（清空所选数据域后再写入）</span>
+                  <span class="term-import-mode-desc">先删除所选数据域下的全部术语再写入本次合法行，会影响引用这些术语的资产。</span>
+                </span>
+              </label>
             </div>
+          </div>
           </div>
         </div>
         <div data-term-import-step-panel="3" hidden>
+          <div class="term-import-stats">
+            <div class="term-import-stat"><span class="term-import-stat-value" id="termImportStatTotal">0</span><span class="term-import-stat-label">解析行数</span></div>
+            <div class="term-import-stat is-ok"><span class="term-import-stat-value" id="termImportStatPass">0</span><span class="term-import-stat-label">可写入（新增 / 更新）</span></div>
+            <div class="term-import-stat is-error"><span class="term-import-stat-value" id="termImportStatErr">0</span><span class="term-import-stat-label">失败行</span></div>
+          </div>
           <p class="modal-hint" id="termImportSummary">请先上传 CSV</p>
           <div class="term-import-preview-wrap">
             <table class="term-import-preview-table">
               <thead>
                 <tr>
-                  <th>行号</th>
+                  <th class="col-line">行号</th>
                   <th>术语名称</th>
                   <th>同义词</th>
                   <th>描述</th>
-                  <th>结果</th>
-                  <th>原因</th>
+                  <th class="col-result">结果</th>
+                  <th class="col-reason">失败原因</th>
                 </tr>
               </thead>
               <tbody id="termImportPreviewBody"></tbody>
@@ -9361,6 +9812,7 @@
           </div>
         </div>
         <div data-term-import-step-panel="4" hidden>
+          <div class="term-import-confirm" id="termImportConfirm"></div>
           <p class="modal-hint">确认后仅写入合法行；新导入术语默认<strong>未上线</strong>，可在术语 Tab 中上线。</p>
         </div>
       </div>
@@ -9488,7 +9940,7 @@
   <script src="../shared/semantic-bridge.js?v=2026102301"></script>
   <script src="permission-module.js?v=2026100918"></script>
   <script src="metric-module.js?v=2026102312"></script>
-  <script src="term-module.js?v=2026102327"></script>
+  <script src="term-module.js?v=2026102334"></script>
   <script src="lineage-module.js?v=2026102312"></script>
   <script>
     const embedMode = new URLSearchParams(window.location.search).get("embed");
@@ -9531,12 +9983,34 @@
     let currentGlossaryId = localStorage.getItem(GLOSSARY_CURRENT_KEY) || glossaries[0]?.id || "";
     const persist = () => { try { localStorage.setItem(GLOSSARY_KEY, JSON.stringify(glossaries)); } catch (_) {} };
     const persistCur = () => { try { localStorage.setItem(GLOSSARY_CURRENT_KEY, currentGlossaryId || ""); } catch (_) {} };
+    /* 需求：删除术语库后术语不会消失，但要知道「在哪里」—— 数据域已无术语库的术语统一进「未归属术语」虚拟库 */
+    const ORPHAN_GLOSSARY_ID = "__orphan__";
     const getG = (id) => glossaries.find((g) => g.id === id) || null;
-    const getCurG = () => getG(currentGlossaryId);
+    /* 孤儿模式下返回一个虚拟术语库对象，保证 renderHeader / term-module 的 filterKey 口径一致 */
+    const getCurG = () => (currentGlossaryId === ORPHAN_GLOSSARY_ID ? { id: ORPHAN_GLOSSARY_ID, name: "未归属术语", description: "", domain: "" } : getG(currentGlossaryId));
     const createG = ({ name, description, domain }) => { const it = { id: `glossary-${Date.now()}-${Math.random().toString(36).slice(2,6)}`, name, description: description || "", domain, creator: "系统管理员", createdAt: glossaryNowStamp() }; glossaries.unshift(it); persist(); return it; };
-    const deleteG = (id) => { glossaries = glossaries.filter((g) => g.id !== id); persist(); if (currentGlossaryId === id) { currentGlossaryId = glossaries[0]?.id || ""; persistCur(); } };
+    const deleteG = (id) => { glossaries = glossaries.filter((g) => g.id !== id); persist(); if (currentGlossaryId === id) { currentGlossaryId = glossaries[0]?.id || ORPHAN_GLOSSARY_ID; persistCur(); } };
     const updateG = (id, patch) => { const i = glossaries.findIndex((g) => g.id === id); if (i < 0) return null; glossaries[i] = { ...glossaries[i], ...patch }; persist(); return glossaries[i]; };
-    const termCount = (id) => { const g = getG(id); if (!g) return 0; const ts = window.BizTermUI?.readTerms?.() || window.TermModule?.readTerms?.() || []; return ts.filter((t) => { const ds = t.domains || (t.domain || "").split(/[、,，]/).map((d)=>d.trim()).filter(Boolean); return ds.includes(g.domain); }).length; };
+    /* 未归属术语：术语的数据域没有任何现存术语库承接（删库导致，或术语域不在已有库中） */
+    function orphanTerms() {
+      const libDomains = new Set(glossaries.map((g) => g.domain).filter(Boolean));
+      const all = window.BizTermUI?.readTerms?.() || window.TermModule?.readTerms?.() || [];
+      return all.filter((t) => {
+        const ds = termDomainValues(t);
+        if (!ds.length) return false;
+        return !ds.some((d) => libDomains.has(d));
+      });
+    }
+    function orphanDomainList() {
+      return [...new Set(orphanTerms().flatMap((t) => termDomainValues(t)))];
+    }
+    const termCount = (id) => {
+      if (id === ORPHAN_GLOSSARY_ID) return orphanTerms().length;
+      const g = getG(id);
+      if (!g) return 0;
+      const ts = window.BizTermUI?.readTerms?.() || window.TermModule?.readTerms?.() || [];
+      return ts.filter((t) => { const ds = t.domains || (t.domain || "").split(/[、,，]/).map((d)=>d.trim()).filter(Boolean); return ds.includes(g.domain); }).length;
+    };
     /* 术语库目录：支持多选模式（勾选框 + 底部操作条），多选态与选中态独立 */
     let glossaryMultiMode = false;
     const glossaryMultiSelected = new Set();
@@ -9545,18 +10019,18 @@
       const el = document.getElementById("glossaryList");
       if (!el) return;
       el.classList.toggle("is-multi", glossaryMultiMode);
-      if (!glossaries.length) {
-        el.innerHTML = `<div class="glossary-empty">暂无术语库，点击上方「+ 添加」创建</div>`;
-        syncGlossaryMultiBar();
-        return;
+      const items = glossaries.map((g) => {
+        const active = g.id === currentGlossaryId ? " active" : "";
+        const checked = glossaryMultiSelected.has(g.id) ? " is-checked" : "";
+        return `<li class="glossary-item${active}${checked}" data-glossary-id="${g.id}" aria-selected="${glossaryMultiSelected.has(g.id) ? "true" : "false"}"><span class="gl-check" aria-hidden="true"></span><svg class="glossary-item-icon" viewBox="0 0 16 16" fill="none"><path d="M2 4h8l2 2h2v8H2V4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="glossary-item-name">${g.name}</span></li>`;
+      });
+      /* 需求：删除术语库后保留下来的术语要有去处 —— 数据域已无术语库的术语进「未归属术语」 */
+      const orphanCount = termCount(ORPHAN_GLOSSARY_ID);
+      if (orphanCount) {
+        const active = ORPHAN_GLOSSARY_ID === currentGlossaryId ? " active" : "";
+        items.push(`<li class="glossary-item is-orphan${active}" data-glossary-id="${ORPHAN_GLOSSARY_ID}" title="数据域已没有术语库的术语，删除术语库后会归入这里"><svg class="glossary-item-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2.5 14 13H2L8 2.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 6.4v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="glossary-item-name">未归属术语</span><span class="glossary-item-count">${orphanCount}</span></li>`);
       }
-      el.innerHTML = glossaries
-        .map((g) => {
-          const active = g.id === currentGlossaryId ? " active" : "";
-          const checked = glossaryMultiSelected.has(g.id) ? " is-checked" : "";
-          return `<li class="glossary-item${active}${checked}" data-glossary-id="${g.id}" aria-selected="${glossaryMultiSelected.has(g.id) ? "true" : "false"}"><span class="gl-check" aria-hidden="true"></span><svg class="glossary-item-icon" viewBox="0 0 16 16" fill="none"><path d="M2 4h8l2 2h2v8H2V4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="glossary-item-name">${g.name}</span></li>`;
-        })
-        .join("");
+      el.innerHTML = items.length ? items.join("") : `<div class="glossary-empty">暂无术语库，点击上方「+ 添加」创建</div>`;
       syncGlossaryMultiBar();
     }
 
@@ -9660,8 +10134,19 @@
       if (impact.mountCount) {
         items.push(`<li class="is-risk">术语上已固化的 <strong>${impact.mountCount}</strong> 项挂载资产（值域、标准 SQL、值层级等）将一并失去支撑</li>`);
       }
-      items.push(`<li>术语本身不会被删除，仍保留在术语资产中；若其他术语库为同一数据域，仍可在那里继续展示</li>`);
-      items.push(`<li>删除后不可恢复。${impact.remainAfter > 0 ? `剩余 ${impact.remainAfter} 个术语库` : "将没有任何术语库，术语中心显示空状态"}</li>`);
+      /* 术语去向说清楚：同域库继续展示 / 无库可归 → 「未归属术语」 */
+      const remainingLibs = glossaries.filter((g) => !impact.list.some((d) => d.id === g.id));
+      const sameDomainLibs = [...new Set(remainingLibs.filter((g) => impact.list.some((d) => d.domain === g.domain)).map((g) => g.name))];
+      if (impact.terms.length) {
+        items.push(
+          sameDomainLibs.length
+            ? `<li>术语本身不会被删除：这 <strong>${impact.terms.length}</strong> 个术语保留在术语资产中，并继续在同数据域的「${sameDomainLibs.join("、")}」中展示</li>`
+            : `<li>术语本身不会被删除：这 <strong>${impact.terms.length}</strong> 个术语的数据域将不再有术语库，删除后会归入左侧「<strong>未归属术语</strong>」，可新建同数据域术语库，或在术语编辑中调整数据域后重新归库</li>`
+        );
+      } else {
+        items.push(`<li>该库暂无术语，不会影响任何术语资产</li>`);
+      }
+      items.push(`<li>删除后不可恢复。${impact.remainAfter > 0 ? `剩余 ${impact.remainAfter} 个术语库` : "将没有任何术语库，术语仍可在「未归属术语」中查看"}</li>`);
       const impactList = document.getElementById("glossaryDeleteImpactList");
       if (impactList) impactList.innerHTML = items.join("");
       const warn = document.getElementById("glossaryDeleteWarnText");
@@ -9695,16 +10180,104 @@
       renderSide();
       renderHeader();
       if (document.getElementById("listCatalogTermPanel")?.classList.contains("graph-mode")) window.renderGlossaryGraph?.();
-      flashGlossaryTip(`已删除 ${names.length} 个术语库：${names.join("、")}；${impact.terms.length} 个术语失去库归属（术语本身保留）`);
+      const orphanCnt = orphanTerms().length;
+      flashGlossaryTip(
+        `已删除 ${names.length} 个术语库：${names.join("、")}；${impact.terms.length} 个术语保留在术语资产中` +
+          (orphanCnt ? `，其中数据域已无术语库的 ${orphanCnt} 个已归入「未归属术语」` : "")
+      );
     }
-    function renderHeader() { const lv = document.getElementById("listView"); const isTerm = lv?.dataset.activeCatalog === "term"; const a = document.getElementById("glossaryHeaderArea"); const gi = document.getElementById("glossaryHeaderInline"); const hint = document.getElementById("termToolbarHint"); if (!a) return; if (!isTerm) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } const g = getCurG(); if (!g) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } a.hidden = false; if (gi) { gi.hidden = false; const ni = document.getElementById("glossaryHeaderNameInline"); if (ni) ni.textContent = g.name; } if (hint) hint.style.display = "none"; const d = document.getElementById("glossaryDescText"); if (d) d.innerHTML = g.description ? g.description : `<span class=\"glossary-desc-empty-text\">暂无描述，点击编辑按钮补充术语库说明。</span>`; const mc = document.getElementById("glossaryMetaCreator"); if (mc) mc.textContent = g.creator || "系统管理员"; const mt = document.getElementById("glossaryMetaCreatedAt"); if (mt) mt.textContent = g.createdAt || "—"; const md = document.getElementById("glossaryMetaDomain"); if (md) md.textContent = g.domain || "—"; const c = document.getElementById("glossaryTabTermCount"); const cnt = termCount(g.id); if (c) c.textContent = cnt; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = cnt > 0; const tt = document.querySelector("#listCatalogTermPanel .term-table"); if (tt) tt.hidden = cnt === 0; if (g.domain && window.BizTermUI?.setDomainFilter) window.BizTermUI.setDomainFilter(g.domain); }
+    /* ===== 需求：删除术语前的「影响分析 + 风险自担」确认弹窗 =====
+       · 术语无论上线 / 下线都允许删除，删除是从术语资产中永久移除，不等同于「下线」
+       · 与删除术语库同一套交互：清单 + 影响分析 + 勾选承担风险后才可确认 */
+    let pendingTermDeleteIds = [];
+
+    function buildTermDeleteImpact(list) {
+      const onlineCount = list.filter((t) => t.online !== false).length;
+      const mountCount = list.reduce((n, t) => n + ((t.mounts || []).length), 0);
+      let refs = { metricCount: 0, fieldCount: 0 };
+      try {
+        refs = window.BizTermUI?.summarizeTermReferences?.(list.map((t) => t.id)) || refs;
+      } catch (_err) {
+        /* ignore */
+      }
+      return {
+        onlineCount,
+        offlineCount: list.length - onlineCount,
+        mountCount,
+        metricCount: refs.metricCount || 0,
+        fieldCount: refs.fieldCount || 0,
+      };
+    }
+
+    function openTermDeleteModal(ids) {
+      const list = (ids || []).map((id) => window.BizTermUI?.getTermById?.(id)).filter(Boolean);
+      if (!list.length) return;
+      pendingTermDeleteIds = list.map((t) => t.id);
+      const impact = buildTermDeleteImpact(list);
+      const MAX = 8;
+      const listEl = document.getElementById("termDeleteTermList");
+      if (listEl) {
+        listEl.innerHTML =
+          list
+            .slice(0, MAX)
+            .map((t) => {
+              const ds = String(t.domain || (t.domains || []).join("、") || "—");
+              return `<li><span class="gdel-lib-name">${escapeHtml(t.name)}</span><span class="gdel-lib-meta">数据域 ${escapeHtml(ds)} · ${t.online !== false ? "已上线" : "未上线"} · ${(t.mounts || []).length} 项挂载</span></li>`;
+            })
+            .join("") + (list.length > MAX ? `<li><span class="gdel-lib-meta">…等共 ${list.length} 个术语</span></li>` : "");
+      }
+      const titleEl = document.getElementById("termDeleteTitle");
+      if (titleEl) titleEl.textContent = list.length > 1 ? `批量删除术语（${list.length} 个）` : "删除术语";
+      const listTitleEl = document.getElementById("termDeleteListTitle");
+      if (listTitleEl) listTitleEl.textContent = `将删除以下术语（${list.length} 个）`;
+      const items = [];
+      items.push(`<li class="is-risk">将删除 <strong>${list.length}</strong> 个术语（已上线 ${impact.onlineCount} 个、未上线 ${impact.offlineCount} 个）；删除是从术语资产中永久移除，不同于「下线」</li>`);
+      if (impact.metricCount || impact.fieldCount) {
+        items.push(`<li class="is-risk">引用这些术语的 <strong>${impact.metricCount}</strong> 个指标、<strong>${impact.fieldCount}</strong> 个字段，智能消费端应用解析将失效</li>`);
+      } else {
+        items.push(`<li>未发现引用这些术语的指标 / 字段</li>`);
+      }
+      if (impact.mountCount) {
+        items.push(`<li class="is-risk">术语上已固化的 <strong>${impact.mountCount}</strong> 项挂载资产（模型 / 数据集 / 字段 / 指标 / 维度）将一并失去支撑</li>`);
+      }
+      items.push(`<li>删除后不可恢复：术语将从术语资产、检索与筛选中彻底移除，也无法再被引用或挂载</li>`);
+      items.push(`<li>若只想停止使用而非移除，可改用「批量上下线 → 下线」：术语仍保留在资产中，只是不参与智能消费端应用解析</li>`);
+      const impactEl = document.getElementById("termDeleteImpactList");
+      if (impactEl) impactEl.innerHTML = items.join("");
+      const warn = document.getElementById("termDeleteWarnText");
+      if (warn) warn.textContent = `删除后不可恢复：这 ${list.length} 个术语将从术语资产中永久移除（上线 / 下线状态都允许删除，请确认已了解下列影响）。`;
+      const ack = document.getElementById("termDeleteAck");
+      if (ack) ack.checked = false;
+      const confirmBtn = document.getElementById("confirmTermDeleteBtn");
+      if (confirmBtn) confirmBtn.disabled = true;
+      const modal = document.getElementById("termDeleteModal");
+      if (modal) modal.hidden = false;
+    }
+
+    function closeTermDeleteModal() {
+      const modal = document.getElementById("termDeleteModal");
+      if (modal) modal.hidden = true;
+      pendingTermDeleteIds = [];
+    }
+
+    function confirmTermDelete() {
+      const ids = [...pendingTermDeleteIds];
+      if (!ids.length) return;
+      window.BizTermUI?.batchDelete?.(ids);
+      closeTermDeleteModal();
+      setTip(ids.length > 1 ? `已删除 ${ids.length} 个术语，相关引用一并失效` : "已删除术语，相关引用一并失效");
+    }
+    /* 供 term-module 单行删除调用 */
+    window.openTermDeleteModal = openTermDeleteModal;
+
+    function renderHeader() { const lv = document.getElementById("listView"); const isTerm = lv?.dataset.activeCatalog === "term"; const a = document.getElementById("glossaryHeaderArea"); const gi = document.getElementById("glossaryHeaderInline"); const hint = document.getElementById("termToolbarHint"); if (!a) return; if (!isTerm) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } const g = getCurG(); const isOrphan = currentGlossaryId === ORPHAN_GLOSSARY_ID; if (!g) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } a.hidden = false; if (gi) { gi.hidden = false; const ni = document.getElementById("glossaryHeaderNameInline"); if (ni) ni.textContent = g.name; } if (hint) hint.style.display = "none"; const d = document.getElementById("glossaryDescText"); if (d) d.innerHTML = g.description ? g.description : `<span class=\"glossary-desc-empty-text\">暂无描述，点击编辑按钮补充术语库说明。</span>`; const mc = document.getElementById("glossaryMetaCreator"); if (mc) mc.textContent = g.creator || "系统管理员"; const mt = document.getElementById("glossaryMetaCreatedAt"); if (mt) mt.textContent = g.createdAt || "—"; const md = document.getElementById("glossaryMetaDomain"); if (md) md.textContent = g.domain || "—"; if (isOrphan) { const dd = document.getElementById("glossaryDescText"); if (dd) dd.innerHTML = `<span class="glossary-desc-empty-text">这些术语的数据域已没有对应术语库（删除术语库或数据域不在已有库中）。术语本身仍保留在术语资产中：可新建同数据域术语库，或在术语编辑中调整数据域后归入现有术语库。</span>`; const md2 = document.getElementById("glossaryMetaDomain"); if (md2) md2.textContent = "未归属"; } const c = document.getElementById("glossaryTabTermCount"); const cnt = termCount(isOrphan ? ORPHAN_GLOSSARY_ID : g.id); if (c) c.textContent = cnt; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = cnt > 0; const tt = document.querySelector("#listCatalogTermPanel .term-table"); if (tt) tt.hidden = cnt === 0; if (isOrphan) { if (window.BizTermUI?.setDomainFilter) window.BizTermUI.setDomainFilter(orphanDomainList()); } else if (g.domain && window.BizTermUI?.setDomainFilter) window.BizTermUI.setDomainFilter(g.domain); }
     function selectG(id) { currentGlossaryId = id; persistCur(); renderSide(); renderHeader(); }
     function openGDrawer(mode, id) { const isEdit = mode === "edit"; editingGlossaryId = isEdit ? id || getCurG()?.id || "" : ""; const dr = document.getElementById("glossaryCreateDrawer"); const bd = document.getElementById("drawerBackdrop"); const n = document.getElementById("glossaryCreateName"); const d = document.getElementById("glossaryCreateDesc"); const o = document.getElementById("glossaryCreateDomain"); const hd = dr?.querySelector(".drawer-head span"); if (hd) hd.textContent = isEdit ? "编辑术语库" : "新建术语库"; if (!dr) return; const labels = (window.collectUniqueDomainLabels && window.collectUniqueDomainLabels()) || ["收入管理","成本管理","经营管理","合同管理","工程技术"]; if (o) { o.innerHTML = `<option value=\"\">请选择数据域</option>` + labels.map((x)=>`<option value=\"${x}\">${x}</option>`).join(""); if (!isEdit) o.value = ""; } if (isEdit && editingGlossaryId) { const g = getG(editingGlossaryId); if (n) n.value = g?.name || ""; if (d) d.value = g?.description || ""; if (o && g?.domain) o.value = g.domain; } else { if (n) n.value = ""; if (d) d.value = ""; } dr.hidden = false; if (bd) bd.hidden = false; if (n) setTimeout(()=>n.focus(), 60); }
     function closeGDrawer() { editingGlossaryId = ""; const dr = document.getElementById("glossaryCreateDrawer"); const bd = document.getElementById("drawerBackdrop"); if (dr) dr.hidden = true; if (bd) bd.hidden = true; }
     function saveGDrawer() { const n = (document.getElementById("glossaryCreateName")?.value || "").trim(); const d = (document.getElementById("glossaryCreateDesc")?.value || "").trim(); const o = (document.getElementById("glossaryCreateDomain")?.value || "").trim(); if (!n) { window.alert("请填写术语库名称"); document.getElementById("glossaryCreateName")?.focus(); return; } if (!o) { window.alert("请选择所属数据域"); document.getElementById("glossaryCreateDomain")?.focus(); return; } if (editingGlossaryId) { updateG(editingGlossaryId, { name: n, description: d, domain: o }); selectG(editingGlossaryId); } else { const it = createG({ name: n, description: d, domain: o }); selectG(it.id); } closeGDrawer(); }
     /* 需求调整：术语 catalog 下，工具栏（搜索/下载模板等）移至 glossary 页签行下方，且仅在「术语」页签显示；切换 关系图谱/活动信息流 或其他 catalog 时恢复原位 */
     function syncTermToolbarState() { const lv = document.getElementById("listView"); const toolbar = document.querySelector("#listView .toolbar"); if (!lv || !toolbar) return; const isTerm = lv.dataset.activeCatalog === "term"; const tabRow = document.getElementById("glossaryTabRow"); if (isTerm && tabRow) { if (toolbar.parentElement !== tabRow) tabRow.appendChild(toolbar); const tabs = document.querySelectorAll("#glossaryTabs .glossary-tab"); const activeIdx = Array.from(tabs).findIndex((t) => t.classList.contains("active")); toolbar.style.display = activeIdx === 0 ? "" : "none"; } else { toolbar.style.display = ""; if (lv.firstElementChild !== toolbar) lv.prepend(toolbar); } }
-    function initGlossary() { const lv = document.getElementById("listView"); const layout = document.querySelector(".layout"); const content = document.querySelector(".content"); const isTerm = lv?.dataset.activeCatalog === "term"; const gs = document.getElementById("glossarySideContent"); const ts = document.getElementById("knowledgeTreeContent"); const se = document.querySelector(".side"); if (gs) gs.hidden = !isTerm; if (ts) ts.hidden = isTerm; if (se) { if (isTerm) { se.style.cssText = "display:flex;flex-direction:column;width:240px;min-width:240px;border-right:1px solid #e5e8ef;background:#fff;flex-shrink:0;"; } else { se.style.display = "none"; } } /* 关键：layout 切换为 flex 两列布局，让 side 显示在 content 左侧 */ if (layout) { if (isTerm) { layout.style.cssText = "display:flex;align-items:stretch;min-width:0;"; } else { layout.style.cssText = ""; } } if (content && isTerm) { content.style.minWidth = "0"; } renderSide(); renderHeader(); syncTermToolbarState(); document.getElementById("glossaryList")?.addEventListener("click", (e) => { const it = e.target.closest(".glossary-item"); if (it?.dataset.glossaryId) { if (glossaryMultiMode) { toggleGlossaryChecked(it.dataset.glossaryId); return; } selectG(it.dataset.glossaryId); /* 需求：图谱页签下切换术语库时同步重渲染关系图谱 */ if (document.getElementById("listCatalogTermPanel")?.classList.contains("graph-mode")) window.renderGlossaryGraph?.(); } }); document.getElementById("glossaryAddBtn")?.addEventListener("click", openGDrawer);
+    function initGlossary() { const lv = document.getElementById("listView"); const layout = document.querySelector(".layout"); const content = document.querySelector(".content"); const isTerm = lv?.dataset.activeCatalog === "term"; const gs = document.getElementById("glossarySideContent"); const ts = document.getElementById("knowledgeTreeContent"); const se = document.querySelector(".side"); if (gs) gs.hidden = !isTerm; if (ts) ts.hidden = isTerm; if (se) { if (isTerm) { se.style.cssText = "display:flex;flex-direction:column;width:240px;min-width:240px;border-right:1px solid #e5e8ef;background:#fff;flex-shrink:0;"; } else { se.style.display = "none"; } } /* 关键：layout 切换为 flex 两列布局，让 side 显示在 content 左侧 */ if (layout) { if (isTerm) { layout.style.cssText = "display:flex;align-items:stretch;min-width:0;"; } else { layout.style.cssText = ""; } } if (content && isTerm) { content.style.minWidth = "0"; } renderSide(); renderHeader(); syncTermToolbarState(); document.getElementById("glossaryList")?.addEventListener("click", (e) => { const it = e.target.closest(".glossary-item"); if (it?.dataset.glossaryId) { if (glossaryMultiMode) { if (it.dataset.glossaryId === ORPHAN_GLOSSARY_ID) return; toggleGlossaryChecked(it.dataset.glossaryId); return; } selectG(it.dataset.glossaryId); /* 需求：图谱页签下切换术语库时同步重渲染关系图谱 */ if (document.getElementById("listCatalogTermPanel")?.classList.contains("graph-mode")) window.renderGlossaryGraph?.(); } }); document.getElementById("glossaryAddBtn")?.addEventListener("click", openGDrawer);
             /* 术语库目录多选删除 */
             document.getElementById("glossaryMultiToggleBtn")?.addEventListener("click", () => setGlossaryMultiMode(!glossaryMultiMode));
             document.getElementById("glossaryMultiAllBtn")?.addEventListener("click", () => {
@@ -9725,6 +10298,17 @@
             document.getElementById("glossaryDeleteModal")?.addEventListener("click", (e) => {
               if (e.target.id === "glossaryDeleteModal") closeGlossaryDeleteModal();
             });
+            /* 删除术语：影响分析 + 风险自担，复用删除术语库的交互 */
+            document.getElementById("closeTermDeleteModal")?.addEventListener("click", closeTermDeleteModal);
+            document.getElementById("cancelTermDeleteBtn")?.addEventListener("click", closeTermDeleteModal);
+            document.getElementById("confirmTermDeleteBtn")?.addEventListener("click", confirmTermDelete);
+            document.getElementById("termDeleteAck")?.addEventListener("change", (e) => {
+              const btn = document.getElementById("confirmTermDeleteBtn");
+              if (btn) btn.disabled = !e.target.checked;
+            });
+            document.getElementById("termDeleteModal")?.addEventListener("click", (e) => {
+              if (e.target.id === "termDeleteModal") closeTermDeleteModal();
+            });
             /* Esc：先关弹窗，再退出多选 */
             document.addEventListener("keydown", (e) => {
               if (e.key !== "Escape") return;
@@ -9732,9 +10316,24 @@
                 closeGlossaryDeleteModal();
                 return;
               }
+              if (!document.getElementById("termDeleteModal")?.hidden) {
+                closeTermDeleteModal();
+                return;
+              }
               if (glossaryMultiMode) setGlossaryMultiMode(false);
             }); document.getElementById("closeGlossaryCreateBtn")?.addEventListener("click", closeGDrawer); document.getElementById("glossaryCreateCancelBtn")?.addEventListener("click", closeGDrawer); document.getElementById("glossaryCreateSaveBtn")?.addEventListener("click", saveGDrawer); document.getElementById("glossaryNewTermBtn")?.addEventListener("click", () => document.getElementById("termCreateBtn")?.click()); document.querySelectorAll("#glossaryTabs .glossary-tab").forEach((tab, idx) => tab.addEventListener("click", () => { document.querySelectorAll("#glossaryTabs .glossary-tab").forEach(t => t.classList.remove("active")); tab.classList.add("active"); /* 需求：术语/关系图谱 页签切换内容区（graph-mode 由 CSS 控制表格与图谱显隐），进入图谱时实时渲染 */ const isGraph = idx === 1; document.getElementById("listCatalogTermPanel")?.classList.toggle("graph-mode", isGraph); if (isGraph) window.renderGlossaryGraph?.(); syncTermToolbarState(); })); if (lv && window.MutationObserver) { new MutationObserver(() => { const nt = lv.dataset.activeCatalog === "term"; const layout = document.querySelector(".layout"); if (gs) gs.hidden = !nt; if (ts) ts.hidden = nt; if (se) { if (nt) { se.style.cssText = "display:flex;flex-direction:column;width:240px;min-width:240px;border-right:1px solid #e5e8ef;background:#fff;flex-shrink:0;"; } else { se.style.display = "none"; } } if (layout) { if (nt) { layout.style.cssText = "display:flex;align-items:stretch;min-width:0;"; } else { layout.style.cssText = ""; } } renderHeader(); syncTermToolbarState(); }).observe(lv, { attributes: true, attributeFilter: ["data-active-catalog"] }); } }
-    window.GlossaryUI = { renderSide, renderHeader, selectG, openGDrawer, getCurG };
+    /* 术语所在路径：术语中心 / 术语库名 / 术语名；该数据域没有术语库时显示「未归属术语」。
+       用于名称重名 / 同义词冲突提示，让用户知道冲突术语在「哪里」 */
+    function termLocation(term) {
+      const domains = Array.isArray(term?.domains) && term.domains.length
+        ? term.domains
+        : String(term?.domain || "").split(/[、,，]/).map((d) => d.trim()).filter(Boolean);
+      const libs = glossaries.filter((g) => domains.includes(g.domain)).map((g) => g.name);
+      const node = libs.length ? libs.join("、") : "未归属术语";
+      return { libs, path: `术语中心 / ${node} / ${term?.name || "—"}` };
+    }
+
+    window.GlossaryUI = { renderSide, renderHeader, selectG, openGDrawer, getCurG, termLocation };
 
     /* ===== 需求：术语库「关系图谱」页签 —— 展示当前术语库全部术语节点及其挂载的字段、指标、模型 ===== */
     (function initGlossaryRelationGraph() {
@@ -12383,6 +12982,9 @@
       syncModelRowFilterBar(currentModelName);
       switchModelTab("relation");
       initFeatureHelpTips();
+      /* 打开模型即同步语义桥：把画布表 / 字段设置落库，
+         术语「关联资产」的数据集与字段候选（按模型过滤）随之可用，无需手动保存 */
+      syncCurrentModelToBridge();
     }
 
     document.getElementById("modelRowFilterSaveBtn")?.addEventListener("click", () => {
@@ -13759,20 +14361,26 @@
         return;
       }
       if (action === "delete") {
+        /* 需求：术语只有下线状态才可删除，批量删除同样适用（行内按钮也置灰） */
+        if (catalog === "term") {
+          const deletable = selected.ids.filter((id) => {
+            const t = window.BizTermUI?.getTermById?.(id);
+            return t && t.online === false;
+          });
+          const skipped = selected.ids.length - deletable.length;
+          if (!deletable.length) {
+            setTip(`选中的 ${selected.count} 个术语均处于上线状态，下线后才可删除`);
+            return;
+          }
+          window.openTermDeleteModal?.(deletable);
+          if (skipped) setTip(`已跳过 ${skipped} 个上线术语，仅删除下线术语`);
+          return;
+        }
         const names = { "data-model": "模型", metric: "指标", term: "术语", document: "文档" };
         const label = names[catalog] || "数据";
-        let deleteConfirmMsg = `确定删除选中的 ${selected.count} 条${label}吗？`;
-        if (catalog === "term") {
-          const summary = window.BizTermUI?.summarizeTermReferences?.(selected.ids);
-          if (summary) {
-            deleteConfirmMsg += `\n选中术语共挂载 ${summary.metricCount} 个指标、${summary.fieldCount} 个字段，删除后相关挂载引用将一并失效。`;
-          }
-        }
-        if (!window.confirm(deleteConfirmMsg)) return;
+        if (!window.confirm(`确定删除选中的 ${selected.count} 条${label}吗？删除后不可恢复。`)) return;
         if (catalog === "metric") {
           window.BizMetricUI?.batchDelete?.(selected.ids);
-        } else if (catalog === "term") {
-          window.BizTermUI?.batchDelete?.(selected.ids);
         } else {
           applyListRowsDelete(selected.rows, catalog);
           setTip(`已删除 ${selected.count} 条${label}`);
@@ -14146,12 +14754,63 @@
       return `bm-${catalog}-${window.SemanticBridge?.slugify?.(name) || name}`;
     }
 
+    /* 采集关联配置画布上的表卡片 → 数据集候选（名称 + 描述），同名卡去重 */
+    function collectCanvasDatasets() {
+      const canvas = document.getElementById("basicRelationCanvas");
+      if (!canvas) return [];
+      const out = [];
+      const seen = new Set();
+      canvas.querySelectorAll(".join-table-card").forEach((card) => {
+        const name = (card.querySelector(".join-table-name")?.textContent || card.dataset.previewKey || "").trim();
+        if (!name || seen.has(name)) return;
+        seen.add(name);
+        out.push({
+          id: `ds-${window.SemanticBridge?.slugify?.(name) || name}`,
+          name,
+          domain: "biz",
+          description: (card.querySelector(".join-table-desc")?.textContent || "").trim(),
+          dimensions: [],
+          measures: [],
+          metrics: [],
+        });
+      });
+      return out;
+    }
+
+    /* 采集字段设置：每个 field-group（组标题 = 表名）下的字段行 → { table, fields }
+       行结构：序号 | 英文名称 | 别名/中文名称 | 字段类型 | 关联父ID | 语义类型 | 快捷开关 */
+    function collectModelFieldSettings() {
+      const pane = document.querySelector('.model-pane[data-model-pane="fields"]');
+      if (!pane) return [];
+      const groups = [];
+      pane.querySelectorAll(".field-group").forEach((group) => {
+        const table = (group.querySelector(".field-group-title")?.textContent || "").trim();
+        const fields = [...(group.querySelector(".field-table")?.querySelectorAll("tbody tr") || [])]
+          .map((row) => {
+            const name = (row.cells?.[2]?.textContent || "").replace(/关联字段/g, "").replace(/\s+/g, " ").trim();
+            if (!name) return null;
+            return {
+              name,
+              alias: (row.cells?.[3]?.textContent || "").replace(/\s+/g, " ").trim(),
+              dataType: (row.cells?.[4]?.textContent || "").trim(),
+              kind: (row.querySelector("td.col-semantic select, td .col-semantic select")?.value || "").trim(),
+            };
+          })
+          .filter(Boolean);
+        if (table && fields.length) groups.push({ table, fields });
+      });
+      return groups;
+    }
+
     function syncCurrentModelToBridge(options = {}) {
       if (!window.SemanticBridge || !currentModelName) return null;
       const store = window.SemanticBridge.ensureSeed();
       const existing = store.models.find((m) => m.name === currentModelName);
       const id = existing?.id || resolveBridgeModelId(currentModelName, currentModelType);
       const catalog = window.SemanticBridge.catalogOf(currentModelType);
+      /* 画布表（关联配置里的 join-table-card）→ 数据集；仅基础模型画布可见时采集，
+         避免域模型打开时把静态画布 mock 覆盖到 seed datasets 上 */
+      const canvasDatasets = currentModelType === "基础模型" ? collectCanvasDatasets() : [];
       const model = {
         id,
         name: currentModelName,
@@ -14163,13 +14822,16 @@
           ? Boolean(options.online)
           : (existing?.online !== false),
         boardId: existing?.boardId || "",
-        domain: existing?.domain || "",
+        /* 保留列表行的数据域：按当前模型名回查，避免打开/保存时把 domain 清空 */
+        domain: existing?.domain
+          || window.MetricModule?.listBusinessModels?.().find((m) => m.name === currentModelName)?.domain
+          || "",
         relations: existing?.relations || [],
         lineage: existing?.lineage || {
           upstream: ["（待接入血缘平台）"],
           downstream: ["智能消费端应用"],
         },
-        datasets: existing?.datasets || [{
+        datasets: (canvasDatasets.length ? canvasDatasets : existing?.datasets) || [{
           id: `ds-${window.SemanticBridge.slugify(currentModelName)}`,
           name: `${currentModelName}数据集`,
           domain: "biz",
@@ -14179,6 +14841,8 @@
           measures: [],
           metrics: [{ name: "金额合计", dataType: "number", synonyms: ["金额"], description: "金额指标", formula: "SUM(金额)", businessCaliber: "以业务建模口径为准", fqn: "warehouse.dwd.fact.amount" }],
         }],
+        /* 字段设置按 field-group 随模型落库，术语「关联资产」的字段候选由此读取 */
+        fieldSettings: collectModelFieldSettings(),
         docIds: existing?.docIds || [],
         primaryDocId: existing?.primaryDocId || null,
       };
