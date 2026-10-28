@@ -877,6 +877,74 @@
     .term-batch-chip button:hover { color: #1e5fb3; }
     .term-batch-none { color: #98a2b3; font-size: 12px; }
 
+    /* 行内「添加资源」下拉：按钮 + 搜索 + 分组候选 */
+    .term-batch-add {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .term-batch-add-btn {
+      padding: 3px 10px;
+      border: 1px dashed #b6c6dd;
+      border-radius: 4px;
+      background: #fff;
+      color: #4262a4;
+      font-size: 12px;
+      line-height: 1.4;
+      cursor: pointer;
+    }
+    .term-batch-add-btn:hover { border-color: #1677d2; color: #1677d2; background: #f7fbff; }
+    .term-batch-add-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 90;
+      width: 280px;
+      padding: 8px;
+      border: 1px solid #dfe5ee;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.16);
+    }
+    .term-batch-add-search {
+      width: 100%;
+      box-sizing: border-box;
+      height: 28px;
+      margin-bottom: 6px;
+      padding: 0 8px;
+      border: 1px solid #d0d5dd;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #344054;
+    }
+    .term-batch-add-search:focus { border-color: #1677d2; outline: none; }
+    .term-batch-add-opts { max-height: 200px; overflow: auto; }
+    .term-batch-add-group {
+      padding: 6px 8px 2px;
+      color: #98a2b3;
+      font-size: 11px;
+    }
+    .term-batch-add-opt {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      color: #344054;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .term-batch-add-opt:hover { background: #f0f6ff; color: #1677d2; }
+    .term-batch-add-opt i {
+      flex: 0 0 auto;
+      padding: 0 4px;
+      border-radius: 3px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-style: normal;
+      font-size: 10.5px;
+    }
+
     .term-batch-run {
       display: flex;
       align-items: center;
@@ -5175,6 +5243,125 @@
       margin: 4px 0 6px;
     }
 
+    /* 可搜索下拉：原生 select 隐藏，用「输入框 + 过滤列表」替代（选中后仍回写 select.value） */
+    .ssel {
+      position: relative;
+      display: block;
+      width: 100%;
+    }
+
+    .ssel + select[hidden] {
+      display: none !important;
+    }
+
+    .term-enh-control .term-vb-row .ssel {
+      flex: 1 1 120px;
+      min-width: 90px;
+    }
+
+    .ssel-input {
+      width: 100%;
+      box-sizing: border-box;
+      height: 32px;
+      padding: 0 26px 0 10px;
+      border: 1px solid #d0d5dd;
+      border-radius: 4px;
+      background: #fff;
+      font: inherit;
+      font-size: 13px;
+      color: #344054;
+      cursor: pointer;
+    }
+
+    .ssel-input:focus {
+      border-color: #1677d2;
+      outline: none;
+    }
+
+    .ssel::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      margin-top: -2px;
+      border: 4px solid transparent;
+      border-top-color: #98a2b3;
+      pointer-events: none;
+    }
+
+    .ssel-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 80;
+      width: max(100%, 200px);
+      max-height: 240px;
+      overflow: auto;
+      padding: 4px 0;
+      border: 1px solid #dfe5ee;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.16);
+    }
+
+    .ssel-option {
+      padding: 6px 10px;
+      color: #344054;
+      font-size: 12px;
+      line-height: 1.5;
+      cursor: pointer;
+    }
+
+    .ssel-option:hover,
+    .ssel-option.is-active {
+      background: #f0f6ff;
+    }
+
+    .ssel-option.is-selected {
+      color: #1677d2;
+      font-weight: 600;
+    }
+
+    .ssel-option.is-disabled {
+      color: #98a2b3;
+      cursor: not-allowed;
+    }
+
+    .ssel-group {
+      padding: 6px 10px 2px;
+      color: #98a2b3;
+      font-size: 11px;
+    }
+
+    .ssel-empty {
+      padding: 8px 10px;
+      color: #98a2b3;
+      font-size: 12px;
+    }
+
+    /* 跟随各容器原有下拉的尺寸 */
+    .field .ssel {
+      width: 128px;
+    }
+
+    .field .ssel-input {
+      height: 26px;
+    }
+
+    .lineage-filter-field .ssel {
+      width: auto;
+      min-width: 132px;
+      max-width: 180px;
+    }
+
+    .lineage-filter-field .ssel-input {
+      height: 28px;
+    }
+
+    .modal-field .ssel-input {
+      height: 30px;
+    }
+
     .term-detail-panel[hidden] {
       display: none !important;
     }
@@ -5196,6 +5383,68 @@
       color: #101828;
       font-size: 13px;
       font-weight: 600;
+    }
+
+    /* 卡片标题旁的说明图标：鼠标移入展示规则气泡 */
+    .td-help-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      margin-left: 5px;
+      border: 1px solid #cdd5df;
+      border-radius: 50%;
+      background: #fff;
+      color: #667085;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      vertical-align: middle;
+      cursor: help;
+      position: relative;
+    }
+
+    .td-help-dot:hover,
+    .td-help-dot:focus {
+      border-color: #1677d2;
+      color: #1677d2;
+      outline: none;
+    }
+
+    .td-help-pop {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: -4px;
+      z-index: 40;
+      width: 320px;
+      padding: 10px 12px;
+      border: 1px solid #dfe5ee;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.16);
+      color: #344054;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.7;
+      text-align: left;
+      white-space: normal;
+      cursor: default;
+    }
+
+    .td-help-dot:hover .td-help-pop,
+    .td-help-dot:focus .td-help-pop {
+      display: block;
+    }
+
+    .td-help-pop ul {
+      margin: 6px 0 0 16px;
+      padding: 0;
+    }
+
+    .td-help-pop li {
+      margin-bottom: 3px;
     }
 
     .td-grid {
@@ -8569,9 +8818,8 @@
                       </div>
                     </div>
                   </th>
-                  <th style="width:10%">生效模型</th>
                   <th style="width:10%">同义词</th>
-                  <th style="width:14%">术语描述</th>
+                  <th style="width:24%">术语描述</th>
                   <th style="width:7%">创建人</th>
                   <th style="width:9%">创建时间</th>
                   <th class="col-online">
@@ -8791,7 +9039,7 @@
           </div>
 
           <div class="term-edit-body">
-            <!-- 需求：创建 / 编辑术语改为左右布局，左列基础信息 + 上级术语 / 值域绑定，右列关联资产 -->
+            <!-- 需求：创建 / 编辑术语改为左右布局，左列基础信息 + 值域绑定，右列关联资产 -->
             <div class="term-edit-columns">
               <div class="term-edit-col is-main">
                 <div class="term-edit-grid">
@@ -8823,7 +9071,7 @@
                 <textarea id="termFormDescription" placeholder="可填写业务规则、统计口径、排除项等；通用知识类术语将据此由 AI 智能解析"></textarea>
               </div>
                 </div>
-                <!-- 上级术语 / 值域绑定 / 保存确认条由 term-module 注入 -->
+                <!-- 值域绑定 / 保存确认条由 term-module 注入（上级术语已移除） -->
                 <div id="termFormEnhanceHost"></div>
               </div>
               <aside class="term-edit-col is-side">
@@ -9848,7 +10096,7 @@
                 <div class="metric-domain-list" id="catalogBatchTermDomainList"></div>
               </div>
             </div>
-            <p class="modal-hint">可选择多个数据域；移动后保留与所选域匹配的生效模型。</p>
+            <p class="modal-hint">可选择多个数据域；移动后保留与所选域匹配的关联资产。</p>
           </div>
         </div>
         <div id="catalogBatchOnlinePanel" hidden>
@@ -9876,7 +10124,7 @@
             </div>
           </div>
           <div class="term-form-field" id="catalogBatchMountPreviewField">
-            <label>推荐结果（可逐条调整）</label>
+            <label>关联资源（可逐条调整）</label>
             <p class="term-batch-scope" id="catalogBatchMountScope"></p>
             <div class="term-batch-preview" id="catalogBatchMountPreview"></div>
           </div>
@@ -10132,7 +10380,7 @@
         items.push(`<li>未发现引用这些术语的指标 / 字段</li>`);
       }
       if (impact.mountCount) {
-        items.push(`<li class="is-risk">术语上已固化的 <strong>${impact.mountCount}</strong> 项挂载资产（值域、标准 SQL、值层级等）将一并失去支撑</li>`);
+        items.push(`<li class="is-risk">术语上已固化的 <strong>${impact.mountCount}</strong> 项挂载资产（值域、标准 SQL 等）将一并失去支撑</li>`);
       }
       /* 术语去向说清楚：同域库继续展示 / 无库可归 → 「未归属术语」 */
       const remainingLibs = glossaries.filter((g) => !impact.list.some((d) => d.id === g.id));
@@ -10402,7 +10650,7 @@
             nodes.push(node);
           });
         };
-        place("model", data.models, (m) => ({ id: "mo:" + m.name, type: "model", label: m.name, sub: m.via === "field" ? "字段所属模型" : "术语生效模型" }));
+        place("model", data.models, (m) => ({ id: "mo:" + m.name, type: "model", label: m.name, sub: m.via === "field" ? "字段所属模型" : "术语关联模型" }));
         place("field", data.fields, (f) => ({ id: "f:" + f.key, type: "field", label: f.field, sub: f.modelName }));
         place("term", data.terms, (t) => ({ id: "t:" + t.id, type: "term", label: t.name, sub: (t.domains && t.domains[0]) || t.domain || "" }));
         place("metric", data.metrics, (m) => ({ id: "m:" + m.id, type: "metric", label: m.name, sub: m.code || "指标" }));
@@ -10465,7 +10713,7 @@
         const { termsOnly = false, mountedIds, keepMounted = true, allTerms = false } = opts;
         const items = [];
         if (!termsOnly) {
-          data.models.forEach((m) => items.push({ type: "model", make: () => ({ id: "mo:" + m.name, type: "model", label: m.name, sub: m.via === "field" ? "字段所属模型" : "术语生效模型" }) }));
+          data.models.forEach((m) => items.push({ type: "model", make: () => ({ id: "mo:" + m.name, type: "model", label: m.name, sub: m.via === "field" ? "字段所属模型" : "术语关联模型" }) }));
           data.fields.forEach((f) => items.push({ type: "field", make: () => ({ id: "f:" + f.key, type: "field", label: f.field, sub: f.modelName }) }));
         }
         (data.terms || [])
@@ -13998,7 +14246,8 @@
       if (!catalogBatchMountPreviewEl) return;
       const data = window.BizTermUI?.previewBatchMount?.(ids, types);
       const items = data?.items || [];
-      batchMountContext = { ids: [...ids], types: [...types], items, off: new Set(), dropped: new Set() };
+      const autoOn = Boolean(catalogBatchMountAutoEl?.checked);
+      batchMountContext = { ids: [...ids], types: [...types], items, off: new Set(), dropped: new Set(), manual: new Map() };
       const counts = data?.counts || {};
       if (catalogBatchMountScopeEl) {
         catalogBatchMountScopeEl.textContent = `数据域「${(data?.domains || []).join("、") || "—"}」下共 ${data?.total || 0} 个资源：模型 ${counts.model || 0} / 数据集 ${counts.dataset || 0} / 字段 ${counts.field || 0} / 指标 ${counts.metric || 0} / 维度 ${counts.dimension || 0}`;
@@ -14011,22 +14260,101 @@
         .map((item) => {
           const chips = item.assets.length
             ? item.assets
-                .map(
-                  (asset) => `
-              <span class="term-batch-chip" data-bm-asset="${escapeHtml(asset.key)}" title="${escapeHtml(asset.path || "")}">
-                <i>${escapeHtml(BATCH_ASSET_LABELS[asset.type] || asset.type)}</i>${escapeHtml(asset.name)}
-                <button type="button" data-bm-drop="${escapeHtml(asset.key)}" aria-label="移除 ${escapeHtml(asset.name)}">×</button>
-              </span>`
-                )
+                .map(batchMountChipHtml)
                 .join("")
-            : `<span class="term-batch-none">该数据域下暂无可推荐资产</span>`;
+            : `<span class="term-batch-none">${autoOn ? "未命中推荐，可通过「添加资源」手动追加" : "尚未添加关联资源，可通过「添加资源」选择"}</span>`;
           return `
           <div class="term-batch-row${item.assets.length ? "" : " is-off"}" data-bm-term="${escapeHtml(item.id)}">
-            <label><input type="checkbox" data-bm-on="1" ${item.assets.length ? "checked" : "disabled"} />${escapeHtml(item.name)}</label>
-            <div class="term-batch-assets">${chips}</div>
+            <label><input type="checkbox" data-bm-on="1" ${item.assets.length ? "checked" : ""} />${escapeHtml(item.name)}</label>
+            <div class="term-batch-assets">${chips}${batchMountAddHtml(item.id)}</div>
           </div>`;
         })
         .join("");
+    }
+
+    function batchMountChipHtml(asset) {
+      return `
+              <span class="term-batch-chip" data-bm-asset="${escapeHtml(asset.key)}" title="${escapeHtml(asset.path || "")}">
+                <i>${escapeHtml(BATCH_ASSET_LABELS[asset.type] || asset.type)}</i>${escapeHtml(asset.name)}
+                <button type="button" data-bm-drop="${escapeHtml(asset.key)}" aria-label="移除 ${escapeHtml(asset.name)}">×</button>
+              </span>`;
+    }
+
+    /* 行内「添加资源」下拉：点开按勾选的挂载类型列出候选（搜索过滤），选中即追加为资源标签 */
+    function batchMountAddHtml(id) {
+      return `
+              <span class="term-batch-add" data-bm-add-term="${escapeHtml(id)}">
+                <button type="button" class="term-batch-add-btn" data-bm-add="1">＋ 添加资源</button>
+                <div class="term-batch-add-list" hidden>
+                  <input class="term-batch-add-search" type="text" placeholder="搜索资源名称" autocomplete="off" />
+                  <div class="term-batch-add-opts"></div>
+                </div>
+              </span>`;
+    }
+
+    /* 某行当前还可添加的候选：该术语可用资源 - 行内已有标签 - 已手动追加的 */
+    function batchRowCandidates(row, id) {
+      const item = batchMountContext.items.find((entry) => entry.id === id);
+      if (!item) return [];
+      const used = new Set([
+        ...[...(row?.querySelectorAll("[data-bm-asset]") || [])].map((el) => el.dataset.bmAsset || ""),
+        ...(batchMountContext.manual.get(id) || []).map((a) => a.key),
+      ]);
+      return (item.candidates || []).filter((asset) => !used.has(asset.key));
+    }
+
+    function renderBatchMountAddList(addEl, keyword = "") {
+      if (!addEl) return;
+      const row = addEl.closest(".term-batch-row");
+      const id = addEl.dataset.bmAddTerm || "";
+      const q = String(keyword || "").trim().toLowerCase();
+      const candidates = batchRowCandidates(row, id).filter((a) => !q || a.name.toLowerCase().includes(q));
+      const optsEl = addEl.querySelector(".term-batch-add-opts");
+      if (!optsEl) return;
+      const html = [];
+      Object.keys(BATCH_ASSET_LABELS).forEach((type) => {
+        const group = candidates.filter((a) => a.type === type);
+        if (!group.length) return;
+        html.push(`<div class="term-batch-add-group">${escapeHtml(BATCH_ASSET_LABELS[type])}</div>`);
+        group.forEach((asset) => {
+          html.push(
+            `<div class="term-batch-add-opt" data-bm-opt="${escapeHtml(asset.key)}" title="${escapeHtml(asset.path || "")}"><i>${escapeHtml(BATCH_ASSET_LABELS[type])}</i>${escapeHtml(asset.name)}</div>`
+          );
+        });
+      });
+      optsEl.innerHTML =
+        html.join("") || `<div class="term-batch-none">无可添加的资源</div>`;
+    }
+
+    function closeAllBatchAddLists(except) {
+      (catalogBatchMountPreviewEl?.querySelectorAll(".term-batch-add-list") || []).forEach((list) => {
+        if (list !== except && !list.hidden) {
+          list.hidden = true;
+          const search = list.querySelector(".term-batch-add-search");
+          if (search) search.value = "";
+        }
+      });
+    }
+
+    /* 追加成功后刷新该行：追加标签、勾选术语、空占位移除 */
+    function applyBatchMountAdd(row, id, asset) {
+      if (!row || !asset) return;
+      const host = row.querySelector(".term-batch-assets");
+      const addEl = row.querySelector("[data-bm-add-term]");
+      if (!host || !addEl) return;
+      const manual = batchMountContext.manual.get(id) || [];
+      if (manual.some((a) => a.key === asset.key)) return;
+      manual.push({ ...asset });
+      batchMountContext.manual.set(id, manual);
+      addEl.insertAdjacentHTML("beforebegin", batchMountChipHtml(asset));
+      row.querySelector(".term-batch-none")?.remove();
+      row.classList.remove("is-off");
+      const box = row.querySelector("[data-bm-on]");
+      if (box) {
+        box.checked = true;
+        box.disabled = false;
+      }
+      batchMountContext.off.delete(id);
     }
 
     function bindBatchMountPreview() {
@@ -14042,37 +14370,76 @@
         if (box.checked) batchMountContext.off.delete(id);
         else batchMountContext.off.add(id);
       });
+      catalogBatchMountPreviewEl.addEventListener("input", (event) => {
+        const search = event.target.closest(".term-batch-add-search");
+        if (!search) return;
+        renderBatchMountAddList(search.closest("[data-bm-add-term]"), search.value);
+      });
       catalogBatchMountPreviewEl.addEventListener("click", (event) => {
-        const btn = event.target.closest("[data-bm-drop]");
-        if (!btn) return;
-        const row = btn.closest(".term-batch-row");
-        const chip = btn.closest("[data-bm-asset]");
-        const id = row?.dataset.bmTerm || "";
-        chip?.remove();
-        if (id) batchMountContext.dropped.add(`${id}|${btn.dataset.bmDrop || ""}`);
-        if (row && !row.querySelector("[data-bm-asset]")) {
-          row.classList.add("is-off");
-          const box = row.querySelector("[data-bm-on]");
-          if (box) {
-            box.checked = false;
-            box.disabled = true;
+        /* 移除资源标签（推荐与手动添加的同一处理） */
+        const dropBtn = event.target.closest("[data-bm-drop]");
+        if (dropBtn) {
+          const row = dropBtn.closest(".term-batch-row");
+          const id = row?.dataset.bmTerm || "";
+          const key = dropBtn.dataset.bmDrop || "";
+          dropBtn.closest("[data-bm-asset]")?.remove();
+          if (id) {
+            batchMountContext.dropped.add(`${id}|${key}`);
+            const manual = batchMountContext.manual.get(id) || [];
+            batchMountContext.manual.set(id, manual.filter((a) => a.key !== key));
           }
-          if (!row.querySelector(".term-batch-none")) {
-            const host = row.querySelector(".term-batch-assets");
-            if (host) host.innerHTML = `<span class="term-batch-none">已移除全部推荐</span>`;
+          if (row && !row.querySelector("[data-bm-asset]")) {
+            row.classList.add("is-off");
+            const box = row.querySelector("[data-bm-on]");
+            if (box) box.checked = false;
+            /* 行内仍保留「添加资源」入口，可再手动追加，不再禁用勾选 */
           }
-          if (id) batchMountContext.off.add(id);
+          return;
         }
+        /* 展开 / 收起「添加资源」下拉 */
+        const addBtn = event.target.closest("[data-bm-add]");
+        if (addBtn) {
+          const addEl = addBtn.closest("[data-bm-add-term]");
+          const list = addEl?.querySelector(".term-batch-add-list");
+          if (!list) return;
+          const willOpen = list.hidden;
+          closeAllBatchAddLists(list);
+          list.hidden = !willOpen;
+          if (willOpen) {
+            renderBatchMountAddList(addEl, "");
+            list.querySelector(".term-batch-add-search")?.focus();
+          }
+          return;
+        }
+        /* 选中候选：追加为该行的资源标签 */
+        const opt = event.target.closest("[data-bm-opt]");
+        if (opt) {
+          const addEl = opt.closest("[data-bm-add-term]");
+          const row = opt.closest(".term-batch-row");
+          const id = addEl?.dataset.bmAddTerm || "";
+          const asset = batchRowCandidates(row, id).find((a) => a.key === opt.dataset.bmOpt);
+          if (asset) {
+            applyBatchMountAdd(row, id, asset);
+            const list = addEl?.querySelector(".term-batch-add-list");
+            if (list) list.hidden = true;
+          }
+          return;
+        }
+        if (!event.target.closest(".term-batch-add")) closeAllBatchAddLists();
+      });
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".term-batch-add")) closeAllBatchAddLists();
       });
     }
 
-    /* 汇总用户最终认可的推荐：整条未勾选的术语跳过、被 × 掉的单个资源剔除 */
+    /* 汇总最终关联方案：整条未勾选的术语跳过、被 × 掉的单个资源剔除，再加上手动追加的资源 */
     function collectBatchMountPlan() {
       const entries = [];
       let assetTotal = 0;
       batchMountContext.items.forEach((item) => {
         if (batchMountContext.off.has(item.id)) return;
-        const assets = item.assets.filter((asset) => !batchMountContext.dropped.has(`${item.id}|${asset.key}`));
+        const recommended = item.assets.filter((asset) => !batchMountContext.dropped.has(`${item.id}|${asset.key}`));
+        const assets = [...recommended, ...(batchMountContext.manual.get(item.id) || [])];
         if (!assets.length) return;
         entries.push({ id: item.id, name: item.name, assets });
         assetTotal += assets.length;
@@ -14080,19 +14447,15 @@
       return { entries, assetTotal };
     }
 
-    /* 自动推荐开关：打开后按所选挂载类型重算推荐；关闭则不展示推荐结果 */
+    /* 自动推荐开关：打开后按所选挂载类型重算推荐；
+       关闭则不出推荐，直接由用户在每行「添加资源」下拉里自己选择 */
     function syncBatchMountAuto() {
       const ids = batchMountContext.ids.length
         ? batchMountContext.ids
         : getCatalogBatchSelection(catalogBatchContext.catalog || currentListCatalog()).ids;
       const types = selectedBatchMountTypes();
-      const on = Boolean(catalogBatchMountAutoEl?.checked);
-      if (!on) {
-        showBatchMountPreview(false, "未开启自动推荐，打开上方开关后按所选挂载类型匹配资源");
-        return;
-      }
       if (!types.length) {
-        showBatchMountPreview(true, "请至少选择一个挂载类型，再开启自动推荐");
+        showBatchMountPreview(true, "请至少选择一个挂载类型");
         if (catalogBatchMountScopeEl) catalogBatchMountScopeEl.textContent = "尚未选择挂载类型";
         return;
       }

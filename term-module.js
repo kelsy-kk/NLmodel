@@ -1288,7 +1288,6 @@
         tableBodyEl.innerHTML = pageItems
           .map(
             (item, index) => {
-              const modelText = termModelList(item).join("、") || "全部模型";
               const online = isTermOnline(item);
               /* 需求：列表不再在术语名称右侧打术语类型标签，类型只在详情页展示 */
               const conflictFlag = conflictKeys.has(item.id) ? '<span class="term-conflict-flag" title="该术语的名称/同义词与同一数据域内的其他术语重复，智能消费端应用时可能出现路由歧义，详见术语详情">⚠️</span>' : "";
@@ -1298,7 +1297,6 @@
             <td class="col-index">${startIndex + index + 1}</td>
             <td class="col-text col-term-name"><div class="term-name-cell"><a class="name-link term-name-link" href="#" data-term-action="detail" data-id="${item.id}" title="${escapeHtml(item.name)}">${highlightHtml(item.name, keywordRaw)}</a>${conflictFlag}</div></td>
             <td class="domain-cell" title="${escapeHtml(item.domain || "")}">${highlightHtml(item.domain || "—", keywordRaw)}</td>
-            <td class="col-text" title="${escapeHtml(termModelList(item).join("、") || "对该数据域下全部模型生效")}">${highlightHtml(modelText, keywordRaw)}</td>
             <td class="col-text" title="${escapeHtml(item.synonyms)}">${highlightHtml(item.synonyms || "—", keywordRaw)}</td>
             <td class="col-text-wide" title="${escapeHtml(item.description)}">${highlightHtml(item.description || "—", keywordRaw)}</td>
             <td>${escapeHtml(item.creator)}</td>
@@ -1357,7 +1355,7 @@
       initTermDomainPicker(formDomains);
       if (inherited) showDomainInheritHint("termFormDomainInheritHint", "termDomainPicker", glossary.name, glossary.domain);
       else hideDomainInheritHint("termFormDomainInheritHint");
-      /* 智能消费端应用增强：注入类型/上级术语/值域绑定区块并反显 */
+      /* 智能消费端应用增强：注入值域绑定区块并反显（上级术语已移除） */
       ensureFormEnhance();
       /* 需求：术语用途已移除，一律按业务资产维护 */
       formTermKind = "asset";
@@ -1390,7 +1388,6 @@
       renderFormMountChips();
       syncValueBindingVisibility();
       syncMountPickerScope();
-      syncParentTermOptions(item?.parentTermId || "");
       /* 需求：生效模型表单项已移除，模型改为在「关联资产 → 模型」页签勾选 */
       selectedFormModels = new Set();
       if (formSynonymsEl) formSynonymsEl.value = item?.synonyms || "";
@@ -1644,14 +1641,15 @@
       const project = currentProject();
       /* 需求：名称重名只在「用户生效的数据域」内校验，命中则在创建过程中直接覆盖，不再弹窗拦截 */
       const duplicates = findTermNameDuplicates(name, editingId, domains);
-      /* 生效模型来自「关联资产 → 模型」页签勾选：写回 modelNames / modelIds，
-         列表「生效模型」列与详情保持一致口径；未勾选则表示对该数据域下全部模型生效 */
+      /* 「关联资产 → 模型」页签勾选的模型回写 modelNames / modelIds：
+         仅为字段反向关联等内部判定保留的历史字段，界面上不再展示「生效模型」，
+         生效范围一律以关联资产为准——关联了什么就生效于什么，未关联模型表示对该数据域下全部模型生效 */
       const modelNames = formMountedModelNames();
       const modelIds = modelNames.map((name) => modelsForDomains(domains).find((model) => model.name === name)?.id || name);
-      /* 智能消费端应用增强字段：上级术语 / 值域绑定 / 关联资产，全部按业务资产维护 */
+      /* 智能消费端应用增强字段：值域绑定 / 关联资产，全部按业务资产维护
+         （值层级已移除：不再维护上级术语 parentTermId） */
       /* 术语类型已从表单移除：保留既有值（批量设置术语类型仍可写入），不再由表单覆盖 */
       const termType = (editingId ? terms.find((t) => t.id === editingId)?.termType : "") || "";
-      const parentTermId = document.getElementById("termFormParentTerm")?.value || "";
       const valueBindings = formValueBindings
         .map((row) => normalizeValueBinding(row))
         .filter((row) => row.field && (vbMode(row.mode).value === "enum" ? row.values.length : row.value))
@@ -1684,7 +1682,6 @@
         description: (formDescEl?.value || "").trim(),
         project,
         termType,
-        parentTermId,
         valueBindings,
         mounts: nextMounts,
         kind: "asset",
@@ -1697,42 +1694,22 @@
           setTip("术语不存在或已删除");
           return;
         }
-        /* 版本快照 + 影响分析：按「解释 / 口径 / 结构」三类变更分开留痕（治理要求：变更分离） */
+        /* 版本快照 + 影响分析：先按表单项逐条算变更（改了哪项记哪项），
+           变更分类仍由表单项归并得出，供影响分析提示与旧版展示兼容 */
         const impact = termImpactSummary(target);
-        const sameList = (a, b) => JSON.stringify(a || []) === JSON.stringify(b || []);
-        const changeKinds = [
-          target.description !== values.description || target.synonyms !== values.synonyms ? "interpretation" : "",
-          !sameList(target.valueBindings, valueBindings)
-            ? "caliber"
-            : "",
-          target.termType !== values.termType ||
-          (target.parentTermId || "") !== values.parentTermId ||
-          !sameList(target.domains, values.domains) ||
-          !sameList(target.modelNames, values.modelNames)
-            ? "structure"
-            : "",
-        ].filter(Boolean);
-        const changed = changeKinds.length > 0;
+        const fieldChanges = diffTermFields(target, values);
+        const changed = fieldChanges.length > 0;
+        const changeKinds = [...new Set(fieldChanges.map((c) => c.kind))].filter(Boolean);
         const kindLabel = changeKinds.map((k) => TERM_CHANGE_KINDS[k].label).join("、");
+        const fieldLabel = fieldChanges.map((c) => c.field).join("、");
         if (changed) {
           if (impact.total > 0 && !force) {
             showSaveConfirm(
-              `${kindLabel}影响分析：该术语被 ${impact.metricCount} 个指标、${impact.fieldCount} 个字段引用，另有 ${impact.mountCount} 个挂载资产。\n修改会改变这些资产的智能消费端应用结果，旧版本将自动按「${kindLabel}」存入版本历史。确认变更可点「仍要保存」。`
+              `${kindLabel}影响分析：该术语被 ${impact.metricCount} 个指标、${impact.fieldCount} 个字段引用，另有 ${impact.mountCount} 个挂载资产。\n修改会改变这些资产的智能消费端应用结果，旧版本将自动按「${fieldLabel}」存入版本历史。确认变更可点「仍要保存」。`
             );
             return;
           }
-          target.versions = [
-            ...(target.versions || []),
-            {
-              time: formatDate(),
-              editor: "当前用户",
-              changeKind: changeKinds.join(","),
-              changeLabel: kindLabel,
-              description: target.description || "",
-              synonyms: target.synonyms || "",
-              valueBindings: target.valueBindings || [],
-            },
-          ];
+          target.versions = [...(target.versions || []), ...fieldChanges];
         }
         const prevMetricKeys = (target.mounts || []).filter((m) => m.type === "metric").map((m) => m.key);
         const prevOnline = target.online !== false;
@@ -1745,7 +1722,7 @@
         }
         setTip(
           editingId
-            ? `已更新术语：${name}${changed ? `（${kindLabel}，已存 ${target.versions.length} 个历史版本）` : ""}`
+            ? `已更新术语：${name}${changed ? `（${fieldLabel}发生变更，已存 ${target.versions.length} 条变更记录）` : ""}`
             : `已创建术语：${name}（${ domains.join("、") }数据域内已存在同名术语，已采用直接覆盖的方式写入：${termPathLabel(overwriteTarget)}）`
         );
         syncMetricTermLinks(
@@ -1940,7 +1917,6 @@
           <h4>基本信息</h4>
           <p><strong>名称：</strong>${escapeHtml(item.name)}</p>
           <p><strong>数据域：</strong>${escapeHtml(item.domain || "—")}</p>
-          <p><strong>生效模型：</strong>${escapeHtml(termModelList(item).join("、") || "对该数据域下全部模型生效")}</p>
           <p><strong>所属工程：</strong>${escapeHtml(item.project || "—")}</p>
           <p><strong>同义词：</strong>${escapeHtml(item.synonyms || "—")}</p>
           <p><strong>描述：</strong>${escapeHtml(item.description || "—")}</p>
@@ -2071,7 +2047,6 @@
       if (!detailOverviewPanelEl) return;
       const items = collectDetailMountItems(term).filter((item) => DETAIL_MOUNT_TYPES.includes(item.type));
       const countOf = (type) => items.filter((item) => item.type === type).length;
-      const modelText = termModelList(term).join("、") || "对该数据域下全部模型生效";
       const statCards = DETAIL_MOUNT_TYPES.map((type) => {
         const label = mountTypeLabel(type);
         return `
@@ -2089,9 +2064,7 @@
           </div>
           <div class="td-grid">
             <div class="td-field"><div class="td-field-label">术语名称</div><div class="td-field-value">${escapeHtml(term.name || "—")}</div></div>
-            <div class="td-field"><div class="td-field-label">术语类型</div><div class="td-field-value">${showTermTypeBadge(term) ? escapeHtml(termTypeMeta(term.termType).desc) : "未设置"}</div></div>
             <div class="td-field"><div class="td-field-label">数据域</div><div class="td-field-value">${escapeHtml(term.domain || "—")}</div></div>
-            <div class="td-field"><div class="td-field-label">生效模型</div><div class="td-field-value">${escapeHtml(modelText)}</div></div>
             <div class="td-field"><div class="td-field-label">所属工程</div><div class="td-field-value">${escapeHtml(term.project || "—")}</div></div>
             <div class="td-field"><div class="td-field-label">同义词</div><div class="td-field-value">${escapeHtml(term.synonyms || "—")}</div></div>
             <div class="td-field"><div class="td-field-label">上线状态</div><div class="td-field-value">${onlineTagHtml(term.online !== false)}</div></div>
@@ -2108,21 +2081,39 @@
       `;
     }
 
-    /* 详情：值层级 / 值域绑定 / 版本与影响分析 三张卡（智能消费端应用增强） */
+    /* 版本历史条目：新记录按表单项展示「时间 操作人 【表单项】发生变更」并附旧值 → 新值；
+       旧数据（只有变更分类）保持原展示，避免历史记录报错 */
+    function versionItemHtml(v) {
+      const time = escapeHtml(v.time || "");
+      const editor = escapeHtml(v.editor || "");
+      if (v.field) {
+        const before = String(v.before || "").trim();
+        const after = String(v.after || "").trim();
+        const detail =
+          before || after
+            ? `<span class="term-link-meta">${escapeHtml((before || "空").slice(0, 30))} → ${escapeHtml((after || "空").slice(0, 30))}</span>`
+            : "";
+        const meta = TERM_CHANGE_KINDS[v.kind];
+        const tag = meta ? `<span class="term-vb-tag" style="background:${meta.color}1a;color:${meta.color}">${meta.label}</span>` : "";
+        return `<li>${time} ${editor} <b>【${escapeHtml(v.field)}】</b>发生变更 ${tag}${detail}</li>`;
+      }
+      const kinds = String(v.changeKind || (v.valueBindings && v.valueBindings.length ? "caliber" : "interpretation"))
+        .split(",")
+        .filter(Boolean);
+      const tags = kinds
+        .map((k) => {
+          const meta = TERM_CHANGE_KINDS[k];
+          return meta ? `<span class="term-vb-tag" style="background:${meta.color}1a;color:${meta.color}">${meta.label}</span>` : "";
+        })
+        .join("");
+      return `<li>${tags} ${time} <span class="term-link-meta">${editor} · 描述「${escapeHtml((v.description || "—").slice(0, 30))}」${(v.valueBindings || []).length ? `· 值域 ${(v.valueBindings || []).length} 条` : ""}</span></li>`;
+    }
+
+    /* 详情：值域绑定 / 版本历史 两张卡（智能消费端应用增强；值层级已移除） */
     function renderAskReadinessCards(term) {
-      const parentTerm = term.parentTermId ? terms.find((t) => t.id === term.parentTermId) : null;
-      const childTerms = terms.filter((t) => t.parentTermId === term.id);
-      const impact = termImpactSummary(term);
       const bindings = term.valueBindings || [];
       const versions = (term.versions || []).slice().reverse();
       return `
-        <div class="td-card">
-          <div class="td-card-title"><span>值层级（上级 / 下级）</span><span class="td-field-label">智能消费端应用可沿层级上卷或展开</span></div>
-          <div class="td-grid">
-            <div class="td-field"><div class="td-field-label">上级术语</div><div class="td-field-value">${parentTerm ? `${escapeHtml(parentTerm.name)}（本术语 ⊂ ${escapeHtml(parentTerm.name)}）` : "无 — 顶层术语"}</div></div>
-            <div class="td-field"><div class="td-field-label">下级术语</div><div class="td-field-value">${childTerms.length ? escapeHtml(childTerms.map((t) => t.name).join("、")) : "暂无"}</div></div>
-          </div>
-        </div>
         <div class="td-card">
           <div class="td-card-title"><span>值域绑定</span><span class="td-field-label">智能消费端应用时生成 WHERE / GROUP BY 条件</span></div>
           ${
@@ -2139,30 +2130,14 @@
           }
         </div>
         <div class="td-card">
-          <div class="td-card-title"><span>影响分析 · 版本历史</span><span class="td-field-label">口径变更自动留痕</span></div>
-          <div class="td-grid">
-            <div class="td-field"><div class="td-field-label">关联指标</div><div class="td-field-value">${impact.metricCount} 个</div></div>
-            <div class="td-field"><div class="td-field-label">关联字段</div><div class="td-field-value">${impact.fieldCount} 个</div></div>
-            <div class="td-field"><div class="td-field-label">挂载资产</div><div class="td-field-value">${impact.mountCount} 个</div></div>
-            <div class="td-field"><div class="td-field-label">历史版本</div><div class="td-field-value">${(term.versions || []).length} 个</div></div>
+          <div class="td-card-title">
+            <span>版本历史${VERSION_HISTORY_HELP_HTML}</span>
+            <span class="td-field-label">保存时按表单项自动留痕 · 共 ${(term.versions || []).length} 条</span>
           </div>
           ${
             versions.length
-              ? `<ul class="term-link-list">${versions
-                  .map((v) => {
-                    const kinds = String(v.changeKind || (v.valueBindings && v.valueBindings.length ? "caliber" : "interpretation"))
-                      .split(",")
-                      .filter(Boolean);
-                    const tags = kinds
-                      .map((k) => {
-                        const meta = TERM_CHANGE_KINDS[k];
-                        return meta ? `<span class="term-vb-tag" style="background:${meta.color}1a;color:${meta.color}">${meta.label}</span>` : "";
-                      })
-                      .join("");
-                    return `<li>${tags} ${escapeHtml(v.time)} <span class="term-link-meta">${escapeHtml(v.editor || "")} · 描述「${escapeHtml((v.description || "—").slice(0, 30))}」${(v.valueBindings || []).length ? `· 值域 ${(v.valueBindings || []).length} 条` : ""}</span></li>`;
-                  })
-                  .join("")}</ul>`
-              : '<p class="term-link-empty">暂无历史版本（修改定义/同义词/值域/类型时自动按变更类型留痕）</p>'
+              ? `<ul class="term-link-list">${versions.map((v) => versionItemHtml(v)).join("")}</ul>`
+              : '<p class="term-link-empty">暂无变更记录（每次保存按表单项自动留痕，如【名称】发生变更）</p>'
           }
         </div>
       `;
@@ -2723,7 +2698,7 @@
       finishMountSave(`已为术语「${term.name}」挂载 ${term.mounts.length} 个资产`);
     }
 
-    /* ===== 智能消费端应用就绪增强：术语类型 / 值域绑定 / 值层级 / 同义词冲突 / 版本快照 =====
+    /* ===== 智能消费端应用就绪增强：术语类型 / 值域绑定 / 同义词冲突 / 版本快照 =====
        对齐 DeepSeek 评审建议的 6 个缺口，全部在本模块内实现，index 零改动 */
     /* 需求：术语类型「过滤」改为「字段」。选「字段」时生效模型必填，
        值域绑定改为加载所选模型下各数据集里的字段供选择 */
@@ -2747,6 +2722,83 @@
       caliber: { label: "口径变更", color: "#f59a23", desc: "值域绑定等影响取数的口径" },
       structure: { label: "结构变更", color: "#7b61ff", desc: "术语类型、上下级、生效范围" },
     };
+
+    /* 版本历史按「表单项」逐条留痕：改了哪个表单项就记哪一条，
+       kind 沿用解释 / 口径 / 结构三类，保证影响分析提示仍按变更分类聚合 */
+    const TERM_FIELD_DIFFS = [
+      { key: "name", label: "名称", kind: "interpretation", text: (t) => String(t?.name || "").trim() },
+      { key: "synonyms", label: "同义词", kind: "interpretation", text: (t) => String(t?.synonyms || "").trim() },
+      { key: "description", label: "描述", kind: "interpretation", text: (t) => String(t?.description || "").trim() },
+      {
+        key: "domains",
+        label: "数据域",
+        kind: "structure",
+        text: (t) => (Array.isArray(t?.domains) && t.domains.length ? t.domains.join("、") : String(t?.domain || "").trim()),
+      },
+      {
+        key: "valueBindings",
+        label: "值域绑定",
+        kind: "caliber",
+        text: (t) => (t?.valueBindings || []).map((b) => valueBindingText(b)).join("；"),
+      },
+      {
+        key: "mounts",
+        label: "关联资产",
+        kind: "structure",
+        text: (t) => (t?.mounts || []).map((m) => m.name).filter(Boolean).join("、"),
+      },
+    ];
+
+    /* 逐表单项比对：改了几个表单项就产生几条版本记录（时间 + 操作人 + 【表单项】发生变更） */
+    function diffTermFields(prev, next) {
+      const time = formatDate();
+      return TERM_FIELD_DIFFS.filter((def) => def.text(prev) !== def.text(next)).map((def) => ({
+        time,
+        editor: "当前用户",
+        field: def.label,
+        fieldKey: def.key,
+        kind: def.kind,
+        before: def.text(prev),
+        after: def.text(next),
+      }));
+    }
+
+    /* 版本历史标题旁的计数规则说明（鼠标移入展示）：与 diffTermFields 的实现一致 */
+    const VERSION_HISTORY_HELP_HTML = `
+      <span class="td-help-dot" tabindex="0" role="button" aria-label="查看版本历史计数规则">?
+        <span class="td-help-pop">
+          <b>版本历史计数规则</b>
+          <ul>
+            <li>每次保存逐项比对表单项，改了几个就新增几条记录，未改动不记</li>
+            <li>同一表单项多次修改分别记录，不合并、不覆盖</li>
+            <li>关联资产一次勾选或取消多个资源，只记 1 条【关联资产】</li>
+            <li>参与比对的表单项：${TERM_FIELD_DIFFS.map((def) => `【${def.label}】`).join("")}</li>
+          </ul>
+        </span>
+      </span>`;
+
+    /* 一次性迁移：旧版本历史是按「解释 / 口径 / 结构」聚合的兜底文案，与真实变更的表单项无关。
+       记录格式已改为按表单项留痕（有 field 字段），这里把没有 field 的脏记录清掉，只跑一次 */
+    const LEGACY_VERSION_MIGRATE_KEY = "biz-modeling-terms-v3-version-migrated";
+    function cleanupLegacyVersions() {
+      try {
+        if (global.localStorage?.getItem(LEGACY_VERSION_MIGRATE_KEY)) return;
+        let touched = false;
+        terms.forEach((item) => {
+          const list = item.versions || [];
+          if (!list.length) return;
+          const kept = list.filter((v) => Boolean(v && v.field));
+          if (kept.length !== list.length) {
+            item.versions = kept;
+            touched = true;
+          }
+        });
+        global.localStorage?.setItem(LEGACY_VERSION_MIGRATE_KEY, "1");
+        if (touched) writeTerms(terms);
+      } catch (_err) {
+        /* ignore */
+      }
+    }
     let formEnhInjected = false;
     let formValueBindings = [];
     /* 关联资产（v0.3 挂载融合）：表单草稿态挂载数组，保存时写入 term.mounts 并对指标侧双写 */
@@ -2760,31 +2812,12 @@
       return TERM_TYPE_OPTIONS.find((t) => t.value === value) || TERM_TYPE_OPTIONS[0];
     }
 
-    /* 术语用途判定：业务资产才具备术语类型（参与 SELECT 聚合 / GROUP BY 分组 / WHERE 过滤），
-       通用知识只靠描述由 AI 解析，没有类型语义 → 列表与详情都不展示类型标签
-       历史数据无 kind 字段时，按与编辑表单一致的反推口径：有挂载资产 / 生效模型 / 值域绑定 即视为业务资产 */
-    function termKindOf(term) {
-      if (!term) return "generic";
-      if (term.kind === "asset" || term.kind === "generic") return term.kind;
-      if ((term.mounts || []).length || termModelList(term).length || (term.valueBindings || []).length) return "asset";
-      return "generic";
-    }
-
-    /* 是否展示类型标签：业务资产且确实配过术语类型（避免无类型的老数据被兜底成「实体」） */
-    function isAssetTerm(term) {
-      return termKindOf(term) === "asset";
-    }
-
-    function showTermTypeBadge(term) {
-      return isAssetTerm(term) && Boolean(term.termType);
-    }
-
     function vbMode(mode) {
       return VB_MODES.find((m) => m.value === mode) || VB_MODES[0];
     }
 
     /* 需求：去掉「术语用途」单选，术语一律按业务资产维护
-       （挂载资产 + 值域绑定 + 上级术语），描述保持选填 */
+       （挂载资产 + 值域绑定），描述保持选填 */
     function applyFormKind() {
       formTermKind = "asset";
       const enhance = document.getElementById("termFormEnhance");
@@ -2850,6 +2883,171 @@
     }
 
     /* 旧的「全量字段去重清单」已废弃：值域绑定改为按所选模型的数据集字段加载（formDatasetFieldGroups） */
+
+    /* ===== 可搜索下拉：术语中心的原生 select 统一升级为「输入框 + 过滤列表」 =====
+       做法：隐藏原生 select，在其前面插入自定义控件；选中后回写 select.value 并派发
+       冒泡的 change 事件 —— 现有取值 / 联动 / 事件委托逻辑全部不用改 */
+    const SEARCHABLE_SELECT_IDS = [
+      "#projectFilterSelect",
+      "#lineageProjectFilter",
+      "#lineageDomainFilter",
+      "#lineageDepthSelect",
+      "#docParseDomain",
+      "#docParseModel",
+      "#catalogBatchDomainSelect",
+      "#glossaryCreateDomain",
+    ];
+    const searchableOpenEntries = [];
+    let searchableDocBound = false;
+
+    function initSearchableSelects() {
+      if (!searchableDocBound) {
+        searchableDocBound = true;
+        document.addEventListener("click", (event) => {
+          searchableOpenEntries.forEach((entry) => {
+            if (!entry.wrap.contains(event.target)) entry.close();
+          });
+        });
+      }
+      SEARCHABLE_SELECT_IDS.forEach((selector) => {
+        document.querySelectorAll(selector).forEach(makeSelectSearchable);
+      });
+    }
+
+    /* 动态重绘区域（值域绑定行等）渲染完成后调用 */
+    function makeSearchableIn(root) {
+      root?.querySelectorAll?.("select").forEach(makeSelectSearchable);
+    }
+
+    /* 外部改了 select 的 value / options 后，同步自定义控件的显示文本 */
+    function refreshSearchableSelect(select) {
+      select?.__sselSync?.();
+    }
+
+    function makeSelectSearchable(select) {
+      if (!select || select.dataset.searchableSelect === "1") return;
+      select.dataset.searchableSelect = "1";
+
+      const wrap = document.createElement("span");
+      /* 只继承 term-vb-* 这类布局类，避免把 .select 的边框 / 背景套到容器上 */
+      const layoutClass = [...select.classList].filter((c) => c.startsWith("term-vb-")).join(" ");
+      wrap.className = `ssel ${layoutClass}`.trim();
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "ssel-input";
+      input.autocomplete = "off";
+      input.placeholder = "请选择";
+      const list = document.createElement("div");
+      list.className = "ssel-list";
+      list.hidden = true;
+      wrap.append(input, list);
+      select.parentNode?.insertBefore(wrap, select);
+      select.hidden = true;
+
+      let options = [];
+      let active = -1;
+
+      const syncText = () => {
+        const current = select.selectedOptions[0];
+        input.value = current ? current.textContent.trim() : "";
+      };
+      select.__sselSync = syncText;
+
+      const paintActive = () => {
+        list.querySelectorAll(".ssel-option").forEach((el) => {
+          el.classList.toggle("is-active", Number(el.dataset.idx) === active);
+        });
+        list.querySelector(".ssel-option.is-active")?.scrollIntoView({ block: "nearest" });
+      };
+
+      const renderList = (keyword = "") => {
+        const q = String(keyword || "").trim().toLowerCase();
+        const match = (opt) => !q || opt.textContent.trim().toLowerCase().includes(q);
+        options = [];
+        const html = [];
+        const pushOption = (opt) => {
+          options.push(opt);
+          const cls = ["ssel-option"];
+          if (opt.selected) cls.push("is-selected");
+          if (opt.disabled) cls.push("is-disabled");
+          html.push(
+            `<div class="${cls.join(" ")}" data-idx="${options.length - 1}" role="option">${escapeHtml(opt.textContent.trim())}</div>`
+          );
+        };
+        [...select.children].forEach((node) => {
+          if (node.tagName === "OPTGROUP") {
+            const matched = [...node.children].filter(match);
+            if (!matched.length) return;
+            html.push(`<div class="ssel-group">${escapeHtml(node.label || "")}</div>`);
+            matched.forEach(pushOption);
+          } else if (node.tagName === "OPTION" && match(node)) {
+            pushOption(node);
+          }
+        });
+        list.innerHTML = html.join("") || '<div class="ssel-empty">无匹配项</div>';
+        const selectedIdx = options.findIndex((o) => o.selected);
+        active = selectedIdx >= 0 ? selectedIdx : options.length ? 0 : -1;
+        paintActive();
+      };
+
+      const close = () => {
+        list.hidden = true;
+        syncText();
+      };
+
+      const open = () => {
+        const currentText = select.selectedOptions[0]?.textContent.trim() || "";
+        renderList(input.value === currentText ? "" : input.value);
+        list.hidden = false;
+        input.select();
+      };
+
+      const move = (delta) => {
+        if (!options.length) return;
+        active = (active + delta + options.length) % options.length;
+        paintActive();
+      };
+
+      const choose = (opt) => {
+        if (!opt || opt.disabled) return;
+        select.value = opt.value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        close();
+      };
+
+      input.addEventListener("focus", open);
+      input.addEventListener("click", open);
+      input.addEventListener("input", () => {
+        list.hidden = false;
+        renderList(input.value);
+      });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          if (list.hidden) open();
+          else move(1);
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          move(-1);
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          if (list.hidden) open();
+          else choose(options[active]);
+        } else if (event.key === "Escape") {
+          close();
+          input.blur();
+        }
+      });
+      /* mousedown 早于 blur，避免列表先被关闭导致点不中选项 */
+      list.addEventListener("mousedown", (event) => {
+        const item = event.target.closest(".ssel-option");
+        if (!item) return;
+        event.preventDefault();
+        choose(options[Number(item.dataset.idx)]);
+      });
+      searchableOpenEntries.push({ wrap, close });
+      syncText();
+    }
 
     function ensureFormEnhance() {
       if (formEnhInjected) return;
@@ -2946,13 +3144,6 @@
       if (mountHost) mountHost.append(...Array.from(mountWrap.children));
       const wrap = document.createElement("div");
       wrap.innerHTML = `
-        <div class="term-form-field term-enh-field">
-          <label for="termFormParentTerm">上级术语</label>
-          <div class="term-enh-control">
-            <select id="termFormParentTerm"><option value="">无 — 顶层术语</option></select>
-          </div>
-          <div class="term-enh-hint term-enh-side">建立「上海 ⊂ 华东」这类值层级后，智能消费端应用可沿层级上卷或展开</div>
-        </div>
         <div class="term-form-field term-enh-field" id="termValueBindingField">
           <label>值域绑定</label>
           <div class="term-enh-control">
@@ -2969,7 +3160,7 @@
           </span>
         </div>
       `;
-      /* 增强区（上级术语 / 值域绑定 / 保存确认条）整体放进左列容器 */
+      /* 增强区（值域绑定 / 保存确认条）整体放进左列容器 */
       const enhanceBlock = document.createElement("div");
       enhanceBlock.id = "termFormEnhance";
       enhanceBlock.append(...Array.from(wrap.children));
@@ -3119,6 +3310,8 @@
             })
             .join("")
         : '<div class="term-enh-hint">尚未配置，可添加值域规则</div>';
+      /* 行是重绘出来的：把里面的 select 升级成可搜索下拉 */
+      makeSearchableIn(rowsEl);
     }
 
     function bindValueBindingRows() {
@@ -3231,7 +3424,7 @@
     }
 
     /* ===== 关联资产（v0.3 挂载融合）：表单内按 模型/数据集/字段/指标/维度 五个页签勾选，
-       候选按所选数据域与生效模型过滤 ===== */
+       候选按所选数据域过滤；生效范围即关联结果本身（关联了什么就生效于什么） ===== */
     const FORM_MOUNT_TYPES = [
       { type: "model", label: "模型" },
       { type: "dataset", label: "数据集" },
@@ -3495,20 +3688,6 @@
       return bestScore >= 0.6 ? { item: best, score: bestScore } : null;
     }
 
-    function syncParentTermOptions(selectedId) {
-      const parentEl = document.getElementById("termFormParentTerm");
-      if (!parentEl) return;
-      parentEl.innerHTML =
-        '<option value="">无 — 顶层术语</option>' +
-        terms
-          .filter((item) => item.id !== editingId)
-          .map(
-            (item) =>
-              `<option value="${escapeHtml(item.id)}" ${item.id === selectedId ? "selected" : ""}>${escapeHtml(item.name)}（${termTypeMeta(item.termType).label}）</option>`
-          )
-          .join("");
-    }
-
     /* 同义词冲突检测：本术语的名称/同义词与其他术语的名称/同义词相撞。
        需求：只在「生效的数据域」内判定 —— 数据域不同不属于冲突（各自域内独立路由） */
     function findSynonymConflicts(nameText, synonymsText, editingIdLocal, domainList) {
@@ -3682,9 +3861,16 @@
               : "命中的术语均未配置值域绑定，条件列将以占位符输出（可在术语表单补配置）"
           }</span></div>`
         );
-        const modelNames = [...new Set(hits.flatMap((h) => h.term.modelNames || []).filter(Boolean))];
+        /* 路由范围取决于「关联资产 → 模型」：关联了什么模型就在什么模型内生效 */
+        const modelNames = [
+          ...new Set(
+            hits
+              .flatMap((h) => (h.term.mounts || []).filter((m) => m.type === "model").map((m) => m.name))
+              .filter(Boolean)
+          ),
+        ];
         steps.push(
-          `<div class="term-sim-step"><span class="no">4</span><span><b>语义模型路由</b>：${modelNames.length ? `命中术语声明生效于「${escapeHtml(modelNames.join("、"))}」，Schema 裁剪至该模型` : "术语未限定生效模型，将在当前数据域下模糊路由（建议在表单中选择生效模型）"}</span></div>`
+          `<div class="term-sim-step"><span class="no">4</span><span><b>语义模型路由</b>：${modelNames.length ? `命中术语关联了模型「${escapeHtml(modelNames.join("、"))}」，Schema 裁剪至该模型` : "命中术语未关联模型，将在当前数据域下模糊路由（可在「关联资产」中挂载模型以缩小范围）"}</span></div>`
         );
       } else {
         steps.push(
@@ -3722,7 +3908,8 @@
       filterHits.forEach((h) => (h.term.valueBindings || []).forEach((b) => wheres.push(valueBindingSql(b))));
       if (timeCond) wheres.push(timeCond.replace("<时间字段>", "stat_month"));
       const metricField = metricHit?.term.valueBindings?.[0]?.field || "<度量字段>";
-      const modelName = metricHit?.term.modelNames?.[0] || "<生效模型>";
+      const modelName =
+        (metricHit?.term.mounts || []).filter((m) => m.type === "model").map((m) => m.name)[0] || "<模型>";
       sqlEl.hidden = false;
       sqlEl.innerHTML =
         `<span class="kw">SELECT</span> SUM(t.${escapeHtml(metricField)}) AS total\n` +
@@ -4444,10 +4631,9 @@
        对应「术语绑定」的三类信息：
          概念绑定 = termType + mounts（术语锚定到指标/维度/字段/模型）
          值绑定   = valueBindings（枚举值集 / 条件表达式）
-         层级关系 = parentId / children（智能消费端应用可上卷或展开） */
+         注：值层级（parentTermId / 上下级）已移除，不再下发层级关系 */
     function termBridgeEntry(term) {
       const meta = termTypeMeta(term.termType);
-      const parent = term.parentTermId ? terms.find((t) => t.id === term.parentTermId) : null;
       return {
         id: `bm-term-${term.id}`,
         termId: term.id,
@@ -4465,11 +4651,6 @@
         modelNames: termModelList(term),
         project: term.project || currentProject(),
         online: term.online !== false,
-        parentId: parent ? `bm-term-${parent.id}` : "",
-        parentName: parent?.name || "",
-        children: terms
-          .filter((t) => t.parentTermId === term.id)
-          .map((t) => ({ id: `bm-term-${t.id}`, name: t.name })),
         valueBindings: (term.valueBindings || []).map((b) => ({
           mode: vbMode(b.mode).value,
           field: b.field || "",
@@ -4541,12 +4722,16 @@
     bindTermOnlineFilter();
     formNameEl?.addEventListener("blur", renderTermNameDupHint);
     formNameEl?.addEventListener("input", hideTermNameDupHint);
+    cleanupLegacyVersions();
     ensureFieldMountDemoTerms();
     ensureAskDemoTerms();
+    /* 术语中心里所有下拉统一支持搜索：静态下拉在注入完成后一次性升级，
+       值域绑定等动态重绘的下拉在各自渲染函数里升级 */
     ensureFormEnhance();
+    initSearchableSelects();
     ensureSimDialog();
     syncSimEntryLabel();
-    /* 术语变更即下发语义桥：智能消费端应用侧才能拿到最新的类型 / 值域 / 层级 / 上下线状态 */
+    /* 术语变更即下发语义桥：智能消费端应用侧才能拿到最新的类型 / 值域 / 上下线状态 */
     try {
       global.addEventListener("biz-terms-updated", (event) => {
         pushTermsToBridge(Array.isArray(event.detail) ? event.detail : terms);
@@ -4750,11 +4935,20 @@
         });
         const items = terms
           .filter((t) => idSet.has(t.id))
-          .map((t) => ({
-            id: t.id,
-            name: t.name,
-            assets: recommendAssetsForTerm(t, assets, types),
-          }));
+          .map((t) => {
+            /* candidates：该术语在勾选类型内可挂的全部资源（排除已挂载），供弹窗里手动追加 */
+            const existing = new Set((t.mounts || []).map((m) => m.key));
+            const want = new Set((types || []).filter(Boolean));
+            const candidates = assets.filter(
+              (asset) => !existing.has(asset.key) && (!want.size || want.has(asset.type))
+            );
+            return {
+              id: t.id,
+              name: t.name,
+              assets: recommendAssetsForTerm(t, assets, types),
+              candidates,
+            };
+          });
         return { domains, counts, items, total: assets.length };
       },
       /* 后台批量关联：按 plan 逐条写入资产挂载，返回本次新增数（已挂过的 key 会跳过） */
