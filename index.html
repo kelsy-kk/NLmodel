@@ -461,6 +461,23 @@
     .glossary-item.is-orphan:hover { background:#fff8ec; color:#b25e09; }
     .glossary-item.is-orphan.active { background:#fff4e5; color:#b25e09; font-weight:500; }
     .glossary-item.is-orphan.active::before { background:#d99028; }
+    /* 批量关联任务执行中的术语库：卡片右侧挂「批量关联中」标记 */
+    .gl-batch-badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 6px;
+      padding: 1px 7px;
+      border: 1px solid #bcd9ff;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1677d2;
+      font-size: 11px;
+      line-height: 1.6;
+      white-space: nowrap;
+    }
+    .gl-batch-badge .term-link-job-spin { width: 10px; height: 10px; border-width: 1.5px; }
     .glossary-item-count { flex:0 0 auto; margin-left:8px; padding:0 6px; border-radius:9px; background:#f2f4f7; color:#667085; font-size:11px; line-height:16px; }
     /* 术语库目录多选：勾选框 + 底部操作条 */
     .glossary-multi-toggle { height:22px;padding:0 8px;border:1px solid #dfe5ee;border-radius:4px;background:#fff;color:#667085;font-size:12px;cursor:pointer; }
@@ -678,14 +695,18 @@
     .term-batch-types {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
     }
 
     .term-batch-type {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
+      /* 五个类型横向铺满一行：等分宽度 */
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 3px;
+      padding: 10px 14px;
       border: 1px solid #e4e7ec;
       border-radius: 6px;
       background: #fff;
@@ -694,8 +715,16 @@
       user-select: none;
     }
     .term-batch-type:hover { border-color: #9dc4ff; background: #fafcff; }
+    /* 首行：复选框与类型名称同一行 */
+    .term-batch-type-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.35;
+    }
+    .term-batch-type-head > b { font-size: 13px; font-weight: 600; }
     /* 提高特异性覆盖 .term-form-field input 的宽度 / 边框 */
-    .term-form-field .term-batch-type > input {
+    .term-form-field .term-batch-type input {
       flex: 0 0 auto;
       margin: 0;
       width: 15px;
@@ -705,11 +734,17 @@
       accent-color: #1677d2;
       cursor: pointer;
     }
-    .term-batch-type > b { font-size: 13px; font-weight: 600; }
-    .term-batch-type > span { font-size: 11.5px; color: #98a2b3; }
+    .term-batch-type-desc {
+      font-size: 11.5px;
+      color: #98a2b3;
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .term-batch-type:has(input:checked) { border-color: #1677d2; background: #f4f9ff; }
-    .term-batch-type:has(input:checked) > b { color: #1677d2; }
-    .term-batch-type:has(input:checked) > span { color: #5a86c9; }
+    .term-batch-type:has(input:checked) .term-batch-type-head > b { color: #1677d2; }
+    .term-batch-type:has(input:checked) .term-batch-type-desc { color: #5a86c9; }
 
     /* 自动推荐开关：与「自动推荐」标签同一行（需覆盖 .term-form-field label 的 block） */
     .term-form-field .term-batch-switch {
@@ -772,34 +807,25 @@
     .term-batch-switch > input:checked + .term-batch-switch-track .term-batch-switch-dot { transform: translateX(18px); }
     .term-batch-switch-text { font-size: 12.5px; color: #344054; }
 
-    /* 说明性提示（非警告），替代黄底 .modal-hint */
-    .term-batch-tip {
-      margin: 8px 0 0;
+    /* 说明性提示：内联在字段标题后面（小号灰字），不再单独占一行 */
+    .term-batch-tip-inline {
+      margin-left: 8px;
       font-size: 11.5px;
+      font-weight: 400;
       color: #98a2b3;
-      line-height: 1.6;
     }
 
-    /* 匹配规则说明 */
-    .term-batch-rules {
-      margin-top: 12px;
-      padding: 10px 14px;
-      border: 1px solid #eef1f5;
-      border-radius: 6px;
-      background: #fbfcfe;
-    }
-    .term-batch-rules-title {
-      margin-bottom: 6px;
+    /* 「关联资源」标题：跟随自动推荐行，不再单独占一行 */
+    .term-batch-preview-label {
+      margin-left: 4px;
       font-size: 12px;
       font-weight: 600;
       color: #344054;
     }
-    .term-batch-rules-list {
-      margin: 0;
-      padding-left: 18px;
-      color: #667085;
-      font-size: 11.5px;
-      line-height: 1.85;
+
+    /* 「自动推荐」行里的问号：悬停展示匹配规则气泡 */
+    .term-batch-autorow .td-help-pop {
+      width: 360px;
     }
 
     .term-batch-scope {
@@ -827,23 +853,51 @@
       display: flex;
       align-items: flex-start;
       gap: 14px;
-      padding: 9px 2px;
-      font-size: 12.5px;
+      padding: 9px 8px;
+      border-radius: 4px;
       border-bottom: 1px dashed #edf0f4;
+      font-size: 12.5px;
+      transition: background 0.15s ease;
     }
     .term-batch-row:last-child { border-bottom: 0; }
     .term-batch-row.is-off { opacity: 0.45; }
-    .term-batch-row > label {
-      flex: 0 0 auto;
+    /* 勾选即高亮：术语背书浅蓝底 + 加粗，取消勾选后回落为灰 */
+    .term-batch-row.is-on { background: #f4f9ff; }
+    .term-form-field .term-batch-row.is-on > label { color: #1677d2; font-weight: 600; }
+    .term-batch-row.is-on:not(.is-off) { box-shadow: inset 2px 0 0 #1677d2; }
+    /* 特异性高于后置的 .term-form-field label（display:block 会把 gap 打没），
+       保证 label 保持 flex：复选框与术语名同行、间距受 gap 控制 */
+    .term-form-field .term-batch-row > label {
+      /* 固定宽度 + 名称单行省略：复选框始终与术语名在同一行并垂直居中 */
+      flex: 0 0 192px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      min-width: 148px;
+      gap: 14px;
+      margin-bottom: 0;
       color: #344054;
       font-size: 12.5px;
-      line-height: 1.4;
+      line-height: 20px;
     }
-    .term-batch-row > label input { margin: 0; }
+    .term-form-field .term-batch-row > label input {
+      flex: 0 0 auto;
+      margin: 0;
+      /* 抵消弹窗 .term-form-field input 的 padding/border/box-sizing：
+         否则 16px 盒子被 8px 10px 的内边距撑爆，勾选图形溢出盖住术语名 */
+      padding: 0;
+      border: 0;
+      box-sizing: content-box;
+      width: 16px;
+      height: 16px;
+      accent-color: #1677d2;
+      cursor: pointer;
+    }
+    .term-batch-term-name {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .term-batch-assets { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; align-items: center; }
     .term-batch-chip {
       display: inline-flex;
@@ -985,6 +1039,14 @@
       font-size: 13px;
     }
     .batch-lock-card.is-side { padding: 8px 12px; font-size: 12px; }
+    /* 纵向卡片：标题（含进度）+ 副说明两行 */
+    .batch-lock-card.is-column {
+      flex-direction: column;
+      gap: 4px;
+      max-width: 420px;
+      text-align: center;
+    }
+    .batch-lock-card.is-column > span:not(.term-link-job-spin) { font-size: 12px; color: #667085; }
     .batch-lock-lock { font-size: 13px; }
 
     .tree {
@@ -5935,6 +5997,7 @@
 
     /* 术语列表：名称左对齐、类型标签整体靠右，名称过长时省略号截断 */
     .term-table tbody td.col-term-name .term-name-cell {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -5952,6 +6015,46 @@
     .term-table .term-name-cell .term-conflict-flag {
       flex: 0 0 auto;
       margin-left: 0;
+    }
+
+    /* 需求：有子术语的术语以树状表格展示 —— 展开箭头 + 层级缩进（参考经典树状表格 UI）。
+       箭头绝对定位悬挂在名称左侧的缩进格内，不占名称位置：
+       一级术语的名称全部左对齐，术语名称始终保持同一列 */
+    .term-tree-toggle {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border: 0;
+      border-radius: 3px;
+      background: transparent;
+      color: #475467;
+      font-size: 9px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .term-tree-toggle:hover { background: #e8f3ff; color: #1677d2; }
+    .term-tree-toggle.is-leaf { visibility: hidden; cursor: default; }
+    .term-tree-toggle.is-collapsed { color: #1677d2; }
+    /* 树状表格斑马纹：偶数行淡蓝底，选中行 / 悬停行除外 */
+    .term-table tbody tr:nth-child(even):not(.is-selected) td { background-color: #f6f9fd; }
+    .term-table tbody tr:not(.is-selected):hover td { background-color: #eef5ff; }
+    /* 层级对齐线：每一层一条竖线，贯穿整行高度，同一级别一眼可辨 */
+    .term-table tbody td.term-tree-cell {
+      background-image: repeating-linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0) 0 10px,
+        #cfd9e4 10px 11px,
+        rgba(0, 0, 0, 0) 11px 20px
+      );
+      background-repeat: no-repeat;
+      background-position: 6px 0;
+      background-size: calc(var(--tree-depth, 0) * 20px) 100%;
     }
 
     /* 详情页：名称 / 同义词校验冲突块（橙色，与「通用知识」蓝块区分） */
@@ -8774,11 +8877,11 @@
             <div id="glossaryGraphPanel">
               <div class="glossary-graph-bar">
                 <div class="glossary-graph-stats" id="glossaryGraphStats">术语 0 · 字段 0 · 指标 0 · 模型 0</div>
-                <!-- 需求：挂载状态筛选，默认「已挂载」 -->
+                <!-- 需求：挂载状态筛选，与术语详情「关系图谱」同款 tab，默认「展示全部」 -->
                 <div class="glossary-graph-modes" id="glossaryGraphModes" role="group" aria-label="术语挂载筛选">
-                  <button class="gg-mode" type="button" data-gg-mode="all">展示全部</button>
-                  <button class="gg-mode is-active" type="button" data-gg-mode="mounted">已挂载</button>
-                  <button class="gg-mode" type="button" data-gg-mode="unmounted">无挂载</button>
+                  <button class="gg-mode is-active" type="button" data-gg-mode="all" aria-pressed="true">展示全部</button>
+                  <button class="gg-mode" type="button" data-gg-mode="mounted" aria-pressed="false">已挂载</button>
+                  <button class="gg-mode" type="button" data-gg-mode="unmounted" aria-pressed="false">无挂载</button>
                 </div>
                 <div class="glossary-graph-tools" aria-label="图谱缩放控制">
                   <button type="button" data-gg-zoom="in" title="放大">＋</button>
@@ -9059,6 +9162,13 @@
               <div class="term-form-field">
                 <label for="termFormName">术语名称<span class="required">*</span></label>
                 <input id="termFormName" type="text" placeholder="请输入术语名称" />
+              </div>
+
+              <!-- 需求：术语支持父子层级，创建 / 编辑时设置父术语（候选仅当前术语库内的术语） -->
+              <div class="term-form-field">
+                <label for="termFormParentTerm">父术语</label>
+                <select id="termFormParentTerm" data-placeholder="搜索并选择父术语"></select>
+                <p class="term-enh-hint" id="termFormParentTermHint">仅当前术语库内的术语可选；一个子术语只能挂载一个父术语，可留空作为根术语</p>
               </div>
 
               <div class="term-form-field">
@@ -10105,9 +10215,8 @@
         <!-- 批量设置关联：挂载类型多选 + 自动推荐开关（打开后按所选类型匹配资源），可决定是否立刻后台批量关联 -->
         <div id="catalogBatchMountPanel" hidden>
           <div class="term-form-field">
-            <label>挂载类型<span class="required">*</span></label>
+            <label>挂载类型<span class="required">*</span><span class="term-batch-tip-inline">可多选；自动推荐只在勾选的类型里匹配资源</span></label>
             <div class="term-batch-types" id="catalogBatchMountTypes"></div>
-            <p class="term-batch-tip">可多选；自动推荐只在勾选的类型里匹配资源。</p>
           </div>
           <div class="term-form-field">
             <div class="term-batch-autorow">
@@ -10117,14 +10226,13 @@
                 <span class="term-batch-switch-track"><span class="term-batch-switch-dot"></span></span>
                 <span class="term-batch-switch-text">开启后按所选挂载类型，自动推荐数据域内匹配的资源</span>
               </label>
-            </div>
-            <div class="term-batch-rules">
-              <div class="term-batch-rules-title">匹配规则</div>
-              <ol class="term-batch-rules-list" id="catalogBatchMountRules"></ol>
+              <span class="td-help-dot" tabindex="0" role="button" aria-label="查看自动推荐的匹配规则">?
+                <span class="td-help-pop" id="catalogBatchMountRules"></span>
+              </span>
+              <span class="term-batch-preview-label">关联资源（可逐条调整）</span>
             </div>
           </div>
           <div class="term-form-field" id="catalogBatchMountPreviewField">
-            <label>关联资源（可逐条调整）</label>
             <p class="term-batch-scope" id="catalogBatchMountScope"></p>
             <div class="term-batch-preview" id="catalogBatchMountPreview"></div>
           </div>
@@ -10188,7 +10296,7 @@
   <script src="../shared/semantic-bridge.js?v=2026102301"></script>
   <script src="permission-module.js?v=2026100918"></script>
   <script src="metric-module.js?v=2026102312"></script>
-  <script src="term-module.js?v=2026102334"></script>
+  <script src="term-module.js?v=2026102801"></script>
   <script src="lineage-module.js?v=2026102312"></script>
   <script>
     const embedMode = new URLSearchParams(window.location.search).get("embed");
@@ -10519,7 +10627,7 @@
     window.openTermDeleteModal = openTermDeleteModal;
 
     function renderHeader() { const lv = document.getElementById("listView"); const isTerm = lv?.dataset.activeCatalog === "term"; const a = document.getElementById("glossaryHeaderArea"); const gi = document.getElementById("glossaryHeaderInline"); const hint = document.getElementById("termToolbarHint"); if (!a) return; if (!isTerm) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } const g = getCurG(); const isOrphan = currentGlossaryId === ORPHAN_GLOSSARY_ID; if (!g) { a.hidden = true; if (gi) gi.hidden = true; if (hint) hint.style.display = ""; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = true; return; } a.hidden = false; if (gi) { gi.hidden = false; const ni = document.getElementById("glossaryHeaderNameInline"); if (ni) ni.textContent = g.name; } if (hint) hint.style.display = "none"; const d = document.getElementById("glossaryDescText"); if (d) d.innerHTML = g.description ? g.description : `<span class=\"glossary-desc-empty-text\">暂无描述，点击编辑按钮补充术语库说明。</span>`; const mc = document.getElementById("glossaryMetaCreator"); if (mc) mc.textContent = g.creator || "系统管理员"; const mt = document.getElementById("glossaryMetaCreatedAt"); if (mt) mt.textContent = g.createdAt || "—"; const md = document.getElementById("glossaryMetaDomain"); if (md) md.textContent = g.domain || "—"; if (isOrphan) { const dd = document.getElementById("glossaryDescText"); if (dd) dd.innerHTML = `<span class="glossary-desc-empty-text">这些术语的数据域已没有对应术语库（删除术语库或数据域不在已有库中）。术语本身仍保留在术语资产中：可新建同数据域术语库，或在术语编辑中调整数据域后归入现有术语库。</span>`; const md2 = document.getElementById("glossaryMetaDomain"); if (md2) md2.textContent = "未归属"; } const c = document.getElementById("glossaryTabTermCount"); const cnt = termCount(isOrphan ? ORPHAN_GLOSSARY_ID : g.id); if (c) c.textContent = cnt; const es = document.getElementById("glossaryEmptyState"); if (es) es.hidden = cnt > 0; const tt = document.querySelector("#listCatalogTermPanel .term-table"); if (tt) tt.hidden = cnt === 0; if (isOrphan) { if (window.BizTermUI?.setDomainFilter) window.BizTermUI.setDomainFilter(orphanDomainList()); } else if (g.domain && window.BizTermUI?.setDomainFilter) window.BizTermUI.setDomainFilter(g.domain); }
-    function selectG(id) { currentGlossaryId = id; persistCur(); renderSide(); renderHeader(); }
+    function selectG(id) { currentGlossaryId = id; persistCur(); renderSide(); renderHeader(); /* 切库后同步批量关联锁：离开任务所属库立即解锁右侧，切回重新锁定 */ if (typeof syncBatchMountLock === "function") syncBatchMountLock(); }
     function openGDrawer(mode, id) { const isEdit = mode === "edit"; editingGlossaryId = isEdit ? id || getCurG()?.id || "" : ""; const dr = document.getElementById("glossaryCreateDrawer"); const bd = document.getElementById("drawerBackdrop"); const n = document.getElementById("glossaryCreateName"); const d = document.getElementById("glossaryCreateDesc"); const o = document.getElementById("glossaryCreateDomain"); const hd = dr?.querySelector(".drawer-head span"); if (hd) hd.textContent = isEdit ? "编辑术语库" : "新建术语库"; if (!dr) return; const labels = (window.collectUniqueDomainLabels && window.collectUniqueDomainLabels()) || ["收入管理","成本管理","经营管理","合同管理","工程技术"]; if (o) { o.innerHTML = `<option value=\"\">请选择数据域</option>` + labels.map((x)=>`<option value=\"${x}\">${x}</option>`).join(""); if (!isEdit) o.value = ""; } if (isEdit && editingGlossaryId) { const g = getG(editingGlossaryId); if (n) n.value = g?.name || ""; if (d) d.value = g?.description || ""; if (o && g?.domain) o.value = g.domain; } else { if (n) n.value = ""; if (d) d.value = ""; } dr.hidden = false; if (bd) bd.hidden = false; if (n) setTimeout(()=>n.focus(), 60); }
     function closeGDrawer() { editingGlossaryId = ""; const dr = document.getElementById("glossaryCreateDrawer"); const bd = document.getElementById("drawerBackdrop"); if (dr) dr.hidden = true; if (bd) bd.hidden = true; }
     function saveGDrawer() { const n = (document.getElementById("glossaryCreateName")?.value || "").trim(); const d = (document.getElementById("glossaryCreateDesc")?.value || "").trim(); const o = (document.getElementById("glossaryCreateDomain")?.value || "").trim(); if (!n) { window.alert("请填写术语库名称"); document.getElementById("glossaryCreateName")?.focus(); return; } if (!o) { window.alert("请选择所属数据域"); document.getElementById("glossaryCreateDomain")?.focus(); return; } if (editingGlossaryId) { updateG(editingGlossaryId, { name: n, description: d, domain: o }); selectG(editingGlossaryId); } else { const it = createG({ name: n, description: d, domain: o }); selectG(it.id); } closeGDrawer(); }
@@ -10989,7 +11097,8 @@
         mounted: "当前术语库还没有挂资产的术语，先在「术语」页签挂载字段 / 指标 / 模型。",
         unmounted: "当前术语库已全部挂载资产，暂无「无挂载」术语。",
       };
-      let graphMountMode = "mounted";
+      /* 默认「展示全部」：与术语详情「关系图谱」的 tab 保持一致 */
+      let graphMountMode = "all";
       const graphLegendTypes = new Set();
 
       function syncGraphModeUi() {
@@ -14208,7 +14317,7 @@
 
     /* ===== 批量设置关联：挂载类型多选 → 自动推荐开关 → 匹配结果，可选择是否立刻后台批量关联 ===== */
     const BATCH_ASSET_LABELS = { model: "模型", dataset: "数据集", metric: "指标", dimension: "维度", field: "字段" };
-    let batchMountContext = { ids: [], types: [], items: [], off: new Set(), dropped: new Set() };
+    let batchMountContext = { ids: [], types: [], items: [], off: new Set(), dropped: new Set(), manual: new Map() };
     let batchMountJob = null;
     let batchMountHideTimer = 0;
 
@@ -14220,8 +14329,8 @@
         .map(
           (t) => `
         <label class="term-batch-type" title="${escapeHtml(t.desc)}">
-          <input type="checkbox" data-bm-type="${escapeHtml(t.value)}" />
-          <b>${escapeHtml(t.label)}</b><span>${escapeHtml(t.desc)}</span>
+          <span class="term-batch-type-head"><input type="checkbox" data-bm-type="${escapeHtml(t.value)}" /><b>${escapeHtml(t.label)}</b></span>
+          <span class="term-batch-type-desc">${escapeHtml(t.desc)}</span>
         </label>`
         )
         .join("");
@@ -14264,8 +14373,8 @@
                 .join("")
             : `<span class="term-batch-none">${autoOn ? "未命中推荐，可通过「添加资源」手动追加" : "尚未添加关联资源，可通过「添加资源」选择"}</span>`;
           return `
-          <div class="term-batch-row${item.assets.length ? "" : " is-off"}" data-bm-term="${escapeHtml(item.id)}">
-            <label><input type="checkbox" data-bm-on="1" ${item.assets.length ? "checked" : ""} />${escapeHtml(item.name)}</label>
+          <div class="term-batch-row is-on" data-bm-term="${escapeHtml(item.id)}">
+            <label><input type="checkbox" data-bm-on="1" checked /><span class="term-batch-term-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span></label>
             <div class="term-batch-assets">${chips}${batchMountAddHtml(item.id)}</div>
           </div>`;
         })
@@ -14298,7 +14407,7 @@
       if (!item) return [];
       const used = new Set([
         ...[...(row?.querySelectorAll("[data-bm-asset]") || [])].map((el) => el.dataset.bmAsset || ""),
-        ...(batchMountContext.manual.get(id) || []).map((a) => a.key),
+        ...(batchMountContext.manual?.get(id) || []).map((a) => a.key),
       ]);
       return (item.candidates || []).filter((asset) => !used.has(asset.key));
     }
@@ -14342,13 +14451,14 @@
       const host = row.querySelector(".term-batch-assets");
       const addEl = row.querySelector("[data-bm-add-term]");
       if (!host || !addEl) return;
-      const manual = batchMountContext.manual.get(id) || [];
+      const manual = batchMountContext.manual?.get(id) || [];
       if (manual.some((a) => a.key === asset.key)) return;
       manual.push({ ...asset });
       batchMountContext.manual.set(id, manual);
       addEl.insertAdjacentHTML("beforebegin", batchMountChipHtml(asset));
       row.querySelector(".term-batch-none")?.remove();
       row.classList.remove("is-off");
+      row.classList.add("is-on");
       const box = row.querySelector("[data-bm-on]");
       if (box) {
         box.checked = true;
@@ -14367,6 +14477,7 @@
         const id = row?.dataset.bmTerm || "";
         if (!id) return;
         row.classList.toggle("is-off", !box.checked);
+        row.classList.toggle("is-on", box.checked);
         if (box.checked) batchMountContext.off.delete(id);
         else batchMountContext.off.add(id);
       });
@@ -14385,11 +14496,12 @@
           dropBtn.closest("[data-bm-asset]")?.remove();
           if (id) {
             batchMountContext.dropped.add(`${id}|${key}`);
-            const manual = batchMountContext.manual.get(id) || [];
-            batchMountContext.manual.set(id, manual.filter((a) => a.key !== key));
+            const manual = batchMountContext.manual?.get(id) || [];
+            batchMountContext.manual?.set(id, manual.filter((a) => a.key !== key));
           }
           if (row && !row.querySelector("[data-bm-asset]")) {
             row.classList.add("is-off");
+            row.classList.remove("is-on");
             const box = row.querySelector("[data-bm-on]");
             if (box) box.checked = false;
             /* 行内仍保留「添加资源」入口，可再手动追加，不再禁用勾选 */
@@ -14439,7 +14551,7 @@
       batchMountContext.items.forEach((item) => {
         if (batchMountContext.off.has(item.id)) return;
         const recommended = item.assets.filter((asset) => !batchMountContext.dropped.has(`${item.id}|${asset.key}`));
-        const assets = [...recommended, ...(batchMountContext.manual.get(item.id) || [])];
+        const assets = [...recommended, ...(batchMountContext.manual?.get(item.id) || [])];
         if (!assets.length) return;
         entries.push({ id: item.id, name: item.name, assets });
         assetTotal += assets.length;
@@ -14463,9 +14575,11 @@
       renderBatchMountPreview(ids, types);
     }
 
-    /* 任务执行期间：术语列表区 + 左侧术语库侧栏整体锁定 */
+    /* 任务执行期间：只锁定右侧内容区（当前术语库的操作不可用）；
+       左侧术语库目录保持可用 —— 用户可切换术语库做其它操作，
+       正在执行任务的那个术语库由 side badge 标记出来 */
     function lockBatchMountTargets(locked) {
-      const targets = [listViewEl, document.getElementById("glossarySideContent")];
+      const targets = [listViewEl];
       targets.forEach((el) => {
         if (!el) return;
         if (!locked) {
@@ -14476,27 +14590,80 @@
         if (!el.querySelector(":scope > .batch-lock-mask")) {
           const mask = document.createElement("div");
           mask.className = "batch-lock-mask";
-          mask.innerHTML =
-            el === listViewEl
-              ? `<div class="batch-lock-card"><span class="term-link-job-spin" aria-hidden="true"></span><strong>批量关联资产任务执行中</strong><span id="batchLockProgress">正在处理 0 条术语</span></div>`
-              : `<div class="batch-lock-card is-side"><span class="batch-lock-lock">🔒</span><span>批量关联中，术语库暂不可操作</span></div>`;
+          /* 唯一提示：进度 + 可切库说明都放在遮罩卡片里，顶部任务条只用于完成提示 */
+          mask.innerHTML = `<div class="batch-lock-card is-column"><span class="term-link-job-spin" aria-hidden="true"></span><strong>批量关联资产任务执行中<span id="batchLockProgress">（正在处理 0 条术语）</span></strong><span>当前术语库暂不可操作，可在左侧切换其它术语库继续操作</span></div>`;
           el.appendChild(mask);
         }
         el.classList.add("is-batch-locked");
       });
     }
 
+    /* ==== 左侧术语库卡片上的「批量关联中」标记 ==== */
+    let paintingBatchBadge = false;
+
+    function batchMountGlossaryId() {
+      /* 浏览器环境只有 window，没有 Node 的 global */
+      return String(window.GlossaryUI?.getCurG?.()?.id || "");
+    }
+
+    function paintBatchMountSideBadge() {
+      if (paintingBatchBadge) return;
+      paintingBatchBadge = true;
+      try {
+        const list = document.getElementById("glossaryList");
+        if (!list) return;
+        list.querySelectorAll("[data-glossary-id]").forEach((li) => {
+          const running = Boolean(batchMountJob) && li.dataset.glossaryId === batchMountJob.glossaryId;
+          li.classList.toggle("is-batch-running", running);
+          let badge = li.querySelector(".gl-batch-badge");
+          if (!running) {
+            badge?.remove();
+            return;
+          }
+          if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "gl-batch-badge";
+            li.appendChild(badge);
+          }
+          badge.innerHTML = `<span class="term-link-job-spin" aria-hidden="true"></span>批量关联中`;
+        });
+      } finally {
+        paintingBatchBadge = false;
+      }
+    }
+
+    /* 切到其它术语库即可正常操作；切回正在执行任务的那个库时右侧重新锁定 */
+    function syncBatchMountLock() {
+      lockBatchMountTargets(Boolean(batchMountJob) && batchMountJob.glossaryId === batchMountGlossaryId());
+      paintBatchMountSideBadge();
+    }
+
+    function initBatchMountSideWatch() {
+      const list = document.getElementById("glossaryList");
+      if (!list || list.dataset.batchWatch === "1") return;
+      list.dataset.batchWatch = "1";
+      /* 侧栏重绘（新增 / 删除 / 重命名术语库）后补回标记；切库锁同步由 selectG 钩子负责 */
+      new MutationObserver(paintBatchMountSideBadge).observe(list, { childList: true });
+    }
+
     function showBatchMountJob(text, loading) {
       if (!termBatchMountJobEl) return;
       window.clearTimeout(batchMountHideTimer);
-      termBatchMountJobEl.hidden = false;
+      /* 执行中的进度只显示在内容区遮罩卡片上（loading 时隐藏顶部条）；
+         顶部任务条只在任务完成时出现一次，避免两处提示重复 */
+      termBatchMountJobEl.hidden = Boolean(loading);
       termBatchMountJobEl.classList.toggle("is-done", !loading);
       if (termBatchMountJobTextEl) termBatchMountJobTextEl.textContent = text;
     }
 
     function updateBatchMountProgress() {
-      const el = document.getElementById("batchLockProgress");
-      if (el && batchMountJob) el.textContent = `正在处理 ${batchMountJob.index}/${batchMountJob.entries.length} 条术语`;
+      if (!batchMountJob) return;
+      const progress = `正在处理 ${batchMountJob.index}/${batchMountJob.entries.length} 条术语`;
+      const maskEl = document.getElementById("batchLockProgress");
+      if (maskEl) maskEl.textContent = `（${progress}）`;
+      if (termBatchMountJobTextEl) {
+        termBatchMountJobTextEl.textContent = `批量关联资产任务执行中：${batchMountJob.index}/${batchMountJob.entries.length} 条术语`;
+      }
     }
 
     function startBatchMountJob(entries) {
@@ -14504,8 +14671,10 @@
         setTip("已有批量关联资产任务在执行，请等待其完成");
         return;
       }
-      batchMountJob = { entries, index: 0, mounted: 0 };
+      batchMountJob = { entries, index: 0, mounted: 0, glossaryId: batchMountGlossaryId() };
+      initBatchMountSideWatch();
       lockBatchMountTargets(true);
+      paintBatchMountSideBadge();
       showBatchMountJob(`批量关联资产任务执行中：0/${entries.length} 条术语`, true);
       updateBatchMountProgress();
       window.setTimeout(stepBatchMountJob, 320);
@@ -14532,6 +14701,13 @@
       const { entries, mounted } = batchMountJob || { entries: [], mounted: 0 };
       batchMountJob = null;
       lockBatchMountTargets(false);
+      paintBatchMountSideBadge();
+      /* 已打开的术语详情要跟着刷新，否则详情页看不到本轮批量写入的资产 */
+      try {
+        window.BizTermUI?.refreshTermDetail?.();
+      } catch (_err) {
+        /* 详情未打开，忽略 */
+      }
       const message = mounted
         ? `批量关联资产任务完成：已为 ${entries.length} 条术语新增 ${mounted} 个资产挂载`
         : `批量关联资产任务完成：所选资产此前均已挂载，无新增`;
@@ -14554,11 +14730,6 @@
         setTip("请至少选择一个挂载类型");
         return;
       }
-      const autoOn = Boolean(catalogBatchMountAutoEl?.checked);
-      if (!autoOn) {
-        setTip("请先开启「自动推荐」，由系统按所选挂载类型匹配资源后再关联");
-        return;
-      }
       const plan = collectBatchMountPlan();
       const runNow = Boolean(catalogBatchMountRunEl?.checked);
       const labels = (window.BizTermUI?.getMountTypeOptions?.() || [])
@@ -14571,8 +14742,15 @@
         return;
       }
       if (runNow) {
+        try {
+          startBatchMountJob(plan.entries);
+        } catch (err) {
+          /* 兜底：任务启动失败要给出提示，避免点了确定却毫无反应 */
+          window.console?.error?.("[批量关联] 启动失败", err);
+          setTip(`批量关联任务启动失败：${err?.message || err}`);
+          return;
+        }
         setTip(`已按挂载类型「${typeText}」匹配 ${plan.assetTotal} 个资源，后台批量关联任务已启动`);
-        startBatchMountJob(plan.entries);
         return;
       }
       setTip(
@@ -14610,14 +14788,16 @@
         if (catalogBatchHintEl) catalogBatchHintEl.textContent = `已选择 ${selected.count} 条术语，按挂载类型匹配该数据域下的资源`;
         fillBatchMountTypes();
         bindBatchMountPreview();
-        if (catalogBatchMountRunEl) catalogBatchMountRunEl.checked = false;
-        if (catalogBatchMountAutoEl) catalogBatchMountAutoEl.checked = false;
+        /* 默认勾选：确定后立刻启动后台批量关联（执行期间该术语库不可操作） */
+        if (catalogBatchMountRunEl) catalogBatchMountRunEl.checked = true;
+        if (catalogBatchMountAutoEl) catalogBatchMountAutoEl.checked = true;
         /* 匹配规则原文由 term-module 提供，保证与推荐算法一致 */
         if (catalogBatchMountRulesEl) {
           const rules = window.BizTermUI?.getBatchMatchRules?.() || [];
-          catalogBatchMountRulesEl.innerHTML = rules.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("");
+          catalogBatchMountRulesEl.innerHTML =
+            `<b>匹配规则</b><ul>${rules.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("")}</ul>`;
         }
-        batchMountContext = { ids: [...selected.ids], types: [], items: [], off: new Set(), dropped: new Set() };
+        batchMountContext = { ids: [...selected.ids], types: [], items: [], off: new Set(), dropped: new Set(), manual: new Map() };
         syncBatchMountAuto();
         if (catalogBatchOverlayEl) catalogBatchOverlayEl.hidden = false;
         return;

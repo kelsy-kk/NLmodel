@@ -2,7 +2,9 @@
  * 业务建模 · 术语设置（导入 / 上线 / 详情）
  */
 (function (global) {
-  const STORAGE_KEY = "biz-modeling-terms-v3";
+  /* 需求：默认列表数据已固化，存储键升到 v4 —— 让已有环境也统一加载这份固定数据
+     （v3 不再用于读取，旧的随机 seed 数据随即失效，避免刷新后又变成另一份随机数据） */
+  const STORAGE_KEY = "biz-modeling-terms-v4";
   const FIELD_TERM_KEY = "biz-modeling-field-terms-v1";
   const FIELD_TERM_DISMISS_KEY = "biz-modeling-field-term-dismiss-v1";
   const DEFAULT_PROJECT = "pmlead-市场指标";
@@ -28,6 +30,166 @@
     { name: "订单金额", synonyms: "销售额, 营收", description: "订单实际成交金额，可按区域、月份等维度聚合。", domain: "收入管理" },
     { name: "签订日期", synonyms: "签约日期, 合同日期", description: "合同正式签订的日期，用于合同类指标统计。", domain: "收入管理" },
     { name: "成本金额", synonyms: "成本合计, 归集成本", description: "按权责归集的项目成本金额，内部往来不计入。", domain: "成本管理" },
+  ];
+
+  /* 需求：列表页数据固化 —— 默认数据固定写死（含父子层级示例），
+     不再随机抽取，保证每次打开 / 刷新看到的都是同一份数据；
+     用户后续的新建 / 编辑 / 挂载依旧写入 localStorage，刷新后仍然在 */
+  const DEFAULT_TERMS = [
+    {
+      id: "term-demo-month-a1",
+      name: "统计月-孙项A1",
+      parentTermId: "term-demo-month-a",
+      domains: ["收入管理"],
+      synonyms: "",
+      description: "树状层级示例",
+      online: true,
+      creator: "当前用户",
+      createdAt: "2026-10-28 17:03",
+      project: DEFAULT_PROJECT,
+      modelNames: [],
+      mounts: [],
+    },
+    {
+      id: "term-demo-month-b",
+      name: "统计月-子项B",
+      parentTermId: "term-demo-month",
+      domains: ["收入管理"],
+      synonyms: "",
+      description: "树状层级示例",
+      online: true,
+      creator: "当前用户",
+      createdAt: "2026-10-28 17:02",
+      project: DEFAULT_PROJECT,
+      modelNames: [],
+      mounts: [],
+    },
+    {
+      id: "term-demo-month-a",
+      name: "统计月-子项A",
+      parentTermId: "term-demo-month",
+      domains: ["收入管理"],
+      synonyms: "",
+      description: "树状层级示例",
+      online: true,
+      creator: "当前用户",
+      createdAt: "2026-10-28 17:01",
+      project: DEFAULT_PROJECT,
+      modelNames: [],
+      mounts: [],
+    },
+    {
+      id: "term-demo-month",
+      name: "统计月份",
+      parentTermId: "",
+      domains: ["收入管理"],
+      synonyms: "月份,账期",
+      description: "按月分组的时间维度",
+      online: true,
+      creator: "当前用户",
+      createdAt: "2026-10-28 16:43",
+      project: DEFAULT_PROJECT,
+      modelNames: [],
+      mounts: [],
+    },
+    {
+      id: "term-demo-contract-total",
+      name: "合同总销售额",
+      parentTermId: "",
+      domains: ["收入管理"],
+      synonyms: "合同销售额",
+      description: "合同金额合计，不含税口径",
+      online: true,
+      creator: "当前用户",
+      createdAt: "2026-10-28 16:43",
+      project: DEFAULT_PROJECT,
+      modelNames: [],
+      mounts: [],
+    },
+    {
+      id: "term-demo-east",
+      name: "华东区",
+      parentTermId: "",
+      domains: ["收入管理"],
+      synonyms: "华东地区",
+      description: "华东大区口径：上海(31)、江苏(32)、浙江(33)、安徽(34)",
+      online: true,
+      creator: "当前用户",
+      createdAt: "2026-10-28 16:43",
+      project: DEFAULT_PROJECT,
+      modelNames: [],
+      mounts: [],
+    },
+    {
+      id: "term-demo-target",
+      name: "目标额",
+      parentTermId: "",
+      domains: ["收入管理"],
+      synonyms: "签约目标, 目标金额",
+      description: "合同签约目标金额合计。",
+      online: true,
+      creator: "管理员",
+      createdAt: "2026-10-18 08:15",
+      project: DEFAULT_PROJECT,
+      modelNames: ["收入字段术语挂载模型"],
+      mounts: [],
+    },
+    {
+      id: "term-demo-contract-amount",
+      name: "合同额",
+      parentTermId: "",
+      domains: ["收入管理"],
+      synonyms: "合同金额, 签约额",
+      description: "统计周期内签订的合同总金额，按签订日期归属。",
+      online: true,
+      creator: "管理员",
+      createdAt: "2026-09-24 12:46",
+      project: DEFAULT_PROJECT,
+      modelNames: ["收入字段术语挂载模型"],
+      mounts: [],
+    },
+    {
+      id: "term-demo-sales-qty",
+      name: "销售量",
+      parentTermId: "",
+      domains: ["经营管理"],
+      synonyms: "销量, 销售数量",
+      description: "商品销售的总数量，通常按门店与产品种类汇总。",
+      online: true,
+      creator: "管理员",
+      createdAt: "2026-09-14 13:07",
+      project: DEFAULT_PROJECT,
+      modelNames: [],
+      mounts: [],
+    },
+    {
+      id: "term-demo-store-no",
+      name: "门店编号",
+      parentTermId: "",
+      domains: ["经营管理"],
+      synonyms: "门店ID, 店铺编号",
+      description: "门店唯一标识，用于关联区域与经营数据。",
+      online: false,
+      creator: "管理员",
+      createdAt: "2026-10-21 12:40",
+      project: DEFAULT_PROJECT,
+      modelNames: [],
+      mounts: [],
+    },
+    {
+      id: "term-demo-order-amount",
+      name: "订单金额",
+      parentTermId: "",
+      domains: ["收入管理"],
+      synonyms: "销售额, 营收",
+      description: "订单实际成交金额，可按区域、月份等维度聚合。",
+      online: true,
+      creator: "管理员",
+      createdAt: "2026-10-11 17:29",
+      project: DEFAULT_PROJECT,
+      modelNames: ["收入字段术语挂载模型"],
+      mounts: [],
+    },
   ];
 
   const FIELD_MOUNT_DEMO_TERMS = [
@@ -193,6 +355,11 @@
     } catch (_err) {
       /* ignore */
     }
+  }
+
+  /* 默认数据：固定写死的列表内容（含父子层级），每次打开 / 刷新都一致 */
+  function defaultTerms(fallbackDomains = [], project = DEFAULT_PROJECT) {
+    return DEFAULT_TERMS.map((item) => normalizeTerm({ ...item }, fallbackDomains, project));
   }
 
   function seedTerms(fallbackDomains = [], project = DEFAULT_PROJECT) {
@@ -644,8 +811,47 @@
 
     const currentProject = () => getCurrentProject() || DEFAULT_PROJECT;
 
-    let terms = readTerms(domainLabels(), currentProject()) || seedTerms(domainLabels(), currentProject());
+    /* 需求：优先读 localStorage（用户改动持久保留）；没有数据时用固定的默认列表内容，
+       不再走随机 seedTerms，保证每次打开 / 刷新看到的都是同一份数据 */
+    let terms = readTerms(domainLabels(), currentProject()) || defaultTerms(domainLabels(), currentProject());
     writeTerms(terms);
+    /* 需求：数据自愈 —— 每次启动都把旧键（v3 / v2 / v1）里缺的术语并入当前键（按 id、
+       名称 + 数据域双重去重），再把当前全量回写到旧键。
+       这样即使有旧的缓存脚本只认 v3，或多标签页交替写入，两边数据始终一致，
+       不会出现「刷新一次回来、再刷新又不见」 */
+    (function syncLegacyTerms() {
+      const LEGACY_KEYS = ["biz-modeling-terms-v3", "biz-modeling-terms-v2", "biz-modeling-terms-v1"];
+      try {
+        const seenIds = new Set(terms.map((item) => item.id));
+        const seenNames = new Set(terms.map((item) => `${item.name}|${(item.domains || []).join(",")}`));
+        const merged = terms.slice();
+        let restored = 0;
+        LEGACY_KEYS.forEach((key) => {
+          const raw = localStorage.getItem(key);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return;
+          parsed.forEach((item) => {
+            if (!item || !item.id || !item.name) return;
+            if (seenIds.has(item.id)) return;
+            const nameKey = `${item.name}|${(item.domains || []).join(",")}`;
+            if (seenNames.has(nameKey)) return;
+            seenIds.add(item.id);
+            seenNames.add(nameKey);
+            merged.push(normalizeTerm(item, domainLabels(), currentProject()));
+            restored += 1;
+          });
+        });
+        if (restored) {
+          terms = merged;
+          writeTerms(terms);
+        }
+        /* 回写旧键：仍在使用旧脚本的标签页也能读到完整数据 */
+        localStorage.setItem("biz-modeling-terms-v3", JSON.stringify(terms));
+      } catch (_err) {
+        /* ignore */
+      }
+    })();
     /* 需求：关系图谱演示种子 —— 无任何字段挂载时，按「模型字段名 = 术语名」补挂术语，并给术语补生效模型，使图谱可直接演示 */
     (function seedGraphFieldRelations() {
       try {
@@ -1201,7 +1407,7 @@
       const canAccessDomain = global.PermissionModule?.canAccessDomain || global.DataScope?.canAccessDomain;
       const project = (document.getElementById("projectFilterSelect")?.value || "pmlead-市场指标").trim();
       const filterDomains = domainFilterList();
-      return terms.filter((item) => {
+      const matched = terms.filter((item) => {
         if (canAccessDomain) {
           const domains = termDomainList(item);
           if (domains.length && !domains.some((d) => canAccessDomain(d, { project }))) return false;
@@ -1214,6 +1420,19 @@
           String(item[field] ?? "").toLowerCase().includes(keyword)
         ) || termModelList(item).some((name) => name.toLowerCase().includes(keyword));
       });
+      /* 需求：列表按创建时间从高到低（最新创建在前）；
+         树状列表下同一层级内的兄弟节点同样按此顺序排列 */
+      return matched.sort((a, b) => termCreatedTime(b) - termCreatedTime(a));
+    }
+
+    /* 创建时间转时间戳，兼容「2026-10-28 15:22」等格式 */
+    function termCreatedTime(item) {
+      const raw = String(item?.createdAt || "").trim();
+      if (!raw) return 0;
+      const parsed = Date.parse(raw.replace(/-/g, "/"));
+      if (!Number.isNaN(parsed)) return parsed;
+      const fallback = Date.parse(raw);
+      return Number.isNaN(fallback) ? 0 : fallback;
     }
 
     function syncSelectionUi() {
@@ -1241,6 +1460,121 @@
         : '<span class="online-tag is-offline">未上线</span>';
     }
 
+    /* ===== 需求：术语父子层级（一个子术语只挂一个父术语 / 列表树状展示） ===== */
+    /* 记录「被手动收起」的父术语；默认为空 = 全部展开 */
+    const collapsedTermIds = new Set();
+
+    /* 父术语候选只加载当前术语库的内容 */
+    function libraryTerms() {
+      let g = null;
+      try {
+        g = global.GlossaryUI?.getCurG?.() || null;
+      } catch (_err) {
+        g = null;
+      }
+      if (!g) return terms.slice();
+      const domain = String(g.domain || "").trim();
+      if (!domain) return terms.slice();
+      return terms.filter((item) => termHasDomain(item, domain));
+    }
+
+    /* 某术语的全部后代 id：用于父术语候选排除自身与自身后代，避免父子成环 */
+    function termDescendantIds(id) {
+      const result = new Set();
+      if (!id) return result;
+      let guard = 0;
+      const walk = (pid) => {
+        terms.forEach((item) => {
+          if (guard > 500) return;
+          if (item.parentTermId !== pid || item.id === id || result.has(item.id)) return;
+          guard += 1;
+          result.add(item.id);
+          walk(item.id);
+        });
+      };
+      walk(id);
+      return result;
+    }
+
+    /* 父术语链路文案：祖父 / 父，便于下拉里区分同名术语 */
+    function parentTermChainLabel(item) {
+      const chain = [];
+      let cur = item;
+      let guard = 0;
+      while (cur?.parentTermId && guard < 20) {
+        const parent = terms.find((t) => t.id === cur.parentTermId);
+        if (!parent) break;
+        chain.unshift(parent.name);
+        cur = parent;
+        guard += 1;
+      }
+      return chain.join(" / ");
+    }
+
+    /* 父术语下拉：仅当前术语库内的术语，排除自身与自身后代 */
+    function renderParentTermOptions(selectedId = "") {
+      const select = document.getElementById("termFormParentTerm");
+      if (!select) return;
+      const exclude = new Set();
+      if (editingId) {
+        exclude.add(editingId);
+        termDescendantIds(editingId).forEach((id) => exclude.add(id));
+      }
+      const list = libraryTerms()
+        .filter((item) => !exclude.has(item.id))
+        .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "zh-Hans-CN"));
+      const options = [`<option value="">无（作为根术语）</option>`];
+      list.forEach((item) => {
+        const chain = parentTermChainLabel(item);
+        options.push(
+          `<option value="${escapeHtml(item.id)}">${escapeHtml(chain ? `${chain} / ${item.name}` : item.name)}</option>`
+        );
+      });
+      select.innerHTML = options.join("");
+      select.value = selectedId && list.some((item) => item.id === selectedId) ? selectedId : "";
+      /* 需求：父术语列表支持输入搜索（复用可搜索下拉：输入即过滤，选中回写 select.value） */
+      makeSelectSearchable(select);
+      refreshSearchableSelect(select);
+    }
+
+    /* 把当前筛选结果整理成树状行：父行紧随其子行；默认展开，收起时跳过其子孙 */
+    function buildTermTreeRows(items) {
+      const visible = new Set(items.map((item) => item.id));
+      const childrenMap = new Map();
+      const roots = [];
+      items.forEach((item) => {
+        const pid =
+          item.parentTermId && item.parentTermId !== item.id && visible.has(item.parentTermId) ? item.parentTermId : "";
+        if (!pid) {
+          roots.push(item);
+          return;
+        }
+        if (!childrenMap.has(pid)) childrenMap.set(pid, []);
+        childrenMap.get(pid).push(item);
+      });
+      const rows = [];
+      const seen = new Set();
+      /* hidden = 祖先被收起：仍标记 seen（避免兜底逻辑把它们补回），但不输出行 */
+      const walk = (list, depth, hidden) => {
+        list.forEach((item) => {
+          if (seen.has(item.id)) return;
+          seen.add(item.id);
+          const kids = childrenMap.get(item.id) || [];
+          const collapsed = collapsedTermIds.has(item.id);
+          if (!hidden) rows.push({ term: item, depth, childCount: kids.length, collapsed });
+          if (kids.length) walk(kids, depth + 1, hidden || collapsed);
+        });
+      };
+      walk(roots, 0, false);
+      /* 兜底：异常数据（环）没被走到时按根行展示，避免术语「消失」 */
+      items.forEach((item) => {
+        if (seen.has(item.id)) return;
+        seen.add(item.id);
+        rows.push({ term: item, depth: 0, childCount: 0, collapsed: false });
+      });
+      return rows;
+    }
+
     function render() {
       if (!tableBodyEl) return;
       const keywordRaw = (searchEl?.value || "").trim();
@@ -1259,17 +1593,19 @@
         lastTermFilterKey = filterKey;
         termCurrentPage = 1;
       }
-      const totalPages = Math.max(1, Math.ceil(items.length / TERM_PAGE_SIZE));
+      /* 树状表格：先按父子关系铺平（默认展开，收起的父节点不渲染其子孙），再分页 */
+      const treeRows = buildTermTreeRows(items);
+      const totalPages = Math.max(1, Math.ceil(treeRows.length / TERM_PAGE_SIZE));
       termCurrentPage = Math.min(termCurrentPage, totalPages);
       const startIndex = (termCurrentPage - 1) * TERM_PAGE_SIZE;
-      const pageItems = items.slice(startIndex, startIndex + TERM_PAGE_SIZE);
+      const pageRows = treeRows.slice(startIndex, startIndex + TERM_PAGE_SIZE);
       if (termListMetaEl) {
         const totalEl = termListMetaEl.querySelector(".term-meta-total");
         if (totalEl) totalEl.textContent = String(items.length);
       }
       const termTableEl = document.querySelector("#listCatalogTermPanel .term-table");
       if (termPagerEl) {
-        termPagerEl.hidden = !pageItems.length || Boolean(termTableEl?.hidden);
+        termPagerEl.hidden = !pageRows.length || Boolean(termTableEl?.hidden);
         if (termPagerSummaryEl) termPagerSummaryEl.textContent = `共 ${items.length} 条，每页 ${TERM_PAGE_SIZE} 条`;
         if (termPagerStateEl) termPagerStateEl.textContent = `第 ${termCurrentPage} / ${totalPages} 页`;
         if (termPrevPageBtnEl) termPrevPageBtnEl.disabled = termCurrentPage <= 1;
@@ -1285,17 +1621,23 @@
         `;
       } else {
         const conflictKeys = collectSynonymConflictKeys();
-        tableBodyEl.innerHTML = pageItems
+        tableBodyEl.innerHTML = pageRows
           .map(
-            (item, index) => {
+            (row, index) => {
+              const item = row.term;
               const online = isTermOnline(item);
               /* 需求：列表不再在术语名称右侧打术语类型标签，类型只在详情页展示 */
               const conflictFlag = conflictKeys.has(item.id) ? '<span class="term-conflict-flag" title="该术语的名称/同义词与同一数据域内的其他术语重复，智能消费端应用时可能出现路由歧义，详见术语详情">⚠️</span>' : "";
+              /* 有子术语 → 展开 / 收起箭头：绝对定位挂在名称左侧的缩进格内，
+                 不占据名称位置，一级术语名称全部左对齐、同层术语名称始终同一列 */
+              const toggle = row.childCount
+                ? `<button class="term-tree-toggle${row.collapsed ? " is-collapsed" : ""}" type="button" style="left:${row.depth * 20 + 2}px" data-term-toggle="${item.id}" aria-expanded="${row.collapsed ? "false" : "true"}" title="${row.collapsed ? `展开 ${row.childCount} 个子术语` : `收起 ${row.childCount} 个子术语`}">${row.collapsed ? "▸" : "▾"}</button>`
+                : "";
               return `
-          <tr data-id="${item.id}" class="${item.online === false ? "is-offline" : ""}">
+          <tr data-id="${item.id}" class="${item.online === false ? "is-offline" : ""}" data-depth="${row.depth}">
             <td class="col-check"><input type="checkbox" class="term-row-check" data-id="${item.id}" ${selection.has(item.id) ? "checked" : ""} aria-label="选择行" /></td>
             <td class="col-index">${startIndex + index + 1}</td>
-            <td class="col-text col-term-name"><div class="term-name-cell"><a class="name-link term-name-link" href="#" data-term-action="detail" data-id="${item.id}" title="${escapeHtml(item.name)}">${highlightHtml(item.name, keywordRaw)}</a>${conflictFlag}</div></td>
+            <td class="col-text col-term-name term-tree-cell" style="--tree-depth:${row.depth}"><div class="term-name-cell" style="padding-left:${(row.depth + 1) * 20}px">${toggle}<a class="name-link term-name-link" href="#" data-term-action="detail" data-id="${item.id}" title="${escapeHtml(item.name)}">${highlightHtml(item.name, keywordRaw)}</a>${conflictFlag}</div></td>
             <td class="domain-cell" title="${escapeHtml(item.domain || "")}">${highlightHtml(item.domain || "—", keywordRaw)}</td>
             <td class="col-text" title="${escapeHtml(item.synonyms)}">${highlightHtml(item.synonyms || "—", keywordRaw)}</td>
             <td class="col-text-wide" title="${escapeHtml(item.description)}">${highlightHtml(item.description || "—", keywordRaw)}</td>
@@ -1357,6 +1699,8 @@
       else hideDomainInheritHint("termFormDomainInheritHint");
       /* 智能消费端应用增强：注入值域绑定区块并反显（上级术语已移除） */
       ensureFormEnhance();
+      /* 需求：父术语候选只加载当前术语库内容，并反显当前术语的父术语 */
+      renderParentTermOptions(item?.parentTermId || "");
       /* 需求：术语用途已移除，一律按业务资产维护 */
       formTermKind = "asset";
       bindTermFormKind();
@@ -1672,8 +2016,13 @@
         );
         return;
       }
+      /* 需求：父术语层级 —— 一个子术语只能挂一个父术语；不能选自身或自身后代（避免成环） */
+      const parentRaw = document.getElementById("termFormParentTerm")?.value || "";
+      const parentTermId =
+        parentRaw && parentRaw !== editingId && !termDescendantIds(editingId).has(parentRaw) ? parentRaw : "";
       const values = {
         name,
+        parentTermId,
         domains,
         domain: domains.join("、"),
         modelNames,
@@ -1756,6 +2105,10 @@
       const removed = terms.filter((item) => idSet.has(item.id));
       if (!removed.length) return;
       terms = terms.filter((item) => !idSet.has(item.id));
+      /* 父术语被删除后，其子术语回到根层级，避免出现悬挂的 parentTermId */
+      terms.forEach((item) => {
+        if (item.parentTermId && idSet.has(item.parentTermId)) item.parentTermId = "";
+      });
       ids.forEach((id) => selection.delete(id));
       writeTerms(terms);
       render();
@@ -1966,6 +2319,8 @@
       /* 进入详情时刷新一次数据快照，之后 tab 切换复用同一份计算结果 */
       detailMountsRenderedKey = "";
       detailLineageRenderedKey = "";
+      /* 每次进入详情，关系图谱的展示 tab 回到默认「展示全部」 */
+      detailGraphMode = "all";
       bumpDetailCache();
       ["listView", "modelView", "metricEditView"].forEach((id) => {
         const el = document.getElementById(id);
@@ -2231,19 +2586,90 @@
         .join("");
     }
 
+    /* 术语详情图谱的展示 tab：与术语库「关系图谱」完全同款（同文案、同样式、同顺序），
+       默认同样为「展示全部」——两个图谱保持一致 */
+    const DETAIL_GRAPH_MODES = [
+      { value: "all", label: "展示全部", empty: "该术语尚未挂载指标 / 字段等资产" },
+      { value: "mounted", label: "已挂载", empty: "该术语暂无已建立挂载关系的资产" },
+      { value: "unmounted", label: "无挂载", empty: "该术语数据域下的候选资产都已挂载，暂无可挂载节点" },
+    ];
+    let detailGraphMode = "all";
+    /* 「无挂载」候选节点数上限，避免候选过多把图撑爆 */
+    const DETAIL_UNMOUNT_LIMIT = 6;
+
+    /* 该术语尚未挂载的候选资产：取所属数据域下的模型 / 字段 / 指标，排除已挂载与反向关联的 */
+    function detailUnmountedAssets(term) {
+      const mountedNames = new Set((term.mounts || []).map((m) => String(m.name || "")));
+      const linkedNames = new Set([
+        ...getLinkedMetrics(term.id).map((m) => m.name),
+        ...getLinkedFields(term.id).map((f) => f.fieldEn),
+      ]);
+      const ownedModels = new Set(termModelList(term));
+      const domains = new Set(termDomainList(term));
+      const models = listBusinessModels().filter((model) => !domains.size || domains.has(model.domain || ""));
+      const modelNames = [];
+      const fields = [];
+      models.forEach((model) => {
+        const name = model.name;
+        if (!mountedNames.has(name) && !ownedModels.has(name) && modelNames.length < DETAIL_UNMOUNT_LIMIT) {
+          modelNames.push(name);
+        }
+        (model.fieldNames || []).forEach((fieldName) => {
+          if (mountedNames.has(fieldName) || linkedNames.has(fieldName)) return;
+          if (fields.length >= DETAIL_UNMOUNT_LIMIT) return;
+          fields.push({ key: `${name}|${fieldName}`, modelName: name, field: fieldName, termIds: [term.id] });
+        });
+      });
+      const metrics = (global.MetricModule?.readMetrics?.() || [])
+        .filter(
+          (metric) =>
+            (!domains.size || domains.has(metric.domain || "")) &&
+            !mountedNames.has(metric.name) &&
+            !linkedNames.has(metric.name)
+        )
+        .slice(0, DETAIL_UNMOUNT_LIMIT)
+        .map((metric) => ({
+          id: metric.id || metric.name,
+          name: metric.name,
+          code: metric.code || "指标",
+          termIds: [term.id],
+        }));
+      return { fields, metrics, models: modelNames.map((name) => ({ name, via: "term" })) };
+    }
+
     /* 单个术语的图谱数据：与术语库图谱同一结构（模型 | 字段 | 术语 | 指标），
-       保证两个图谱的样式与交互完全一致 */
-    function buildTermGraphData(term) {
+       保证两个图谱的样式与交互完全一致；mode 由详情 tab 控制：
+       all = 全部关联、mounted = 仅已建立挂载关系的、unmounted = 该术语可挂载的候选 */
+    function buildTermGraphData(term, mode = "all") {
+      const current = mode || "all";
+      if (current === "unmounted") {
+        const candidate = detailUnmountedAssets(term);
+        return { terms: [term], fields: candidate.fields, metrics: candidate.metrics, models: candidate.models };
+      }
       const items = collectDetailMountItems(term);
-      const fields = items
+      const manualModels = new Set(
+        items.filter((item) => item.type === "model" && item.source === "manual").map((item) => item.name)
+      );
+      const want = (item) => {
+        if (item.type === "domain") return false;
+        if (current !== "mounted") return true;
+        /* 「已挂载」只保留真正建立了挂载关系的项：手动挂载 + 指标/字段反向关联，
+           排除归属数据域与「生效模型」反推出的模型节点 */
+        if (item.source === "owner") return false;
+        if (item.type === "model") return manualModels.has(item.name);
+        return true;
+      };
+      const picked = items.filter(want);
+      const fields = picked
         .filter((item) => item.type === "field")
         .map((item) => ({ key: `${item.path}|${item.name}`, modelName: item.path || "", field: item.name, termIds: [term.id] }));
-      const metrics = items
+      const metrics = picked
         .filter((item) => item.type === "metric")
         .map((item) => ({ id: item.name, name: item.name, code: item.meta || "指标", termIds: [term.id] }));
       const modelNames = new Set();
-      items.filter((item) => item.type === "model").forEach((item) => modelNames.add(item.name));
-      termModelList(term).forEach((name) => modelNames.add(name));
+      picked.filter((item) => item.type === "model").forEach((item) => modelNames.add(item.name));
+      /* 「已挂载」不再并入 termModelList 的反推，避免把未真正挂载的模型画进来 */
+      if (current !== "mounted") termModelList(term).forEach((name) => modelNames.add(name));
       fields.forEach((field) => field.modelName && modelNames.add(field.modelName));
       return {
         terms: [term],
@@ -2256,11 +2682,16 @@
     function renderDetailLineage(term) {
       if (!detailLineagePanelEl) return;
       /* 同一术语且数据未变更时复用已渲染的图谱，避免每次切 tab 都重建 SVG */
-      const renderKey = `${term.id}@${detailCacheVersion}`;
+      const renderKey = `${term.id}@${detailCacheVersion}@${detailGraphMode}`;
       if (detailLineageRenderedKey === renderKey) return;
+      const modeTabs = DETAIL_GRAPH_MODES.map(
+        (mode) =>
+          `<button class="gg-mode${mode.value === detailGraphMode ? " is-active" : ""}" type="button" data-td-mode="${mode.value}" aria-pressed="${mode.value === detailGraphMode ? "true" : "false"}">${mode.label}</button>`
+      ).join("");
       detailLineagePanelEl.innerHTML = `
         <div class="glossary-graph-bar">
           <div class="glossary-graph-stats" id="termDetailGraphStats">术语 1 · 字段 0 · 指标 0 · 模型 0</div>
+          <div class="glossary-graph-modes" id="termDetailGraphModes" role="group" aria-label="术语挂载筛选">${modeTabs}</div>
           <div class="glossary-graph-legend">
             <span><i class="lg-dot lg-term"></i>术语</span>
             <span><i class="lg-dot lg-field"></i>字段</span>
@@ -2283,8 +2714,24 @@
         </div>
       `;
       detailLineageRenderedKey = renderKey;
+      bindDetailGraphModes();
       /* 画布自带固定画布尺寸，无需等布局，直接同步绘制（rAF 在无头/后台标签页可能不触发） */
       renderDetailGraph(term);
+    }
+
+    /* 详情图谱的展示 tab：切换即按新口径重绘（与术语库 tab 行为一致） */
+    function bindDetailGraphModes() {
+      const panel = detailLineagePanelEl;
+      if (!panel || panel.dataset.modeBound === "1") return;
+      panel.dataset.modeBound = "1";
+      panel.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-td-mode]");
+        const next = btn?.dataset.tdMode;
+        if (!next || next === detailGraphMode) return;
+        detailGraphMode = next;
+        const term = detailTerm();
+        if (term) renderDetailLineage(term);
+      });
     }
 
     function renderDetailGraph(term) {
@@ -2296,11 +2743,12 @@
         svgEl.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#98a2b3" font-size="13">图谱组件未加载</text>';
         return;
       }
-      Canvas.render(svgEl, wrapEl, buildTermGraphData(term), {
+      const modeMeta = DETAIL_GRAPH_MODES.find((m) => m.value === detailGraphMode) || DETAIL_GRAPH_MODES[0];
+      Canvas.render(svgEl, wrapEl, buildTermGraphData(term, modeMeta.value), {
         statsId: "termDetailGraphStats",
         emptyId: "termDetailGraphEmpty",
         zoomAttr: "td-zoom",
-        emptyText: "该术语尚未挂载指标 / 字段等资产",
+        emptyText: modeMeta.empty,
         autoSelect: true,
       });
     }
@@ -2936,7 +3384,7 @@
       input.type = "text";
       input.className = "ssel-input";
       input.autocomplete = "off";
-      input.placeholder = "请选择";
+      input.placeholder = select.dataset.placeholder || "请选择";
       const list = document.createElement("div");
       list.className = "ssel-list";
       list.hidden = true;
@@ -4347,6 +4795,17 @@
       syncSelectionUi();
     });
     tableBodyEl?.addEventListener("click", (event) => {
+      /* 树状表格：展开 / 收起子术语（默认展开，收起状态记在 collapsedTermIds） */
+      const treeToggle = event.target.closest("[data-term-toggle]");
+      if (treeToggle) {
+        event.preventDefault();
+        const id = treeToggle.dataset.termToggle;
+        if (!id) return;
+        if (collapsedTermIds.has(id)) collapsedTermIds.delete(id);
+        else collapsedTermIds.add(id);
+        render();
+        return;
+      }
       const actionBtn = event.target.closest("[data-term-action]");
       if (!actionBtn) return;
       event.preventDefault();
@@ -4950,6 +5409,13 @@
             };
           });
         return { domains, counts, items, total: assets.length };
+      },
+      /* 外部批量写入后刷新已打开的术语详情（例如批量关联任务落库后） */
+      refreshTermDetail() {
+        if (!detailTermId || !detailViewEl || detailViewEl.hidden) return false;
+        bumpDetailCache();
+        renderDetailView();
+        return true;
       },
       /* 后台批量关联：按 plan 逐条写入资产挂载，返回本次新增数（已挂过的 key 会跳过） */
       batchApplyMounts(planMap) {
